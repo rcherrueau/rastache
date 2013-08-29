@@ -1,0 +1,2 @@
+'(
+  (title (lambda () "Bear > Shark")))
