@@ -8,36 +8,43 @@
 (define (parse-template mustache-file)
   (define template (open-input-file mustache-file))
 
-  (define (scan-static pos tokens)
+  (define (scan-static tokens)
     (define open-tag-pos
       (regexp-match-peek-positions open-tag template))
 
-    (case
-        [(false? open-tag-pos)
-         (parse 'end -1 (append tokens (token 'static (port->string template))))]
+    (cond
+        [(not open-tag-pos)
+         (parse 'end (append tokens (list (token 'static (port->string template)))))]
         [else
-         (define content-length (- (first open-tag-pos) pos))
+         (define content-length (car (first open-tag-pos)))
          (define content (make-string content-length))
 
          (read-string! content template 0 content-length)
-         (parse 'tag (second open-tag-pos)
-                (append tokens (token 'static content)))]))
+         (parse 'tag (append tokens (list (token 'static content))))]))
 
-  (define (scan-tag pos tokens)
+  (define (scan-tag tokens)
     (define close-tag-pos
       (regexp-match-peek-positions close-tag template))
 
     (when (not close-tag-pos) (error "Bad syntaxe"))
 
-    (parse 'static (second close-tag-pos)
-           (append tokens (token 'etag "lala"))))
+    (define content-length (- (car (first close-tag-pos)) (string-length open-tag)))
+    (define content (make-string content-length))
+
+    (void (read-string (string-length open-tag) template))
+    (read-string! content template 0 content-length)
+    (void (read-string (string-length close-tag) template))
+    (parse 'static (append tokens (list (token 'etag content)))))
 
 
   ; parse: content tokens -> tokens
-  (define (parse state pos tokens)
-    (case
-      [(eq? state 'static) (scan-static pos tokens)]
-      [(eq? state 'tag) (scan-tag pos tokens)]
+  (define (parse state tokens)
+    (cond
+      [(eq? state 'static) (scan-static tokens)]
+      [(eq? state 'tag) (scan-tag tokens)]
       [else tokens]))
 
-  (parse 'static 0 empty))
+  (parse 'static empty))
+
+(define (display-token token)
+  (format "state: ~a, content: ~a" (token-state token) (token-content token)))
