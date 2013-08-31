@@ -2,7 +2,7 @@
 
 (struct token (sigil content section))
 
-(define (mustache-tokenize mustache-file [open-tag "{{"] [close-tag "}}"])
+(define (tokenize mustache-file [open-tag "{{"] [close-tag "}}"])
   (define template (open-input-file mustache-file))
   (define state-pattern
     (pregexp
@@ -19,39 +19,39 @@
 
 
   (define (scan-static tokens otag ctag)
-    (define open-tag-pos
-      (regexp-match-peek-positions open-tag template))
+    (define otag-pos
+      (regexp-match-peek-positions otag template))
 
     (cond
-        [(not open-tag-pos)
-         (scan 'end
-                (append tokens (list (token 'static
-                                            (port->string template)
-                                            empty)))
-                otag
-                ctag)]
-        [else
-         (define content-length (car (first open-tag-pos)))
-         (define content (make-string content-length))
+     [(not otag-pos)
+      (scan 'end
+            (append tokens (list (token 'static
+                                        (port->string template)
+                                        empty)))
+            otag
+            ctag)]
+     [else
+      (define content-length (car (first otag-pos)))
+      (define content (make-string content-length))
 
-         (read-string! content template 0 content-length)
-         (scan 'tag
-                (append tokens (list (token 'static content empty)))
-                otag
-                ctag)]))
+      (read-string! content template 0 content-length)
+      (scan 'tag
+            (append tokens (list (token 'static content empty)))
+            otag
+            ctag)]))
 
   (define (scan-tag tokens otag ctag)
-    (define close-tag-pos
-      (regexp-match-peek-positions close-tag template))
+    (define ctag-pos
+      (regexp-match-peek-positions ctag template))
 
-    (when (not close-tag-pos) (error "Bad syntaxe"))
+    (when (not ctag-pos) (error "Bad syntaxe"))
 
-    (define content-length (- (car (first close-tag-pos)) (string-length open-tag)))
+    (define content-length (- (car (first ctag-pos)) (string-length otag)))
     (define content (make-string content-length))
 
-    (void (read-string (string-length open-tag) template))
+    (void (read-string (string-length otag) template))
     (read-string! content template 0 content-length)
-    (void (read-string (string-length close-tag) template))
+    (void (read-string (string-length ctag) template))
 
     (define l (regexp-match state-pattern content))
     (define sigil (second l))
@@ -60,21 +60,18 @@
     (case sigil
       [(#f)
        (scan 'static
-              (append tokens (list (token 'etag value empty)))
+             (append tokens (list (token 'etag value empty)))
               otag
               ctag)]
-      [(">" "<")
-       (scan 'static
-              (append tokens (list (token 'partial value) empty))
-              otag
-              ctag)]
+
+      ; Unescaped HTML
       [("{" "&")
        (scan 'static
               (append tokens (list (token 'utag value empty)))
               otag
               ctag)]
-      [("!")
-       (scan 'static tokens otag ctag)]
+
+      ; Section
       [("#")
        (scan 'static
               (append tokens
@@ -83,6 +80,8 @@
                                    (scan 'static empty otag ctag))))
               otag
               ctag)]
+
+      ; Inverted Section
       [("^")
        (scan 'static
               (append tokens
@@ -91,9 +90,30 @@
                                    (scan 'static empty otag ctag))))
               otag
               ctag)]
-      [("/") tokens]))
 
-  ; scan: content tokens -> tokens
+      ; End of (Inverted) Section
+      [("/") tokens]
+
+      ; Comments
+      [("!")
+       (scan 'static tokens otag ctag)]
+
+      ; Partial
+      [(">" "<")
+       (scan 'static
+              (append tokens (list (token 'partial value) empty))
+              otag
+              ctag)]
+
+      ; Set delimiters
+      [("=")
+       (define ll (string-split value))
+       (define new-otag (first ll))
+       (define new-ctag (substring (second ll)
+                                   0
+                                   (sub1 (string-length (second ll)))))
+       (scan 'static tokens new-otag new-ctag)]))
+
   (define (scan state tokens otag ctag)
     (cond
       [(eq? state 'static) (scan-static tokens otag ctag)]
