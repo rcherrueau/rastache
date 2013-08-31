@@ -27,7 +27,7 @@
 (void (map
  (lambda (bench-id)
    (define template-file (string-append "test/examples/" bench-id ".html"))
-   (define tokens (parse-template template-file))
+   (define tokens (tokenize template-file))
 
    (displayln (format "== Tokens for ~a==" bench-id))
    (map display-token tokens))
