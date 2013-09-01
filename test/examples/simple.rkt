@@ -1,5 +1,4 @@
-'(
-  (name "Chris")
+'((name "Chris")
   (value 10000)
   (taxed_value (lambda (self)
                  (define val (self-value self))
