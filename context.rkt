@@ -1,55 +1,56 @@
 #lang racket
 
-;; http://stackoverflow.com/a/2890557
+(define (exist-define define-name define-list)
+  (member define-name define-list))
 
-;; (define-syntax-rule (mustache-context-struct ctx)
-;;   (struct self ((car (first ctx)))))
+(define-syntax (mustache-ctx x)
+  (syntax-case x ()
+    [(_ '((k1 v1 ...) (k2 v2 ...) ...))
+     #'(make-immutable-hash (list (mustache-data (quote (k1 v1 ...)))
+                                  (mustache-data (quote (k2 v2 ...)))
+                                  ...))]))
 
-;; (define-syntax-rule (mustache-context-instance ctx)
-;;   (displayln "blabla"))
+(define-syntax (mustache-data x)
+  (syntax-case x ()
+    [(_ (quote (key val ...)))
+     #'(cons (quote key) (mustache-val val ...))]))
 
-;; (define-syntax-rule (mustache-context ctx)
-;;   (begin
-;;     (mustache-context-struct ctx)
-;;     (mustache-context-instance ctx)))
+(define-syntax (mustache-val x)
+  (syntax-case x ()
+    [(_ '((k1 v1 ...) (k2 v2 ...) ...))
+     #'(make-immutable-hash (list (mustache-data (quote (k1 v1 ...)))
+                                  (mustache-data (quote (k2 v2 ...)))
+                                  ...))]
 
-(define-syntax (defstruct-litee stx)
-  (syntax-case stx ()
-    [(_ name)
-     (let ([make-id
-            (lambda (template id)
-              (let ([str (format template (syntax->datum id))])
-                (datum->syntax stx (string->symbol str))))])
-     (with-syntax ([make-name (make-id "make-~a" #'name)]
-                   [name? (make-id "~a?" #'name)])
-       #'(begin
-           (define (make-name x) (printf x))
-           (define (name? x) (list 'lala x)))))]))
-
-
-(define-syntax (defstruct-lite stx)
-  (syntax-case stx ()
-    [(defstruct-lite name field ...)
-     (let ([make-id
-            (lambda (template . ids)
-              (let ([str (apply format template (map syntax->datum ids))])
-                (datum->syntax stx (string->symbol str))))])
-       (with-syntax ([make-name (make-id "make-~a" #'name)])
-         #'(begin
-             (define (make-name) (list 'name)))))]))
+    [(_ val)
+     #'val]
+    [(_ val1 val2 ...)
+     #'(list (mustache-val val1) (mustache-val val2) ...)]))
 
 
-(define-syntax (hello stx)
-    (syntax-case stx ()
-      [(_ name place)
-       (with-syntax ([print-name #'(printf "~a\n" 'name)]
-                     [print-place #'(printf "~a\n" 'place)])
-         #'(begin
-             (define (name times)
-               (printf "Hello\n")
-               (for ([i (in-range 0 times)])
-                    print-name))
-             (define (place times)
-               (printf "From\n")
-               (for ([i (in-range 0 times)])
-                    print-place))))]))
+;; Following not work :
+;; (let ([ctx2 '((name "Jim" "Ronan") (age 24) (admin #t))])
+;;   (mustache-ctx ctx-2))
+
+
+(define (self-current ctx) (ctx))
+(define (self-item ctx) (ctx))
+
+; (mustache-ctx '((name "Jim") (age 24) (admin #t)))
+(define hash-test
+  (mustache-ctx
+
+   ;; CTX-1
+    ;; '((name "Foo1" "Foo2" "Foo3" "Foo4") (age 24) (admin #t)
+
+  ;; CTX-2
+    '((header (lambda () "Colors"))
+      (item '((name "red") (current #t) (url "#Red"))
+            '((name "green") (current #f) (url "#Green"))
+            '((name "blue") (current #f) (url "#Blue")))
+      (link (lambda (self) (not (eq? (self-current self) #t))))
+      (list (lambda (self) (not (eq? (length (self-item self)) 0))))
+      (empty (lambda (self) (eq? (length (self-item self)) 0)))
+)))
+
+hash-test
