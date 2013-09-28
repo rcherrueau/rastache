@@ -45,8 +45,11 @@
 ;;   (mustache-ctx ctx-2))
 
 
-(define (self-current ctx) (ctx))
-(define (self-item ctx) (ctx))
+;; FIXME: generate defines for nested mustache
+(define (mustache-current ctx) (ctx))
+(define (mustache-name ctx) (ctx))
+(define (mustache-url ctx) (ctx))
+
 
 ; (mustache-ctx '((name "Jim") (age 24) (admin #t)))
 ;(define hash-test
