@@ -29,7 +29,24 @@
        #'(begin
            (printf "~a~n" 'kv1)  . tail))]))
 
+(displayln "---------------- md_1")
 (md_1 '([name "Foo1" "Foo2" "Foo3" "Foo4"] (age 24) (admin #t)))
+
+;; itera over each key of first level
+(define-syntax (md_2 x)
+  (syntax-case x ()
+    [(_ '(kv1 kv2 ...))
+     (with-syntax ([tail
+                    (syntax-case #'(kv2 ...) ()
+                      [() #'()]
+                      [(kv2 kv3 ...) #'((md_2 '(kv2 kv3 ...)))])])
+       (syntax-case #'kv1 ()
+         [(k v1 v2 ...)
+          #'(begin
+              (printf "~a~n" 'k)  . tail)]))]))
+
+(displayln "---------------- md_2")
+(md_2 '([name "Foo1" "Foo2" "Foo3" "Foo4"] [age 24] [admin #t]))
 
 ;; (define (exist-define define-name define-list)
 ;;   (member define-name define-list))
