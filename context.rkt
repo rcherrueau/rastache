@@ -48,6 +48,45 @@
 (displayln "---------------- md_2")
 (md_2 '([name "Foo1" "Foo2" "Foo3" "Foo4"] [age 24] [admin #t]))
 
+;; iters over each key and each value at all level
+(define-syntax (md_3 orig-x)
+  (let domd ([x orig-x])
+    (syntax-case x ()
+      [(_ '(kv1 kv2 ...))
+       (with-syntax ([tail
+                      (syntax-case #'(kv2 ...) ()
+                        [() #'()]
+                        [(kv2 kv3 ...)
+                         (with-syntax ([rest (domd #'(md_3 '(kv2 kv3 ...)))])
+                           #'(rest))])])
+         (syntax-case #'kv1 ()
+           [(k v1 v2 ...)
+            (with-syntax ([(values ...)
+                           (map (lambda (v)
+                                  (syntax-case v ()
+                                    ;; mustache-expr?
+                                    ['(kv1 kv2 ...)
+                                     (with-syntax
+                                         ([rest (domd #'(md_3 '(kv1 kv2 ...)))])
+                                       #'rest)]
+                                    ;; other mustach-data?
+                                    [v #'(printf "value: ~a~n" 'v)]))
+                                (syntax->list #'(v1 v2 ...)))])
+              #'(begin
+                  (printf "function: mustache-~a~n" 'k)
+                  values ... . tail))]))])))
+
+(displayln "---------------- md_3")
+(md_3
+ '((header (lambda () "Colors"))
+   (link (lambda (self) (not (eq? (mustache-current self) #t))))
+   (list (lambda (self) (not (eq? (length (mustache-item self)) 0))))
+   (item '((name "red") (current #t) (url "#Red"))
+         '((name "green") (current #f) (url "#Green"))
+         '((name "blue") (current #f) (url "#Blue")))
+   (empty (lambda (self) (eq? (length (mustache-item self)) 0)))))
+
+
 ;; (define (exist-define define-name define-list)
 ;;   (member define-name define-list))
 
