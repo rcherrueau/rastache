@@ -1,55 +1,17 @@
-#lang racket
+#lang racket/base
 
-     ;; (with-syntax ([rest (syntax-case #'(v1 ...) ()
-     ;;                       [() #'()]
-     ;;                       [(v1 v2 ...) #'((mustache-defines '(v1 v2 ...)))])])
-     ;;   (syntax-case #'v0 ()
-     ;;     [(key val1 val2 ...)
-     ;;      ;; iter over all values
-     ;;      #'(begin
-     ;;          (let-syntax
-     ;;              ([mustache-val (lambda (x)
-     ;;                               (syntax-case x ()
-     ;;                                 [(_ '(v)) #'(mustache-defines '(v))]
-     ;;                                 [(_ v) #'()]))])
-     ;;            (mustache-val val1)
-     ;;            (mustache-val val2)
-     ;;            ...)
-     ;;          (println "mustache~a" #'key)
-     ;;          . rest)]))]))
-
-;; Iter over each (key value) of the first level
-(define-syntax (md_1 x)
-  (syntax-case x ()
-    [(_ '(kv1 kv2 ...))
-     (with-syntax ([tail
-                    (syntax-case #'(kv2 ...) ()
-                      [() #'()]
-                      [(kv2 kv3 ...) #'((md_1 '(kv2 kv3 ...)))])])
-       #'(begin
-           (printf "~a~n" 'kv1)  . tail))]))
-
-(displayln "---------------- md_1")
-(md_1 '([name "Foo1" "Foo2" "Foo3" "Foo4"] (age 24) (admin #t)))
-
-;; itera over each key of first level
-(define-syntax (md_2 x)
-  (syntax-case x ()
-    [(_ '(kv1 kv2 ...))
-     (with-syntax ([tail
-                    (syntax-case #'(kv2 ...) ()
-                      [() #'()]
-                      [(kv2 kv3 ...) #'((md_2 '(kv2 kv3 ...)))])])
-       (syntax-case #'kv1 ()
-         [(k v1 v2 ...)
-          #'(begin
-              (printf "~a~n" 'k)  . tail)]))]))
-
-(displayln "---------------- md_2")
-(md_2 '([name "Foo1" "Foo2" "Foo3" "Foo4"] [age 24] [admin #t]))
+(require (for-syntax racket/base
+                     syntax/id-table
+                     racket/dict))
+  
+(define-for-syntax global (make-free-id-table))
+  
+(define-for-syntax (make-id lctx template id)
+    (define str (format template (syntax->datum id)))
+    (datum->syntax lctx (string->symbol str)))
 
 ;; iters over each key and each value at all level
-(define-syntax (md_3 orig-x)
+(define-syntax (md_4 orig-x)
   (let domd ([x orig-x])
     (syntax-case x ()
       [(_ '(kv1 kv2 ...))
@@ -57,27 +19,35 @@
                       (syntax-case #'(kv2 ...) ()
                         [() #'()]
                         [(kv2 kv3 ...)
-                         (with-syntax ([rest (domd #'(md_3 '(kv2 kv3 ...)))])
+                         (with-syntax ([rest (domd #'(md_4 '(kv2 kv3 ...)))])
                            #'(rest))])])
          (syntax-case #'kv1 ()
-           [(k v1 v2 ...)
-            (with-syntax ([(values ...)
+           [(key v1 v2 ...)
+            (with-syntax ([make-mustache-define
+                           (with-syntax ([mustache-key
+                                          (make-id #'kv1 "mustache-~a" #'key)])
+                             (if (not (dict-has-key? global #'key))
+                                 (let ([k #'key])
+                                   (printf "~s~n" (dict-has-key? global k))
+                                   (free-id-table-set! global k #t)
+                                   (printf "~s~n" (dict-has-key? global k))
+                                   #'(define (mustache-key ctx) (hash-ref ctx 'key)))
+                                 #'(void)))]
+                          [(values ...)
                            (map (lambda (v)
                                   (syntax-case v ()
                                     ;; mustache-expr?
                                     ['(kv1 kv2 ...)
                                      (with-syntax
-                                         ([rest (domd #'(md_3 '(kv1 kv2 ...)))])
+                                         ([rest (domd #'(md_4 '(kv1 kv2 ...)))])
                                        #'rest)]
                                     ;; other mustach-data?
                                     [v #'(printf "value: ~a~n" 'v)]))
                                 (syntax->list #'(v1 v2 ...)))])
-              #'(begin
-                  (printf "function: mustache-~a~n" 'k)
-                  values ... . tail))]))])))
+              #'(begin make-mustache-define values ... . tail))]))])))
 
-(displayln "---------------- md_3")
-(md_3
+(displayln "---------------- md_4")
+(md_4
  '((header (lambda () "Colors"))
    (link (lambda (self) (not (eq? (mustache-current self) #t))))
    (list (lambda (self) (not (eq? (length (mustache-item self)) 0))))
@@ -85,6 +55,11 @@
          '((name "green") (current #f) (url "#Green"))
          '((name "blue") (current #f) (url "#Blue")))
    (empty (lambda (self) (eq? (length (mustache-item self)) 0)))))
+
+;
+;(define (la x) x)
+;
+;(syntax-original? #'la)
 
 
 ;; (define (exist-define define-name define-list)
