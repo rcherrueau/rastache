@@ -17,22 +17,22 @@
   (let ([str (format template (syntax->datum id))])
     (datum->syntax lctx (string->symbol str))))
 
-;; Construct global accessors for mustach-data(s) of a mustache-expr.
-(define-syntax (mustache-make/defines x)
-  ;; Treat each mustache-data. Treat the first one mustache-data `kv1'
-  ;; and call `mustache-make/defines' recursively on the rest of the
-  ;; `mustache-expr'.
+;; Constructs global accessors for mustach-data(s) of a mustache-expr.
+(define-syntax (mustache-make-defines x)
+  ;; Treats each mustache-data as follow: First, treats the first
+  ;; mustache-data `kv1'. Then, calls `mustache-make-defines'
+  ;; recursively on the rest of the `mustache-expr'.
   (syntax-case x ()
     ;; mustache-expr?
     [(_ '(kv1 kv2 ...))
-     ;; `tail' is the `mustache-make/defines' recursive call on the
+     ;; `tail' is the `mustache-make-defines' recursive call on the
      ;; rest of mustache-data(s) of the mustache-expr `kv2 ...'.
      (with-syntax
          ([tail
            (syntax-case #'(kv2 ...) ()
              [() #'()]
              [(kv2 kv3 ...)
-              #'((mustache-make/defines '(kv2 kv3 ...)))])])
+              #'((mustache-make-defines '(kv2 kv3 ...)))])])
        ;; Treat the first mustache-data
        (syntax-case #'kv1 ()
          ;; mustache-data?
@@ -56,13 +56,13 @@
                ;; Takes a look to the values of the current
                ;; mustache-data. If one of those values is a
                ;; mustache-expr. Then, it calls
-               ;; `mustache-make/defines' on it.
+               ;; `mustache-make-defines' on it.
                [(values ...)
                 (map (lambda (v)
                        (syntax-case v ()
                          ;; mustache-expr?
                          ['(kv1 kv2 ...)
-                          #'(mustache-make/defines '(kv1 kv2 ...))]
+                          #'(mustache-make-defines '(kv1 kv2 ...))]
                          ;; other mustach-data?
                          [v #'(void)]))
                      (syntax->list #'(v1 v2 ...)))])
@@ -70,7 +70,7 @@
                 make-the-define
                 values ... . tail))]))]))
 
-(mustache-make/defines
+(mustache-make-defines
  '((header (lambda () "Colors"))
    (link (lambda (self) (not (eq? (mustache-current self) #t))))
    (list (lambda (self) (not (eq? (length (mustache-item self)) 0))))
@@ -78,7 +78,56 @@
          '((name "green") (current #f) (url "#Green"))
          '((name "blue") (current #f) (url "#Blue")))
    (empty (lambda (self) (eq? (length (mustache-item self)) 0)))))
-        ;; (defineine (mustache-name c) c)
+
+
+;; Constructs the value for the val part of a mustache-data.
+(define-syntax (mustache-make-val x)
+  (syntax-case x ()
+    ;; mustache-expr?
+    [(_ '(kv1 kv2 ...))
+     #'(mustache-make-htable '(kv1 kv2 ...))]
+    ;; unique-val?
+    [(_ v)
+     #'v]
+    ;; list-of-vals?
+    [(_ v1 v2 ...)
+     #'(list (mustache-make-val v1)
+             (mustache-make-val v2)
+             ...)]))
+
+(mustache-make-val "foo")
+;; > "foo"
+
+(mustache-make-val '42 '43 '44)
+;; '(42 43 44)
+
+((mustache-make-val (lambda (self) self)) '42)
+;; > 42
+
+;; (mustache-make-val
+;;  '((name "red") (current #t) (url "#Red"))
+;;  '((name "green") (current #f) (url "#Green"))
+;;  '((name "blue") (current #f) (url "#Blue")))
+;; > '(#hash((name . "red") (current . #t) (url . "#Red"))
+;;     #hash((name . "green") (current . #f) (url . "#Green"))
+;;     #hash((name . "blue") (current . #f) (url . "#Blue")))
+
+
+
+;; (define-syntax (mustache-make-htable x)
+;;   (syntax-case x ()
+;;     [(_ '([key vals] ...))
+;;      (with-syntax
+;;          ([(values ...)
+;;            (map (lambda (k v)
+;;                   (syntax-case #'v ()
+;;                     (
+;;                 (syntax->list #'([key vals] ...)))
+;;      #'(make-immutable-hash (list values ...))]
+
+
+
+;; (define (mustache-name c) c)
 
 ;
 ;(define (la x) x)
