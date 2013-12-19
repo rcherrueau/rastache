@@ -1,4 +1,22 @@
-#lang racket
+#lang racket/base
+
+;                      /\ \__                /\ \
+;  _ __    __      ____\ \ ,_\    __      ___\ \ \___      __
+; /\`'__\/'__`\   /',__\\ \ \/  /'__`\   /'___\ \  _ `\  /'__`\
+; \ \ \//\ \L\.\_/\__, `\\ \ \_/\ \L\.\_/\ \__/\ \ \ \ \/\  __/
+;  \ \_\\ \__/.\_\/\____/ \ \__\ \__/.\_\ \____\\ \_\ \_\ \____\
+;   \/_/ \/__/\/_/\/___/   \/__/\/__/\/_/\/____/ \/_/\/_/\/____/
+; A racket Mustache template engine.
+
+; Mustache file parser.
+
+(provide tokenize)
+
+; ______________________________________________________________________________
+; import and implementation
+(require racket/list
+         racket/port
+         racket/string)
 
 (struct token (sigil content section))
 
@@ -138,5 +156,3 @@
     (displayln (format "*** Section ~a ***" (token-content token)))
     (map display-token (token-section token))
     (displayln "*****************")))
-
-(provide (all-defined-out))
