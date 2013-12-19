@@ -1,5 +1,65 @@
 #lang racket/base
 
+;                      /\ \__                /\ \
+;  _ __    __      ____\ \ ,_\    __      ___\ \ \___      __
+; /\`'__\/'__`\   /',__\\ \ \/  /'__`\   /'___\ \  _ `\  /'__`\
+; \ \ \//\ \L\.\_/\__, `\\ \ \_/\ \L\.\_/\ \__/\ \ \ \ \/\  __/
+;  \ \_\\ \__/.\_\/\____/ \ \__\ \__/.\_\ \____\\ \_\ \_\ \____\
+;   \/_/ \/__/\/_/\/___/   \/__/\/__/\/_/\/____/ \/_/\/_/\/____/
+; A racket Mustache template engine.
+
+; Macro for mustache expressions.
+;
+; Mustache Expression Syntax:
+; mustache-expr := '( mustache-data ... )
+; mustache-data := ( datum val ... )
+; val :=  mustache-expr | racket-expr
+;
+; Mustache Expression Example:
+; '((header "Colors")
+;   (item '((name "red") (current #t) (url "#Red"))
+;         '((name "green") (current #f) (url "#Green"))
+;         '((name "blue") (current #f) (url "#Blue")))
+;   (link (lambda () '42))
+;   (list (lambda (self) (not (eq? (length (mustache-item self)) 0))))
+;   (empty (lambda (self) (eq? (length (mustache-item self)) 0))))
+;
+; Macro Usage:
+; (mustache-make-ctx
+;  my-mustache-ctx
+;  '((header "Colors")
+;    (item '((name "red") (current #t) (url "#Red"))
+;          '((name "green") (current #f) (url "#Green"))
+;          '((name "blue") (current #f) (url "#Blue")))
+;    (link (lambda () '42))
+;    (list (lambda (self) (not (eq? (length (mustache-item self)) 0))))
+;    (empty (lambda (self) (eq? (length (mustache-item self)) 0)))))
+;
+; Macro Output:
+; (define my-mustache-ctx
+;   '#hash((empty . #<procedure>)
+;          (list . #<procedure>)
+;          (item
+;           .
+;           (#hash((name . "red") (current . #t) (url . "#Red"))
+;            #hash((name . "green") (current . #f) (url . "#Green"))
+;            #hash((name . "blue") (current . #f) (url . "#Blue"))))
+;          (header . "Colors")
+;          (link . #<procedure>)))
+; (define (mustache-empty ctx) (hash-ref ctx 'empty))
+; (define (mustache-list ctx) (hash-ref ctx 'list))
+; (define (mustache-item ctx) (hash-ref ctx 'item))
+; (define (mustache-name ctx) (hash-ref ctx 'name))
+; (define (mustache-current ctx) (hash-ref ctx 'current))
+; (define (mustache-url ctx) (hash-ref ctx 'url))
+; (define (mustache-header ctx) (hash-ref ctx 'header))
+; (define (mustache-link ctx) (hash-ref ctx 'link))
+
+(provide mustache-make-ctx)
+
+; ______________________________________________________________________________
+; import and implementation
+
 (require (for-syntax racket/base
                      syntax/id-table
                      racket/dict))
@@ -110,51 +170,3 @@
      #'(begin
          (mustache-make-defines '(kv ...))
          (define ctx-name (mustache-make-htable '(kv ...))))]))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Tests
-
-;; (mustache-make-ctx
-;;  ctx
-;;  '((header (lambda () "Colors"))
-;;    (link (lambda (self) (not (eq? (mustache-current self) #t))))
-;;    (list (lambda (self) (not (eq? (length (mustache-item self)) 0))))
-;;    (item '((name "red") (current #t) (url "#Red"))
-;;          '((name "green") (current #f) (url "#Green"))
-;;          '((name "blue") (current #f) (url "#Blue")))
-;;    (empty (lambda (self) (eq? (length (mustache-item self)) 0)))))
-
-;; ((mustache-header ctx))
-
-;; (for ([inner-ctx (mustache-item ctx)])
-;;   (printf "~s ~s ~s~n"
-;;           (mustache-name inner-ctx)
-;;           (mustache-current inner-ctx)
-;;           (mustache-url inner-ctx)))
-
-;; (mustache-make-defines
-;;  '((header (lambda () "Colors"))
-;;    (link (lambda (self) (not (eq? (mustache-current self) #t))))
-;;    (list (lambda (self) (not (eq? (length (mustache-item self)) 0))))
-;;    (item '((name "red") (current #t) (url "#Red"))
-;;          '((name "green") (current #f) (url "#Green"))
-;;          '((name "blue") (current #f) (url "#Blue")))
-;;    (empty (lambda (self) (eq? (length (mustache-item self)) 0)))))
-
-;; (define ctx
-;;   (mustache-make-htable
-;;    '((header (lambda () "Colors"))
-;;      (link (lambda (self) (not (eq? (mustache-current self) #t))))
-;;      (list (lambda (self) (not (eq? (length (mustache-item self)) 0))))
-;;      (item '((name "red") (current #t) (url "#Red"))
-;;            '((name "green") (current #f) (url "#Green"))
-;;            '((name "blue") (current #f) (url "#Blue")))
-;;      (empty (lambda (self) (eq? (length (mustache-item self)) 0))))))
-
-;; (mustache-make-val "foo")
-;; ;; > "foo"
-
-;; (mustache-make-val '42 '43 '44)
-;; ;; '(42 43 44)
-
-;; ((mustache-make-val (lambda (self) self)) '42)
-;; ;; > 42
