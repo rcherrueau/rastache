@@ -2,9 +2,7 @@
 
 (require (for-syntax racket/base
                      syntax/id-table
-                     racket/dict
-                     racket/pretty)
-         racket/pretty)
+                     racket/dict))
 
 ;; Free-id-table which stores already defined mustache accessor. Thus,
 ;; the following mustache expression: '('((foo 1)) '((foo 2))) will
