@@ -2,50 +2,77 @@
 
 (require (for-syntax racket/base
                      syntax/id-table
-                     racket/dict))
+                     racket/dict
+                     racket/pretty)
+         racket/pretty)
 
-(define-for-syntax global (make-free-id-table))
+;; Free-id-table which stores already defined mustache accessor. Thus,
+;; the following mustache expression: '('((foo 1)) '((foo 2))) will
+;; produce one and only one accessor that is
+;; `(define (mustache-foo ctx) (hash-ref ctx foo))'
+(define-for-syntax global-mustache-defines (make-free-id-table))
 
+;; Produces an identifier using `lctx' for the lexical context. The
+;; format string must use only `~a' placeholders. Identifier is
+;; automatically converted to a symbol.
 (define-for-syntax (make-id lctx template id)
-    (define str (format template (syntax->datum id)))
-    (datum->syntax lctx (string->symbol str)))
+  (let ([str (format template (syntax->datum id))])
+    (datum->syntax lctx (string->symbol str))))
 
-;; iters over each key and each value at all level
-(define-syntax (md_4 orig-x)
-  (let domd ([x orig-x])
-    (syntax-case x ()
-      [(_ '(kv1 kv2 ...))
-       (with-syntax ([tail
-                      (syntax-case #'(kv2 ...) ()
-                        [() #'()]
-                        [(kv2 kv3 ...)
-                         (with-syntax ([rest (domd #'(md_4 '(kv2 kv3 ...)))])
-                           #'(rest))])])
-         (syntax-case #'kv1 ()
-           [(key v1 v2 ...)
-            (with-syntax ([make-mustache-define
-                           (with-syntax ([mustache-key
-                                          (make-id #'kv1 "mustache-~a" #'key)])
-                             (if (not (dict-has-key? global #'key))
-                                 (let ([k #'key])
-                                   (free-id-table-set! global k #t)
-                                   #'(define (mustache-key ctx) (hash-ref ctx 'key)))
-                                 #'(void)))]
-                          [(values ...)
-                           (map (lambda (v)
-                                  (syntax-case v ()
-                                    ;; mustache-expr?
-                                    ['(kv1 kv2 ...)
-                                     (with-syntax
-                                         ([rest (domd #'(md_4 '(kv1 kv2 ...)))])
-                                       #'rest)]
-                                    ;; other mustach-data?
-                                    [v #'(printf "value: ~a~n" 'v)]))
-                                (syntax->list #'(v1 v2 ...)))])
-              #'(begin make-mustache-define values ... . tail))]))])))
+;; Construct global accessors for mustach-data(s) of a mustache-expr.
+(define-syntax (mustache-make/defines x)
+  ;; Treat each mustache-data. Treat the first one mustache-data `kv1'
+  ;; and call `mustache-make/defines' recursively on the rest of the
+  ;; `mustache-expr'.
+  (syntax-case x ()
+    ;; mustache-expr?
+    [(_ '(kv1 kv2 ...))
+     ;; `tail' is the `mustache-make/defines' recursive call on the
+     ;; rest of mustache-data(s) of the mustache-expr `kv2 ...'.
+     (with-syntax
+         ([tail
+           (syntax-case #'(kv2 ...) ()
+             [() #'()]
+             [(kv2 kv3 ...)
+              #'((mustache-make/defines '(kv2 kv3 ...)))])])
+       ;; Treat the first mustache-data
+       (syntax-case #'kv1 ()
+         ;; mustache-data?
+         [(key v1 v2 ...)
+          (with-syntax
+              ;; Construct the global define accessor. It uses the
+              ;; free-id-table `global-mustache-defines' to test if
+              ;; the define is already defined or not.
+              ([make-the-define
+                (with-syntax
+                    ([mustache-key
+                      (make-id #'kv1 "mustache-~a" #'key)])
+                  (if (not (dict-has-key? global-mustache-defines
+                                          #'mustache-key))
+                      (let ([k #'key])
+                        (free-id-table-set! global-mustache-defines
+                                            #'mustache-key
+                                            #t)
+                        #'(define (mustache-key ctx) (hash-ref ctx 'key)))
+                      #'(void)))]
+               ;; Takes a look to the values of the current
+               ;; mustache-data. If one of those values is a
+               ;; mustache-expr. Then, it calls
+               ;; `mustache-make/defines' on it.
+               [(values ...)
+                (map (lambda (v)
+                       (syntax-case v ()
+                         ;; mustache-expr?
+                         ['(kv1 kv2 ...)
+                          #'(mustache-make/defines '(kv1 kv2 ...))]
+                         ;; other mustach-data?
+                         [v #'(void)]))
+                     (syntax->list #'(v1 v2 ...)))])
+            #'(begin
+                make-the-define
+                values ... . tail))]))]))
 
-(displayln "---------------- md_4")
-(md_4
+(mustache-make/defines
  '((header (lambda () "Colors"))
    (link (lambda (self) (not (eq? (mustache-current self) #t))))
    (list (lambda (self) (not (eq? (length (mustache-item self)) 0))))
@@ -53,6 +80,7 @@
          '((name "green") (current #f) (url "#Green"))
          '((name "blue") (current #f) (url "#Blue")))
    (empty (lambda (self) (eq? (length (mustache-item self)) 0)))))
+        ;; (defineine (mustache-name c) c)
 
 ;
 ;(define (la x) x)
