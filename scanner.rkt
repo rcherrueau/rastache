@@ -8,23 +8,82 @@
 ;   \/_/ \/__/\/_/\/___/   \/__/\/__/\/_/\/____/ \/_/\/_/\/____/
 ; A racket Mustache template engine.
 
-; Mustache file parser.
+; Mustache template parser.
+;
+; Parse mustache template and generate a list of tokens. The list of
+; tokens describes how to render the template.
 
-(provide tokenize)
+(provide tokenize
+         tokenize/open-file
+         tokenize/open-string)
 
 ; ______________________________________________________________________________
 ; import and implementation
+
 (require racket/list
          racket/port
          racket/string)
 
+;; Token is a meta-variable for mustache template syntactic
+;; categories. Mustache defines 6 syntatic categories, i.e: 'static,
+;; 'etag, 'utag, 'section, 'inverted-section and 'partial. A token
+;; instance stores the syntatic category in the `sigil' attribute. For
+;; each category, the instance contains different informations.
+;;
+;; 'static for static content. `content' contains static text.
+;; `section' is always empty.
+;;
+;; 'etag for variable. `content' contains a key usable with the
+;; mustache context. This key is HTML escaped. `section' is always
+;; empty.
+;;
+;; 'utag for unescaped HTML variable. `content' contains a key usable
+;; with the mustache context. This key is unescaped HTML. `section' is
+;; always empty.
+;;
+;; 'section for section. `content' contains the section name.
+;; `section' contains all tokens of this section.
+;;
+;; 'inverted-section for inverted section. `content' contains the
+;; section name. `section' contains all tokens of this section.
+;;
+;; 'partial for partials. `content' contains the name of the mustache
+;; template to include. `section' is always empty.
+;;
+;; see http://mustache.github.io/mustache.5.html for the meaning of
+;; each category.
 (struct token (sigil content section))
 
-(define (make-token sigil content [section empty])
-  (token sigil content section))
+;; tokenize: template open-tag close-tag -> list of token
+;; Construct the list of tokens for a specific template. The
+;; `template' has to be an input port that reads bytes from a UTF-8
+;; stream.`open-tag' and `close-tag' are mustache keywords
+;; identifiers.
+(define (tokenize template [open-tag "{{"] [close-tag "}}"])
 
-(define (tokenize mustache-file [open-tag "{{"] [close-tag "}}"])
-  (define template (open-input-file mustache-file))
+  ;; Token constructor for static
+  (define (make-token-static content)
+    (token 'static content empty))
+
+  ;; Token constructor for etag
+  (define (make-token-etag content)
+    (token 'etag content empty))
+
+  ;; Token constructor for utag
+  (define (make-token-utag content)
+    (token 'utag content empty))
+
+  ;; Token constructor for section
+  (define (make-token-section content [section empty])
+    (token 'section content section))
+
+  ;; Token constructor for inverted section
+  (define (make-token-inverted-section content [section empty])
+    (token 'inverted-section content section))
+
+  ;; Token constructor for partial
+  (define (make-token-partial content)
+    (token 'partiel content empty))
 
   (define state-pattern
     (pregexp
@@ -49,6 +108,7 @@
   (define (read-close-tag close-tag)
     (void (read-string (string-length close-tag) template)))
 
+  ;; Scans the static text until the next mustache tag.
   (define (scan-static tokens otag ctag)
     ; Search for mustache opening tag
     (define otag-pos (regexp-match-peek-positions otag template))
@@ -57,7 +117,7 @@
      ; No more mustache tag
      ; Create a 'static token with the end of template
      [(not otag-pos)
-      (define the-token (make-token 'static (port->string template)))
+      (define the-token (make-token-static (port->string template)))
       (scan 'end (append tokens (list the-token)) otag ctag)]
 
      ; Still mustache tag
@@ -65,10 +125,11 @@
      [else
       (define content-length (car (first otag-pos)))
       (define content (read-content content-length))
-      (define the-token (make-token 'static content))
+      (define the-token (make-token-static content))
 
       (scan 'tag (append tokens (list the-token)) otag ctag)]))
 
+  ;; Scans a mustache tag.
   (define (scan-tag tokens otag ctag)
     ; Consume the mustache opening tag
     (read-open-tag otag)
@@ -91,24 +152,23 @@
     (case sigil
       ; Normal
       [(#f)
-       (define the-token (make-token 'etag value))
+       (define the-token (make-token-etag value))
        (scan 'static (append tokens (list the-token)) otag ctag)]
 
       ; Unescaped HTML
       [("{" "&")
-       (define the-token (make-token 'utag value))
+       (define the-token (make-token-utag value))
        (scan 'static (append tokens (list the-token)) otag ctag)]
 
       ; Section
       [("#")
-       (define the-token (make-token 'section
-                                     value
-                                     (scan 'static empty otag ctag)))
+       (define the-token (make-token-section value
+                                             (scan 'static empty otag ctag)))
        (scan 'static (append tokens (list the-token)) otag ctag)]
 
       ; Inverted Section
       [("^")
-       (define the-token (make-token 'inverted-section
+       (define the-token (make-token-inverted-section
                                      value
                                      (scan 'static empty otag ctag)))
        (scan 'static (append tokens (list the-token)) otag ctag)]
@@ -122,7 +182,7 @@
 
       ; Partial
       [(">" "<")
-       (define the-token (make-token 'partial value))
+       (define the-token (make-token-partial value))
        (scan 'static (append tokens (list the-token)) otag ctag)]
 
       ; Set delimiters
@@ -134,9 +194,9 @@
        (define new-ctag (substring (second ll)
                                    0
                                    (sub1 (string-length (second ll)))))
-
        (scan 'static tokens new-otag new-ctag)]))
 
+  ;; Scans the text and instanciate tokens.
   (define (scan state tokens otag ctag)
     (cond
       [(eq? state 'static) (scan-static tokens otag ctag)]
@@ -147,6 +207,16 @@
 
   (scan 'static empty open-tag close-tag))
 
+;; Tokenizes a mustache template file.
+(define (tokenize/open-file mustache-file [open-tag "{{"] [close-tag "}}"])
+  (tokenize (open-input-file mustache-file) open-tag close-tag))
+
+;; Tokenizes a mustache template string.
+(define (tokenize/open-string mustache-string [open-tag "{{"] [close-tag "}}"])
+  (tokenize (open-input-string mustache-string) open-tag close-tag))
+
+
+;; For debug only
 (define (display-token token)
   (displayln (format "sigil: ~a, content: ~a"
                      (token-sigil token)
