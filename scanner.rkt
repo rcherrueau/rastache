@@ -13,9 +13,7 @@
 ; Parse mustache template and generate a list of tokens. The list of
 ; tokens describes how to render the template.
 
-(provide tokenize
-         tokenize/open-file
-         tokenize/open-string)
+(provide tokenize)
 
 ; ______________________________________________________________________________
 ; import and implementation
@@ -202,19 +200,9 @@
       [(eq? state 'static) (scan-static tokens otag ctag)]
       [(eq? state 'tag) (scan-tag tokens otag ctag)]
       [else
-       (when (not (port-closed? template)) (close-input-port template))
        tokens]))
 
   (scan 'static empty open-tag close-tag))
-
-;; Tokenizes a mustache template file.
-(define (tokenize/open-file mustache-file [open-tag "{{"] [close-tag "}}"])
-  (tokenize (open-input-file mustache-file) open-tag close-tag))
-
-;; Tokenizes a mustache template string.
-(define (tokenize/open-string mustache-string [open-tag "{{"] [close-tag "}}"])
-  (tokenize (open-input-string mustache-string) open-tag close-tag))
-
 
 ;; For debug only
 (define (display-token token)
