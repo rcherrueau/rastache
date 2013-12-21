@@ -52,18 +52,18 @@
 ;; each category.
 (struct token (sigil content section))
 
-;; tokenize: template open-tag close-tag -> list of token
 ;; Construct the list of tokens for a specific template. The
 ;; `template' has to be an input port that reads bytes from a UTF-8
 ;; stream.`open-tag' and `close-tag' are mustache keywords
 ;; identifiers.
+;; tokenize: input-port string string -> (listof token)
 (define (tokenize template [open-tag "{{"] [close-tag "}}"])
 
   ;; Token constructor for static
   (define (make-token-static content)
     (token 'static content empty))
 
-  ;; Token constructor for etag
+  ;; Token constructor for etagn
   (define (make-token-etag content)
     (token 'etag content empty))
 
@@ -107,6 +107,7 @@
     (void (read-string (string-length close-tag) template)))
 
   ;; Scans the static text until the next mustache tag.
+  ;; scan-tag: (listof token) string string -> (listof tokens)
   (define (scan-static tokens otag ctag)
     ; Search for mustache opening tag
     (define otag-pos (regexp-match-peek-positions otag template))
@@ -127,7 +128,9 @@
 
       (scan 'tag (append tokens (list the-token)) otag ctag)]))
 
-  ;; Scans a mustache tag.
+  ;; Scans a mustache tag. It applies differents scan strategies
+  ;; depending on the tag category.
+  ;; scan-tag: (listof token) string string -> (listof tokens)
   (define (scan-tag tokens otag ctag)
     ; Consume the mustache opening tag
     (read-open-tag otag)
@@ -194,7 +197,12 @@
                                    (sub1 (string-length (second ll)))))
        (scan 'static tokens new-otag new-ctag)]))
 
-  ;; Scans the text and instanciate tokens.
+  ;; Scans the text and instanciate tokens. The state indicates which
+  ;; scan to opare. 'static is for the scan of static text until the
+  ;; next mustache tag. 'tag is for the scan of mustache tag. The tag
+  ;; scan applies differents scan strategies depending on the tag
+  ;; category. At start of a new scan, you want to do a 'static scan!
+  ;; scan: symbol (listof tokens) string string -> (listof tokens)
   (define (scan state tokens otag ctag)
     (cond
       [(eq? state 'static) (scan-static tokens otag ctag)]
@@ -203,14 +211,3 @@
        tokens]))
 
   (scan 'static empty open-tag close-tag))
-
-;; For debug only
-(define (display-token token)
-  (displayln (format "sigil: ~a, content: ~a"
-                     (token-sigil token)
-                     (token-content token)))
-
-  (when (eq? (token-sigil token) 'section)
-    (displayln (format "*** Section ~a ***" (token-content token)))
-    (map display-token (token-section token))
-    (displayln "*****************")))
