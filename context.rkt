@@ -164,9 +164,37 @@
 ;; compose the context. The first part is an hash-table that indexes
 ;; all elements. The second part is a collection of accessors to
 ;; access to each elements of the hash-table.
+;;
+;; If the mustache-expr is store in a variable, it's really important
+;; to store-it like that:
+;; (define-for-syntax mustache-expr (lambda () '((foo "bar"))))
+;; And then,
+;; (mustache-make-ctx context mustache-expr)
+;;
+;; Is is also possible to import mustache-expr from an another file or
+;; module. For instance there is the file simple.rkt containng:
+;; (provide mustache-expr)
+;; (define mustache-expr (lambda () '((foo "bar"))))
+;;
+;; Then, in the module that uses macro, import the mustache-expr
+;; using:
+;; (require (for-syntax "mustache-expr"))
+;;
+;; see Compile and Run-Time Phases from Racket Guide
+;; http://docs.racket-lang.org/guide/stx-phases.html
 (define-syntax (mustache-make-ctx x)
   (syntax-case x ()
     [(_ ctx-name '(kv ...))
      #'(begin
          (mustache-make-defines '(kv ...))
-         (define ctx-name (mustache-make-htable '(kv ...))))]))
+         (define ctx-name (mustache-make-htable '(kv  ...))))]
+    [(_ ctx-name mustache-expr-id)
+     (with-syntax ([mustache-expr
+                    ((eval #'mustache-expr-id))])
+       #'(mustache-make-ctx ctx-name 'mustache-expr))]))
+
+;; This
+;;(define-for-syntax expr (lambda () '((foo "Hello World"))))
+;;(mustache-make-ctx lala expr)
+;; Or
+;; (mustache-make-ctx lala '((foo "hello world")))
