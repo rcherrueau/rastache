@@ -8,23 +8,43 @@
 ;   \/_/ \/__/\/_/\/___/   \/__/\/__/\/_/\/____/ \/_/\/_/\/____/
 ; A racket Mustache template engine.
 
-; Tests for the mustache-make-ctx macro.
-
-(require rackunit
+; Tests for rastache.
+(require (for-syntax "examples/boolean.rkt"
+                     "examples/carriage_return.rkt"
+                     "examples/simple.rkt")
+         rackunit
          rackunit/text-ui
-         "../context.rkt")
+         "examples/boolean.rkt"
+         "examples/carriage_return.rkt"
+         "../context.rkt"
+         "../scanner.rkt")
 
+;; For debug only
+;; (define (display-token token)
+;;   (displayln (format "sigil: ~a, content: ~a"
+;;                      (token-sigil token)
+;;                      (token-content token)))
+
+;;   (when (eq? (token-sigil token) 'section)
+;;     (displayln (format "*** Section ~a ***" (token-content token)))
+;;     (map display-token (token-section token))
+;;     (displayln "*****************")))
+
+;; Tests of the context module
 (define context-tests
   (test-suite
    "Tests for the mustache-make-ctx macro"
 
    (test-case
-    "'((foo \"bar\"))"
+    carriage-return-str
 
-    (mustache-make-ctx ctx '((foo "bar")))
+    (mustache-make-ctx ctx carriage-return-expr)
+    (printf "~s~n" ctx)
 
-    (check-equal? ctx #hash((foo . "bar")) "bad htable generation")
-    (check-equal? (mustache-foo ctx) "bar" "bad mustache-foo semantic"))
+    (check-equal? ctx
+                  #hash((foo . "Hello World"))
+                  "bad htable generation")
+    (check-equal? (mustache-foo ctx) "Hello World" "bad mustache-foo semantic"))
 
    (test-case
     "'((name \"Jim\") (age 24) (admin #t))"
@@ -94,5 +114,11 @@
     (check-equal? ((mustache-empty ctx) ctx)
                   #f
                   "bad mustache-empty semantic"))))
+
+;; Tests of the scanner module
+;; (define scanner-tests
+;;   (test-suite
+;;    ""
+
 
 (run-tests context-tests)
