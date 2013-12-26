@@ -11,5 +11,13 @@
 ; Mustache template renderer.
 ;
 
+(provide render)
+
 ; ______________________________________________________________________________
 ; import and implementation
+
+(require "context.rkt")
+
+;; (listof? token) syntax? output-port? -> void
+(define (render tokens context stream)
+  (rastache-make-ctx the-ctx context))
