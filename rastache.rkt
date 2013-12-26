@@ -9,7 +9,8 @@
 ; A racket Mustache template engine.
 
 (require "scanner.rkt"
-         "context.rkt")
+         "context.rkt"
+         "renderer.rkt")
 
 (define (rastache-compile template [open-tag "{{"] [close-tag "}}"])
   (tokenize template open-tag close-tag))
@@ -34,5 +35,5 @@
 
   tokens)
 
-;; (define (rastache-render tokens context stream)
-;;   (render tokens context stream))
+(define (rastache-render tokens context stream)
+  (render tokens context stream))
