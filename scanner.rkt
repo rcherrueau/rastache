@@ -13,7 +13,11 @@
 ; Parse mustache template and generate a list of tokens. The list of
 ; tokens describes how to render the template.
 
-(provide tokenize)
+(provide token?
+         token-sigil
+         token-content
+         token-section
+         tokenize)
 
 ; ______________________________________________________________________________
 ; import and implementation
