@@ -1,5 +1,4 @@
 
-
 * BOOLEAN
 *** Template
 #+BEGIN_EXAMPLE
@@ -8,7 +7,7 @@
 {{#admin}}admin{{/admin}}
 #+END_EXAMPLE
 *** Context
-#+BEGIN_SRC racket
+#+BEGIN_SRC scheme
 '((name "Jim") (age 24) (admin #t))
 
 #+END_SRC
