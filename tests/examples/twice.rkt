@@ -1,3 +1,1 @@
-'(
-  (person
-   (name "tom")))
+'((person '((name "tom"))))
