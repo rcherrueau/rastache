@@ -17,7 +17,6 @@
                          "recursion_with_same_names"
                          "reuse_of_enumerables"
                          "simple"
-                         "tenthousand"
                          "twice"
                          "two_in_a_row"
                          "unescaped"))
