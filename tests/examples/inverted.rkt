@@ -1,4 +1,3 @@
-'(
-  (admin #f)
+'((admin #f)
   (person
-   (name "Jim")))
+   '((name "Jim"))))

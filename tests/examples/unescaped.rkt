@@ -1,2 +1,1 @@
-'(
-  (title (lambda () "Bear > Shark")))
+'((title (lambda () "Bear > Shark")))

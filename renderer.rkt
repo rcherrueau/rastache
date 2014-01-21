@@ -11,7 +11,8 @@
 ; Mustache template renderer.
 ;
 
-(require xml)
+(require xml
+         "scanner.rkt")
 ; ______________________________________________________________________________
 ; import and implementation
 
@@ -74,20 +75,20 @@
 
       (define sigil (token-sigil token))
       (define content (token-content token))
-      (define section (token-section token)
+      (define section (token-section token))
 
       (case sigil
-        ;; Static content
+        ; Static content
         ['static
          (print content stream)]
 
-        ;; Variable
+        ; Variable
         ['etag
          (print (xexpr->string (lookup the-ctx content)) stream)]
 
-        ;; Unescaped variable
+        ; Unescaped variable
         ['utag
-         (print (lookup the-ctx content) stream)]
+         (print (lookup the-ctx content) stream)])]))
 
 
 
