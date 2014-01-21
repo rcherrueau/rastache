@@ -24,7 +24,7 @@
   (define context
     (make-hash
      (list
-      (cons 'empty (lambda (self) "Colors"))
+      (cons 'header (lambda (self) "Colors"))
       (cons 'item (list
                    (make-hash
                     (list (cons 'name "red")
@@ -60,19 +60,35 @@
 (define (render tokens context stream)
   (define-values (rastache-ctx rastache-ref) (make-context context))
 
+  ;; Lookup to the correct value. If no value find, then this function
+  ;; retun a empty string as in spec.
   (define (lookup the-ctx the-key)
-    (define val (rastache-ref the-ctx the-key))
+    (define (rastache-has-key? the-ctx the-key)
+      (hash-has-key? the-ctx the-key))
 
-    (cond
-     [(procedure? val) (val the-ctx)]
-     [else val]))
+    (define (rastache-lookup the-ctx the-key)
+      (define val (rastache-ref the-ctx the-key))
+      (cond
+       [(procedure? val) (val the-ctx)]
+       [else val]))
+
+    (if (not (eq? the-ctx rastache-ctx))
+        (cond
+         [(rastache-has-key? the-ctx the-key)
+          (rastache-lookup the-ctx the-key)]
+         [(rastache-has-key? rastache-ctx the-key)
+          (rastache-lookup rastache-ctx the-key)]
+         [else ""])
+        (cond
+         [(rastache-has-key? the-ctx the-key)
+          (rastache-lookup the-ctx the-key)]
+         [else ""])))
 
   (define (render_ tokens the-ctx)
     (cond
      [(null? tokens)]
      [else
       (define token (car tokens))
-
       (define sigil (token-sigil token))
       (define content (token-content token))
       (define section (token-section token))
@@ -80,22 +96,43 @@
       (case sigil
         ; Static content
         ['static
-         (print content stream)]
+         (display content stream)
+         (render_ (cdr tokens) the-ctx)]
 
         ; Variable
         ['etag
-         (print (xexpr->string (lookup the-ctx content)) stream)]
+         (display (xexpr->string (lookup the-ctx content)) stream)
+         (render_ (cdr tokens) the-ctx)]
 
         ; Unescaped variable
         ['utag
-         (print (lookup the-ctx content) stream)])]))
+         (display (lookup the-ctx content) stream)
+         (render_ (cdr tokens) the-ctx)]
+
+        ;; Section
+        ['section
+         (define val (lookup the-ctx content))
+         (cond
+          [(list? val)
+           (map (lambda (the-new-ctx)
+                  (render_ section the-new-ctx))
+                val)]
+          [(hash? val)
+           (render_ section val)]
+          [(eq? val #f)]
+          [else
+           (render_ section the-ctx)])
+         (render_ (cdr tokens) the-ctx)]
+
+        ;; Proceed without processing this token
+        [else
+         (render_ (cdr tokens) the-ctx)])]))
+
+  (render_ tokens rastache-ctx))
 
 
-
-
-
-
-
-  (display "lala" stream))
-
-(render null 'mock (current-output-port))
+(let ([template (open-input-file "tests/examples/complex.html")])
+  (render (tokenize template) 'mock (current-output-port))
+  (displayln "")
+  (when (not (port-closed? template))
+    (close-input-port template)))

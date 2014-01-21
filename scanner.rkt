@@ -69,19 +69,19 @@
 
   ;; Token constructor for etagn
   (define (make-token-etag content)
-    (token 'etag content empty))
+    (token 'etag (string->symbol content) empty))
 
   ;; Token constructor for utag
   (define (make-token-utag content)
-    (token 'utag content empty))
+    (token 'utag (string->symbol content) empty))
 
   ;; Token constructor for section
   (define (make-token-section content [section empty])
-    (token 'section content section))
+    (token 'section (string->symbol content) section))
 
   ;; Token constructor for inverted section
   (define (make-token-inverted-section content [section empty])
-    (token 'inverted-section content section))
+    (token 'inverted-section (string->symbol content) section))
 
   ;; Token constructor for partial
   (define (make-token-partial content)
