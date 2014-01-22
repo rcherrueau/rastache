@@ -2,18 +2,18 @@
 
 (provide (all-defined-out))
 
-(define escaped-name "escaped")
+(define unescaped-name "unescaped")
 
-(define escaped-template
-  (string-append "examples/" escaped-name ".html"))
+(define unescaped-template
+  (string-append "examples/" unescaped-name ".html"))
 
-(define escaped-res
-  (string-append "examples/" escaped-name ".txt"))
+(define unescaped-res
+  (string-append "examples/" unescaped-name ".txt"))
 
-(define escaped-stx
+(define unescaped-stx
   #''((title (λ () "Bear > Shark"))))
 
-(define escaped-mock
+(define unescaped-mock
   (let*
       ([refs
         (make-hash
@@ -24,6 +24,6 @@
        [context
         (make-hash
          (list
-          (cons 'title "Bear > Shark")))])
+          (cons 'title (λ () "Bear > Shark"))))])
 
   (cons context rastache-ref)))

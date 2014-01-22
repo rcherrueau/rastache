@@ -112,13 +112,10 @@
         ; Variable
         ['etag
          (define val (lookup the-ctx content))
-         (display (correct-xexpr?
-                   val
-                   (λ () (xexpr->string val))
-                   (λ (n) (cond
-                           [(number? val)
-                            (number->string val)]
-                           [else ""]))) stream)
+         (display (cond
+                   [(null? val) ""]
+                   [(number? val) (number->string val)]
+                   [else (xexpr->string val)]) stream)
          (render_ (cdr tokens) the-ctx)]
 
         ; Unescaped variable
