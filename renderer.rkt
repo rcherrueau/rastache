@@ -62,40 +62,68 @@
 
   ;; Lookup to the correct value. If no value find, then this function
   ;; retun a empty string as in spec.
+  ;; lookup: rastace-context -> symbol -> string
   (define (lookup the-ctx the-key)
-    (define (rastache-has-key? the-ctx the-key)
+
+    ;; Returns `#t' if the lookup calls is done with context updating,
+    ;; `#f' otherwise.
+    (define context-update? (not (eq? the-ctx rastache-ctx)))
+
+    ;; Returns `#t' if rastache context `the-ctx' contains a value for
+    ;; the given `key', `#f' otherwise.
+    (define (context-hash-key? the-ctx the-key)
       (hash-has-key? the-ctx the-key))
 
-    (define (rastache-lookup the-ctx the-key)
-      (define val (rastache-ref the-ctx the-key))
-      (cond
-       [(procedure? val)
-        (val the-ctx)]
-       [else val]))
+    ;; Returns the value for `the-key' in context `the-context'.
+    (define (lookup-current-context the-ctx the-key)
+      (let ([val (rastache-ref the-ctx the-key)])
+        (cond [(procedure? val)
+               (with-handlers
+                   ([exn:fail:contract? (lambda (n) "")])
+                 (val the-ctx))]
+              [else val])))
 
-    (if (not (eq? the-ctx rastache-ctx))
+    ;; If we are in a context update case, and the value is a
+    ;; procedure, then, the context passes to the procedure could be
+    ;; the current context or the general context. According to the
+    ;; specification, first we execute the procedure with the current
+    ;; context. If a `exn:contract:fail' exception is raised, next we
+    ;; execute the procedure with the general context. Finally, if we
+    ;; still get an error, we return the empty string as result of the
+    ;; application of the procedure.
+    (define (lookup-rastache-context current-ctx the-key)
+      (let ([val (rastache-ref rastache-ctx the-key)])
+        (cond [(procedure? val)
+               ; If application fails, then try with general
+               ; context
+               (with-handlers
+                   ([exn:fail:contract?
+                     (lambda (n)
+                       ; If application fails, then return empty
+                       ; string
+                       (with-handlers
+                           ([exn:fail:contract? (lambda (n) "")])
+                       (val rastache-ctx)))])
+                 (val current-ctx))]
+              [else val])))
+
+    ; During the lookup, there are two different case:
+    ; - Context Update case :: The lookup is done first on the current
+    ;   context. If there is no result, the look up is done then on
+    ;   the general context.
+    ; - Otherwise case :: The lookup is done on the current context.
+    (if context-update?
         (cond
-         [(rastache-has-key? the-ctx the-key)
-          (rastache-lookup the-ctx the-key)]
-         [(rastache-has-key? rastache-ctx the-key)
-          (let ([val (rastache-ref rastache-ctx the-key)])
-            (cond [(procedure? val)
-                   ; first try on current context
-                   ; then try on general context
-                   ; finaly returns nothing
-                   (with-handlers
-                       ([exn:fail:contract?
-                         (lambda (n)
-                           (with-handlers
-                               ([exn:fail:contract?
-                                 (lambda (n) "")])
-                               (val rastache-ctx)))])
-                     (val the-ctx))]
-                  [else val]))]
+         ; Do the lookup on the current context
+         [(context-hash-key? the-ctx the-key)
+          (lookup-current-context the-ctx the-key)]
+         ; Do the lookup on the general context
+         [(context-hash-key? rastache-ctx the-key)
+          (lookup-rastache-context the-ctx the-key)]
          [else ""])
         (cond
-         [(rastache-has-key? the-ctx the-key)
-          (rastache-lookup the-ctx the-key)]
+         [(context-hash-key? the-ctx the-key)
+          (lookup-current-context the-ctx the-key)]
          [else ""])))
 
   (define (render_ tokens the-ctx)
@@ -139,7 +167,8 @@
            (render_ section the-ctx)])
          (render_ (cdr tokens) the-ctx)]
 
-        ;; Proceed without processing this token
+        ;; If this is a unknow token, proceed without
+        ;; processing this token
         [else
          (render_ (cdr tokens) the-ctx)])]))
 
