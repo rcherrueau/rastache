@@ -139,6 +139,8 @@
           [(rastache-context? val)
            (render_ section val)]
           [(boolean? val)
+           ; if val is not `#t' do nothing. This case will be process
+           ; in `'inverted-section' if any.
            (when val (render_ section the-ctx))]
           [else
            (render_ section the-ctx)])
