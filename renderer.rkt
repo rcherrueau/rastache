@@ -37,7 +37,8 @@
                    (make-hash
                     (list (cons 'name "blue")
                           (cons 'current #f)
-                          (cons 'url "#Blue")))))
+                          (cons 'url "#Blue")))
+                   ))
       (cons 'link (lambda (self) (not (eq? (rastache-ref self 'current) #t))))
       (cons 'list (lambda (self) (not (eq? (length (rastache-ref self 'item)) 0))))
       (cons 'empty (lambda (self) (eq? (length (rastache-ref self 'item)) 0))))))
@@ -59,6 +60,9 @@
 
 (define (render tokens context stream)
   (define-values (rastache-ctx rastache-ref) (make-context context))
+
+  ;; Returns `#t' if the value is a rastache context, `#f' otherwise.
+  (define rastache-context? hash?)
 
   ;; Lookup to the correct value. If no value find, then this function
   ;; retun a empty string as in spec.
@@ -151,15 +155,17 @@
          (display (lookup the-ctx content) stream)
          (render_ (cdr tokens) the-ctx)]
 
-        ;; Section
+        ; Section
         ['section
          (define val (lookup the-ctx content))
          (cond
           [(list? val)
-           (for-each (lambda (the-new-ctx)
-                       (render_ section the-new-ctx))
+           (for-each (lambda (v)
+                       (if (rastache-context? v)
+                           (render_ section v)
+                           (render_ section the-ctx)))
                      val)]
-          [(hash? val)
+          [(rastache-context? val)
            (render_ section val)]
           [(boolean? val)
            (when val (render_ section the-ctx))]
@@ -167,8 +173,22 @@
            (render_ section the-ctx)])
          (render_ (cdr tokens) the-ctx)]
 
-        ;; If this is a unknow token, proceed without
-        ;; processing this token
+        ; Inverted Section
+        ['inverted-section
+         (define val (lookup the-ctx content))
+         ; In contrast with section, we call the inverted section if
+         ; tha value is false or the list is empty.
+         ; See https://github.com/janl/mustache.js/issues/186
+         (when (or (not val)
+                   (and (list? val) (null? val)))
+           (render_ section the-ctx))
+         (render_ (cdr tokens) the-ctx)]
+
+        ;; ; TODO Parial
+        ;; ['partial ]
+
+        ; If this is a unknow token, proceed without processing this
+        ; token
         [else
          (render_ (cdr tokens) the-ctx)])]))
 
