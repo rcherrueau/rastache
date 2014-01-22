@@ -54,7 +54,40 @@
 ;;
 ;; see http://mustache.github.io/mustache.5.html for the meaning of
 ;; each category.
-(struct token (sigil content section))
+(define (token-print token port mode)
+  (define (token-print_ the-token depth)
+    (define sigil (token-sigil the-token))
+    (define content (token-content the-token))
+    (define section (token-section the-token))
+
+    (cond
+      [(or (eq? sigil 'section) (eq? sigil 'inverted-section))
+       (write-string
+        (format "~a< ~s, ~s, section >~n"
+                (make-string depth #\space)
+                sigil
+                content) port)
+       (write-string
+        (format "~a--- :start-~s: ---~n"
+                (make-string (+ depth 2) #\space)
+                content) port)
+       (for-each (lambda (t)
+                   (token-print_ t (+ depth 2)))
+                 section)
+       (write-string
+        (format "~a--- :end-~s: ---~n"
+                (make-string (+ depth 2) #\space)
+                content) port)]
+      [else
+       (write-string (format "~a< ~s, ~s >~n"
+                             (make-string depth #\space)
+                             sigil
+                             content) port)]))
+  (token-print_ token 0))
+
+(struct token (sigil content section)
+        #:methods gen:custom-write
+        [(define write-proc token-print)])
 
 ;; Construct the list of tokens for a specific template. The
 ;; `template' has to be an input port that reads bytes from a UTF-8
