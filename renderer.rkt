@@ -19,7 +19,7 @@
 ;; Mock for context maker
 (define (make-context context)
   (define rastache-ref (lambda (context key)
-                        ((hash-ref refs key) context)))
+                         ((hash-ref refs key) context)))
 
   (define context
     (make-hash
@@ -69,7 +69,8 @@
     (define (rastache-lookup the-ctx the-key)
       (define val (rastache-ref the-ctx the-key))
       (cond
-       [(procedure? val) (val the-ctx)]
+       [(procedure? val)
+        (val the-ctx)]
        [else val]))
 
     (if (not (eq? the-ctx rastache-ctx))
@@ -77,7 +78,20 @@
          [(rastache-has-key? the-ctx the-key)
           (rastache-lookup the-ctx the-key)]
          [(rastache-has-key? rastache-ctx the-key)
-          (rastache-lookup rastache-ctx the-key)]
+          (let ([val (rastache-ref rastache-ctx the-key)])
+            (cond [(procedure? val)
+                   ; first try on current context
+                   ; then try on general context
+                   ; finaly returns nothing
+                   (with-handlers
+                       ([exn:fail:contract?
+                         (lambda (n)
+                           (with-handlers
+                               ([exn:fail:contract?
+                                 (lambda (n) "")])
+                               (val rastache-ctx)))])
+                     (val the-ctx))]
+                  [else val]))]
          [else ""])
         (cond
          [(rastache-has-key? the-ctx the-key)
@@ -114,12 +128,13 @@
          (define val (lookup the-ctx content))
          (cond
           [(list? val)
-           (map (lambda (the-new-ctx)
-                  (render_ section the-new-ctx))
-                val)]
+           (for-each (lambda (the-new-ctx)
+                       (render_ section the-new-ctx))
+                     val)]
           [(hash? val)
            (render_ section val)]
-          [(eq? val #f)]
+          [(boolean? val)
+           (when val (render_ section the-ctx))]
           [else
            (render_ section the-ctx)])
          (render_ (cdr tokens) the-ctx)]
