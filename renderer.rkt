@@ -20,7 +20,8 @@
          "scanner.rkt")
 
 (define (render tokens context stream)
-  (define-values (rastache-ctx rastache-ref) (make-context context))
+  (define rastache-ctx (car context))
+  (define rastache-ref (cdr context))
 
   ;; Returns `#t' if the value is a rastache context, `#f' otherwise.
   (define rastache-context? hash?)
@@ -44,7 +45,7 @@
       (let ([val (rastache-ref the-ctx the-key)])
         (cond [(procedure? val)
                (with-handlers
-                   ([exn:fail:contract? (lambda (n) "")])
+                   ([exn:fail:contract? (λ (n) "")])
                  (val the-ctx))]
               [else val])))
 
@@ -63,11 +64,11 @@
                ; context
                (with-handlers
                    ([exn:fail:contract?
-                     (lambda (n)
+                     (λ (n)
                        ; If application fails, then return empty
                        ; string
                        (with-handlers
-                           ([exn:fail:contract? (lambda (n) "")])
+                           ([exn:fail:contract? (λ (n) "")])
                        (val rastache-ctx)))])
                  (val current-ctx))]
               [else val])))
@@ -110,7 +111,14 @@
 
         ; Variable
         ['etag
-         (display (xexpr->string (lookup the-ctx content)) stream)
+         (define val (lookup the-ctx content))
+         (display (correct-xexpr?
+                   val
+                   (λ () (xexpr->string val))
+                   (λ (n) (cond
+                           [(number? val)
+                            (number->string val)]
+                           [else ""]))) stream)
          (render_ (cdr tokens) the-ctx)]
 
         ; Unescaped variable
@@ -123,7 +131,7 @@
          (define val (lookup the-ctx content))
          (cond
           [(list? val)
-           (for-each (lambda (v)
+           (for-each (λ (v)
                        (if (rastache-context? v)
                            (render_ section v)
                            (render_ section the-ctx)))
@@ -156,51 +164,3 @@
          (render_ (cdr tokens) the-ctx)])]))
 
   (render_ tokens rastache-ctx))
-
-;; ;; Debug only
-;; (let ([template (open-input-file "tests/examples/complex.html")])
-;;   (render (tokenize template) 'mock (current-output-port))
-;;   (displayln "")
-;;   (when (not (port-closed? template))
-;;     (close-input-port template)))
-
-;; ;; Mock for context maker
-;; (define (make-context context)
-;;   (define rastache-ref (lambda (context key)
-;;                          ((hash-ref refs key) context)))
-
-;;   (define context
-;;     (make-hash
-;;      (list
-;;       (cons 'header (lambda (self) "Colors"))
-;;       (cons 'item (list
-;;                    (make-hash
-;;                     (list (cons 'name "red")
-;;                           (cons 'current #t)
-;;                           (cons 'url "#Red")))
-;;                    (make-hash
-;;                     (list (cons 'name "green")
-;;                           (cons 'current #f)
-;;                           (cons 'url "#Green")))
-;;                    (make-hash
-;;                     (list (cons 'name "blue")
-;;                           (cons 'current #f)
-;;                           (cons 'url "#Blue")))
-;;                    ))
-;;       (cons 'link (lambda (self) (not (eq? (rastache-ref self 'current) #t))))
-;;       (cons 'list (lambda (self) (not (eq? (length (rastache-ref self 'item)) 0))))
-;;       (cons 'empty (lambda (self) (eq? (length (rastache-ref self 'item)) 0))))))
-
-;;   (define refs
-;;     (make-hash
-;;      (list
-;;       (cons 'empty (lambda (ctx)  (hash-ref ctx 'empty)))
-;;       (cons 'list (lambda (ctx) (hash-ref ctx 'list)))
-;;       (cons 'item (lambda (ctx) (hash-ref ctx 'item)))
-;;       (cons 'name (lambda (ctx) (hash-ref ctx 'name)))
-;;       (cons 'current (lambda (ctx) (hash-ref ctx 'current)))
-;;       (cons 'url (lambda (ctx) (hash-ref ctx 'url)))
-;;       (cons 'header (lambda (ctx) (hash-ref ctx 'header)))
-;;       (cons 'link (lambda (ctx) (hash-ref ctx 'link))))))
-
-;;   (values context rastache-ref))
