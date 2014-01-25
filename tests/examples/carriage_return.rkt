@@ -1,1 +1,29 @@
-'((foo "Hello World"))
+#lang racket/base
+
+(provide (all-defined-out))
+
+(define carriage_return-name "carriage_return")
+
+(define carriage_return-template
+  (string-append "examples/" carriage_return-name ".html"))
+
+(define carriage_return-res
+  (string-append "examples/" carriage_return-name ".txt"))
+
+(define carriage_return-stx
+  #''((foo "Hello World")))
+
+(define carriage_return-mock
+  (let*
+      ([refs
+        (make-hash
+         (list
+          (cons 'foo (λ (ctx) (hash-ref ctx 'foo)))))]
+       [rastache-ref
+        (λ (ctx key) ((hash-ref refs key) ctx))]
+       [context
+        (make-hash
+         (list
+          (cons 'foo "Hello World")))])
+
+  (cons context rastache-ref)))

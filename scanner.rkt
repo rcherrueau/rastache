@@ -13,7 +13,11 @@
 ; Parse mustache template and generate a list of tokens. The list of
 ; tokens describes how to render the template.
 
-(provide tokenize)
+(provide token?
+         token-sigil
+         token-content
+         token-section
+         tokenize)
 
 ; ______________________________________________________________________________
 ; import and implementation
@@ -50,7 +54,40 @@
 ;;
 ;; see http://mustache.github.io/mustache.5.html for the meaning of
 ;; each category.
-(struct token (sigil content section))
+(define (token-print token port mode)
+  (define (token-print_ the-token depth)
+    (define sigil (token-sigil the-token))
+    (define content (token-content the-token))
+    (define section (token-section the-token))
+
+    (cond
+      [(or (eq? sigil 'section) (eq? sigil 'inverted-section))
+       (write-string
+        (format "~a< ~s, ~s, section >~n"
+                (make-string depth #\space)
+                sigil
+                content) port)
+       (write-string
+        (format "~a--- :start-~s: ---~n"
+                (make-string (+ depth 2) #\space)
+                content) port)
+       (for-each (lambda (t)
+                   (token-print_ t (+ depth 2)))
+                 section)
+       (write-string
+        (format "~a--- :end-~s: ---~n"
+                (make-string (+ depth 2) #\space)
+                content) port)]
+      [else
+       (write-string (format "~a< ~s, ~s >~n"
+                             (make-string depth #\space)
+                             sigil
+                             content) port)]))
+  (token-print_ token 0))
+
+(struct token (sigil content section)
+        #:methods gen:custom-write
+        [(define write-proc token-print)])
 
 ;; Construct the list of tokens for a specific template. The
 ;; `template' has to be an input port that reads bytes from a UTF-8
@@ -63,25 +100,25 @@
   (define (make-token-static content)
     (token 'static content empty))
 
-  ;; Token constructor for etagn
+  ;; Token constructor for etag
   (define (make-token-etag content)
-    (token 'etag content empty))
+    (token 'etag (string->symbol (string-trim content)) empty))
 
   ;; Token constructor for utag
   (define (make-token-utag content)
-    (token 'utag content empty))
+    (token 'utag (string->symbol (string-trim content)) empty))
 
   ;; Token constructor for section
   (define (make-token-section content [section empty])
-    (token 'section content section))
+    (token 'section (string->symbol (string-trim content)) section))
 
   ;; Token constructor for inverted section
   (define (make-token-inverted-section content [section empty])
-    (token 'inverted-section content section))
+    (token 'inverted-section (string->symbol (string-trim content)) section))
 
   ;; Token constructor for partial
   (define (make-token-partial content)
-    (token 'partiel content empty))
+    (token 'partial content empty))
 
   (define state-pattern
     (pregexp

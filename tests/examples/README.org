@@ -1,0 +1,410 @@
+
+
+* BOOLEAN
+*** Template
+#+BEGIN_EXAMPLE
+{{#name}}{{name}}{{/name}}
+{{#age}}{{age}}{{/age}}
+{{#admin}}admin{{/admin}}
+#+END_EXAMPLE
+*** Context
+#+BEGIN_SRC racket
+'((name "Jim") (age 24) (admin #t))
+
+#+END_SRC
+*** Result
+#+BEGIN_EXAMPLE
+Jim
+24
+admin
+#+END_EXAMPLE
+
+
+* CARRIAGE_RETURN
+*** Template
+#+BEGIN_EXAMPLE
+<b>
+{{foo}}
+</b>
+
+#+END_EXAMPLE
+*** Context
+#+BEGIN_SRC racket
+'((foo "Hello World"))
+
+#+END_SRC
+*** Result
+#+BEGIN_EXAMPLE
+<b>
+Hello World
+</b>
+
+#+END_EXAMPLE
+
+
+* COMMENTS
+*** Template
+#+BEGIN_EXAMPLE
+<h1>{{title}}{{! just something interesting... or not... }}</h1>
+
+#+END_EXAMPLE
+*** Context
+#+BEGIN_SRC racket
+'((title (lambda () "A Comedy of Errors")))
+
+#+END_SRC
+*** Result
+#+BEGIN_EXAMPLE
+<h1>A Comedy of Errors</h1>
+
+#+END_EXAMPLE
+
+
+* COMPLEX
+*** Template
+#+BEGIN_EXAMPLE
+<h1>{{header}}</h1>{{#list}}<ul>{{#item}}{{#current}}<li><strong>{{name}}</strong></li>{{/current}}{{#link}}<li><a href="{{url}}">{{name}}</a></li>{{/link}}{{/item}}</ul>{{/list}}{{#empty}}<p>The list is empty.</p>{{/empty}}
+
+#+END_EXAMPLE
+*** Context
+#+BEGIN_SRC racket
+'((header (lambda () "Colors"))
+  (item '((name "red") (current #t) (url "#Red"))
+        '((name "green") (current #f) (url "#Green"))
+        '((name "blue") (current #f) (url "#Blue")))
+  (link (lambda (self) (not (eq? (mustache-current self) #t))))
+  (list (lambda (self) (not (eq? (length (mustache-item self)) 0))))
+  (empty (lambda (self) (eq? (length (mustache-item self)) 0))))
+
+#+END_SRC
+*** Result
+#+BEGIN_EXAMPLE
+<h1>Colors</h1><ul><li><strong>red</strong></li><li><a href="#Green">green</a></li><li><a href="#Blue">blue</a></li></ul>
+
+#+END_EXAMPLE
+
+
+* DEEP_PARTIAL
+*** Template
+#+BEGIN_EXAMPLE
+<h1>First: {{title}}</h1>
+{{>partial.html}}
+#+END_EXAMPLE
+*** Context
+#+BEGIN_SRC racket
+'((title "Welcome"))
+
+#+END_SRC
+*** Result
+#+BEGIN_EXAMPLE
+<h1>First: Welcome</h1>
+<h1>Welcome</h1>
+<p class="again">Again, Welcome!</p>
+#+END_EXAMPLE
+
+
+* DELIMITERS
+*** Template
+#+BEGIN_EXAMPLE
+{{=<% %>=}}* <% first %>
+* <% second %>
+<%=lol lol=%>
+* lol third lol
+lol={{ }}=lol
+* {{ fourth }}
+
+#+END_EXAMPLE
+*** Context
+#+BEGIN_SRC racket
+'((first "It worked the first time.")
+  (second "And it worked the second time.")
+  (third "Then, surprisingly, it worked the third time.")
+  (fourth "Fourth time also fine!."))
+
+#+END_SRC
+*** Result
+#+BEGIN_EXAMPLE
+* It worked the first time.
+* And it worked the second time.
+
+* Then, surprisingly, it worked the third time.
+
+* Fourth time also fine!.
+#+END_EXAMPLE
+
+
+* DOT_NOTATION
+*** Template
+#+BEGIN_EXAMPLE
+Hello {{person.name}}
+You have just won ${{price.value}}!
+{{#person.in_ca}}
+Well, ${{ states.ca.taxed_value }}, after taxes.
+{{/person.in_ca}}
+
+#+END_EXAMPLE
+*** Context
+#+BEGIN_SRC racket
+'((person '((name "Chris") (in_ca #t)))
+  (price  '((value 10000)))
+  (states '((ca
+             '((taxed_value (lambda (self)
+                              (let ([val
+                                     (rastache-ref (rastache-ref self 'price)
+                                                   'value)])
+                                (- val (* val 0.4))))))))))
+
+#+END_SRC
+*** Result
+#+BEGIN_EXAMPLE
+Hello Chris
+You have just won $10000!
+
+Well, $6000, after taxes.
+
+
+#+END_EXAMPLE
+
+
+* ERROR_NOT_FOUND
+*** Template
+#+BEGIN_EXAMPLE
+{{foo}}
+#+END_EXAMPLE
+*** Context
+#+BEGIN_SRC racket
+'((bar 2))
+
+#+END_SRC
+*** Result
+#+BEGIN_EXAMPLE
+
+#+END_EXAMPLE
+
+
+* ESCAPED
+*** Template
+#+BEGIN_EXAMPLE
+<h1>{{title}}</h1>
+#+END_EXAMPLE
+*** Context
+#+BEGIN_SRC racket
+'((title (lambda () "Bear > Shark")))
+
+#+END_SRC
+*** Result
+#+BEGIN_EXAMPLE
+<h1>Bear &gt; Shark</h1>
+#+END_EXAMPLE
+
+
+* HASH_INSTEAD_OF_ARRAY
+*** Template
+#+BEGIN_EXAMPLE
+{{#person}}
+  Name: {{name}}
+{{/person}}
+#+END_EXAMPLE
+*** Context
+#+BEGIN_SRC racket
+'((person '((name "Chris"))))
+
+#+END_SRC
+*** Result
+#+BEGIN_EXAMPLE
+
+  Name: Chris
+
+#+END_EXAMPLE
+
+
+* INVERTED
+*** Template
+#+BEGIN_EXAMPLE
+{{#admin}}Admin.{{/admin}}
+{{^admin}}Not Admin.{{/admin}}
+{{#person}}Hi {{name}}!{{/person}}
+
+#+END_EXAMPLE
+*** Context
+#+BEGIN_SRC racket
+'((admin #f)
+  (person
+   '((name "Jim"))))
+
+#+END_SRC
+*** Result
+#+BEGIN_EXAMPLE
+
+Not Admin.
+Hi Jim!
+
+#+END_EXAMPLE
+
+
+* PARTIAL
+*** Template
+#+BEGIN_EXAMPLE
+<h1>{{title}}</h1>
+{{>inner_partial.html}}
+#+END_EXAMPLE
+*** Context
+#+BEGIN_SRC racket
+'((title "Welcome"))
+
+#+END_SRC
+*** Result
+#+BEGIN_EXAMPLE
+<h1>Welcome</h1>
+<p class="again">Again, Welcome!</p>
+#+END_EXAMPLE
+
+
+* RECURSION_WITH_SAME_NAMES
+*** Template
+#+BEGIN_EXAMPLE
+{{ name }}
+{{ description }}
+{{#terms}}
+  {{name}}
+  {{index}}{{/terms}}
+
+#+END_EXAMPLE
+*** Context
+#+BEGIN_SRC racket
+'((name "name")
+  (description "desc")
+  (terms
+    '((name "t1") (index 0))
+    '((name "t2") (index 1))))
+
+#+END_SRC
+*** Result
+#+BEGIN_EXAMPLE
+name
+desc
+
+  t1
+  0
+  t2
+  1
+
+#+END_EXAMPLE
+
+
+* REUSE_OF_ENUMERABLES
+*** Template
+#+BEGIN_EXAMPLE
+{{#terms}}
+  {{name}}
+  {{index}}{{/terms}}{{#terms}}
+  {{name}}
+  {{index}}{{/terms}}
+
+#+END_EXAMPLE
+*** Context
+#+BEGIN_SRC racket
+'((terms
+    '((name "t1") (index 0))
+    '((name "t2") (index 1)))
+
+#+END_SRC
+*** Result
+#+BEGIN_EXAMPLE
+
+  t1
+  0
+  t2
+  1
+  t1
+  0
+  t2
+  1
+
+#+END_EXAMPLE
+
+
+* SIMPLE
+*** Template
+#+BEGIN_EXAMPLE
+Hello {{name}}
+You have just won ${{value}}!
+{{#in_ca}}
+Well, ${{ taxed_value }}, after taxes.
+{{/in_ca}}
+Love, {{owner}}
+
+#+END_EXAMPLE
+*** Context
+#+BEGIN_SRC racket
+'((name "Chris")
+  (value 10000)
+  (taxed_value (lambda (self)
+                 (let ([val (rastache-ref self 'value)])
+                   (- val (* val 0.4)))))
+  (in_ca #t)
+  (owner null))
+
+#+END_SRC
+*** Result
+#+BEGIN_EXAMPLE
+Hello Chris
+You have just won $10000!
+
+Well, $6000, after taxes.
+
+Love, 
+
+#+END_EXAMPLE
+
+
+* TWICE
+*** Template
+#+BEGIN_EXAMPLE
+{{#person}}{{name}}{{/person}}
+{{#person}}{{name}}{{/person}}
+
+#+END_EXAMPLE
+*** Context
+#+BEGIN_SRC racket
+'((person '((name "tom"))))
+
+#+END_SRC
+*** Result
+#+BEGIN_EXAMPLE
+tom
+tom
+
+#+END_EXAMPLE
+
+
+* TWO_IN_A_ROW
+*** Template
+#+BEGIN_EXAMPLE
+{{greeting}}, {{name}}!
+#+END_EXAMPLE
+*** Context
+#+BEGIN_SRC racket
+'((name "Joe") (greeting "Welcome"))
+
+#+END_SRC
+*** Result
+#+BEGIN_EXAMPLE
+Welcome, Joe!
+#+END_EXAMPLE
+
+
+* UNESCAPED
+*** Template
+#+BEGIN_EXAMPLE
+<h1>{{{title}}}</h1>
+#+END_EXAMPLE
+*** Context
+#+BEGIN_SRC racket
+'((title (lambda () "Bear > Shark")))
+
+#+END_SRC
+*** Result
+#+BEGIN_EXAMPLE
+<h1>Bear > Shark</h1>
+#+END_EXAMPLE
