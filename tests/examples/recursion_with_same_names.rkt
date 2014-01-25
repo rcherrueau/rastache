@@ -17,7 +17,7 @@
        '((name "t1") (index 0))
        '((name "t2") (index 1)))))
 
-(define rwsn-mock
+(define rwsn-mock-ctx
   (let*
       ([refs
         (make-hash

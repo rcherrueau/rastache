@@ -14,7 +14,7 @@
                                       '((name "t1") (index 0))
                                       '((name "t2") (index 1)))))
 
-(define reuse_of_enumerables-mock
+(define reuse_of_enumerables-mock-ctx
   (let*
       ([refs
         (make-hash

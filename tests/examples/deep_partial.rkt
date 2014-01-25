@@ -13,7 +13,7 @@
 (define deep_partial-stx
   #''((title "Welcome")))
 
-(define deep_partial-mock
+(define deep_partial-mock-ctx
   (let*
       ([refs
         (make-hash

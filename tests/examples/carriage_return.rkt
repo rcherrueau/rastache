@@ -13,7 +13,7 @@
 (define carriage_return-stx
   #''((foo "Hello World")))
 
-(define carriage_return-mock
+(define carriage_return-mock-ctx
   (let*
       ([refs
         (make-hash

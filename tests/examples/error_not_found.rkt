@@ -13,7 +13,7 @@
 (define error_not_found-stx
   #''((bar 2)))
 
-(define error_not_found-mock
+(define error_not_found-mock-ctx
   (let*
       ([refs
         (make-hash

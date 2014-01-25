@@ -19,7 +19,7 @@
       (list (λ (self) (not (eq? (length (rastache-ref self 'item)) 0))))
       (empty (λ (self) (eq? (length (rastache-ref self 'item)) 0)))))
 
-(define complex-mock
+(define complex-mock-ctx
   (let*
       ([refs
         (make-hash

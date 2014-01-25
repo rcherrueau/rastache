@@ -19,7 +19,7 @@
       (in_ca #t)
       (owner null)))
 
-(define simple-mock
+(define simple-mock-ctx
   (let*
       ([refs
         (make-hash

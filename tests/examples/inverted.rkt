@@ -14,7 +14,7 @@
   #''((admin #f)
       (person '((name "Jim")))))
 
-(define inverted-mock
+(define inverted-mock-ctx
   (let*
       ([refs
         (make-hash

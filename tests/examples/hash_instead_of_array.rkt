@@ -13,7 +13,7 @@
 (define hioa-stx
   #''((person '((name "Chris")))))
 
-(define hioa-mock
+(define hioa-mock-ctx
   (let* ([refs
           (make-hash
            (list

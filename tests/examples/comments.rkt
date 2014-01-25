@@ -13,7 +13,7 @@
 (define comments-stx
   #''((title (λ () "A Comedy of Errors"))))
 
-(define comments-mock
+(define comments-mock-ctx
   (let*
       ([refs
         (make-hash

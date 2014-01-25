@@ -12,7 +12,7 @@
 
 (define twice-stx #''((person '((name "tom")))))
 
-(define twice-mock
+(define twice-mock-ctx
   (let* ([refs
           (make-hash
            (list

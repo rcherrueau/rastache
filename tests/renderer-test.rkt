@@ -45,7 +45,7 @@
               [rendered (open-output-string)]
               [expected (file->string boolean-res)])
           (render (tokenize template)
-                  boolean-mock
+                  boolean-mock-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
                         expected
@@ -58,7 +58,7 @@
               [rendered (open-output-string)]
               [expected (file->string carriage_return-res)])
           (render (tokenize template)
-                  carriage_return-mock
+                  carriage_return-mock-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
                         expected
@@ -72,7 +72,7 @@
               [rendered (open-output-string)]
               [expected (file->string comments-res)])
           (render (tokenize template)
-                  comments-mock
+                  comments-mock-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
                         expected
@@ -86,7 +86,7 @@
               [rendered (open-output-string)]
               [expected (file->string complex-res)])
           (render (tokenize template)
-                  complex-mock
+                  complex-mock-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
                         expected
@@ -99,7 +99,7 @@
      ;;        [rendered (open-output-string)]
      ;;        [expected (file->string deep_partial-res)])
      ;;    (render (tokenize template)
-     ;;            deep_partial-mock
+     ;;            deep_partial-mock-ctx
      ;;            rendered)
      ;;    (check-equal? (get-output-string rendered)
      ;;                   expected
@@ -113,7 +113,7 @@
               [rendered (open-output-string)]
               [expected (file->string error_not_found-res)])
           (render (tokenize template)
-                  error_not_found-mock
+                  error_not_found-mock-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
                         expected
@@ -126,7 +126,7 @@
               [rendered (open-output-string)]
               [expected (file->string escaped-res)])
           (render (tokenize template)
-                  escaped-mock
+                  escaped-mock-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
                         expected
@@ -140,7 +140,7 @@
               [rendered (open-output-string)]
               [expected (file->string hioa-res)])
           (render (tokenize template)
-                  hioa-mock
+                  hioa-mock-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
                         expected
@@ -153,7 +153,7 @@
               [rendered (open-output-string)]
               [expected (file->string inverted-res)])
           (render (tokenize template)
-                  inverted-mock
+                  inverted-mock-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
                         expected
@@ -166,7 +166,7 @@
      ;;        [rendered (open-output-string)]
      ;;        [expected (file->string partial-res)])
      ;;    (render (tokenize template)
-     ;;            partial-mock
+     ;;            partial-mock-ctx
      ;;            rendered)
      ;;    (check-equal? (get-output-string rendered)
      ;;                   expected
@@ -180,7 +180,7 @@
               [rendered (open-output-string)]
               [expected (file->string rwsn-res)])
           (render (tokenize template)
-                  rwsn-mock
+                  rwsn-mock-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
                         expected
@@ -194,7 +194,7 @@
               [rendered (open-output-string)]
               [expected (file->string reuse_of_enumerables-res)])
           (render (tokenize template)
-                  reuse_of_enumerables-mock
+                  reuse_of_enumerables-mock-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
                         expected
@@ -208,7 +208,7 @@
               [rendered (open-output-string)]
               [expected (file->string simple-res)])
           (render (tokenize template)
-                  simple-mock
+                  simple-mock-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
                         expected
@@ -222,7 +222,7 @@
               [rendered (open-output-string)]
               [expected (file->string twice-res)])
           (render (tokenize template)
-                  twice-mock
+                  twice-mock-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
                         expected
@@ -236,7 +236,7 @@
               [rendered (open-output-string)]
               [expected (file->string two_in_a_row-res)])
           (render (tokenize template)
-                  two_in_a_row-mock
+                  two_in_a_row-mock-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
                         expected
@@ -249,7 +249,7 @@
      ;;        [rendered (open-output-string)]
      ;;        [expected (file->string unescaped-res)])
      ;;    (render (tokenize template)
-     ;;            unescaped-mock
+     ;;            unescaped-mock-ctx
      ;;            rendered)
      ;;    (check-equal? (get-output-string rendered)
      ;;                   expected

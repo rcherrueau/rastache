@@ -13,7 +13,7 @@
 (define two_in_a_row-stx
   #''((name "Joe") (greeting "Welcome")))
 
-(define two_in_a_row-mock
+(define two_in_a_row-mock-ctx
   (let*
       ([refs
         (make-hash

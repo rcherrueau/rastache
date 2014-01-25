@@ -13,7 +13,7 @@
 (define escaped-stx
   #''((title (λ () "Bear > Shark"))))
 
-(define escaped-mock
+(define escaped-mock-ctx
   (let*
       ([refs
         (make-hash

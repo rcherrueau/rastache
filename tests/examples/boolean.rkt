@@ -13,7 +13,7 @@
 (define boolean-stx
   #''((name "Jim") (age 24) (admin #t)))
 
-(define boolean-mock
+(define boolean-mock-ctx
   (let*
       ([refs
         (make-hash
