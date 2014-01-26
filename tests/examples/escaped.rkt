@@ -1,5 +1,7 @@
 #lang racket/base
 
+(require "../../scanner.rkt")
+
 (provide (all-defined-out))
 
 (define escaped-name "escaped")
@@ -27,3 +29,9 @@
           (cons 'title "Bear > Shark")))])
 
   (cons context rastache-ref)))
+
+(define  escaped-mock-tokens
+  (list
+   (token 'static "<h1>" null)
+   (token 'etag 'title null)
+   (token 'static "</h1>" null)))

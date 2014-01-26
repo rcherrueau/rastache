@@ -1,5 +1,7 @@
 #lang racket/base
 
+(require "../../scanner.rkt")
+
 (provide (all-defined-out))
 
 (define unescaped-name "unescaped")
@@ -24,6 +26,12 @@
        [context
         (make-hash
          (list
-          (cons 'title (λ () "Bear > Shark"))))])
+          (cons 'title (λ (ctx) "Bear > Shark"))))])
 
   (cons context rastache-ref)))
+
+(define  unescaped-mock-tokens
+  (list
+   (token 'static "<h1>" null)
+   (token 'utag 'title null)
+   (token 'static "</h1>" null)))

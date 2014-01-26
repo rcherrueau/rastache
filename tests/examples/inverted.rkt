@@ -1,5 +1,7 @@
 #lang racket/base
 
+(require "../../scanner.rkt")
+
 (provide (all-defined-out))
 
 (define inverted-name "inverted")
@@ -32,3 +34,18 @@
                          (list (cons 'name "Jim"))))))])
 
   (cons context rastache-ref)))
+
+(define  inverted-mock-tokens
+  (list
+   (token 'static "" null)
+   (token 'section 'admin (list
+                           (token 'static "Admin." null)))
+   (token 'static "\n" null)
+   (token 'inverted-section 'admin (list
+                                    (token 'static "Not Admin." null)))
+   (token 'static "\n" null)
+   (token 'section 'person (list
+                            (token 'static "Hi " null)
+                            (token 'etag 'name null)
+                            (token 'static "!" null)))
+   (token 'static "\n" null)))

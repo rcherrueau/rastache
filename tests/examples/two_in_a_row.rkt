@@ -1,5 +1,7 @@
 #lang racket/base
 
+(require "../../scanner.rkt")
+
 (provide (all-defined-out))
 
 (define two_in_a_row-name "two_in_a_row")
@@ -29,3 +31,11 @@
           (cons 'greeting "Welcome")))])
 
   (cons context rastache-ref)))
+
+(define  two_in_a_row-mock-tokens
+  (list
+   (token 'static "" null)
+   (token 'etag 'greeting null)
+   (token 'static ", " null)
+   (token 'etag 'name null)
+   (token 'static "!" null)))

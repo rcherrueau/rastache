@@ -1,5 +1,7 @@
 #lang racket/base
 
+(require "../../scanner.rkt")
+
 (provide (all-defined-out))
 
 (define comments-name "comments")
@@ -27,3 +29,10 @@
           (cons 'title "A Comedy of Errors")))])
 
   (cons context rastache-ref)))
+
+(define  comments-mock-tokens
+  (list
+   (token 'static "<h1>" null)
+   (token 'etag 'title null)
+   (token 'static "" null)
+   (token 'static "</h1>\n" null)))

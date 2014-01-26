@@ -41,10 +41,9 @@
       "Boolean Renderer Test"
 
       (parameterize ([current-custodian test-cust])
-        (let ([template (open-input-file boolean-template)]
-              [rendered (open-output-string)]
+        (let ([rendered (open-output-string)]
               [expected (file->string boolean-res)])
-          (render (tokenize template)
+          (render boolean-mock-tokens
                   boolean-mock-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
@@ -53,11 +52,11 @@
 
      (test-case
       "Carriage_Return Renderer Test"
+
       (parameterize ([current-custodian test-cust])
-        (let ([template (open-input-file carriage_return-template)]
-              [rendered (open-output-string)]
+        (let ([rendered (open-output-string)]
               [expected (file->string carriage_return-res)])
-          (render (tokenize template)
+          (render carriage_return-mock-tokens
                   carriage_return-mock-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
@@ -68,10 +67,9 @@
       "Comments Renderer Test"
 
       (parameterize ([current-custodian test-cust])
-        (let ([template (open-input-file comments-template)]
-              [rendered (open-output-string)]
+        (let ([rendered (open-output-string)]
               [expected (file->string comments-res)])
-          (render (tokenize template)
+          (render comments-mock-tokens
                   comments-mock-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
@@ -82,10 +80,9 @@
       "Complex Renderer Test"
 
       (parameterize ([current-custodian test-cust])
-        (let ([template (open-input-file complex-template)]
-              [rendered (open-output-string)]
+        (let ([rendered (open-output-string)]
               [expected (file->string complex-res)])
-          (render (tokenize template)
+          (render complex-mock-tokens
                   complex-mock-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
@@ -95,24 +92,23 @@
      ;; (test-case
      ;;  "Deep_Partial Renderer Test"
 
-     ;;  (let ([template (open-input-file deep_partial-template)]
-     ;;        [rendered (open-output-string)]
-     ;;        [expected (file->string deep_partial-res)])
-     ;;    (render (tokenize template)
-     ;;            deep_partial-mock-ctx
-     ;;            rendered)
-     ;;    (check-equal? (get-output-string rendered)
-     ;;                   expected
-     ;;                   "deep_partial render fails")))
+     ;;  (parameterize ([current-custodian test-cust])
+     ;;    (let ([rendered (open-output-string)]
+     ;;          [expected (file->string deep_partial-res)])
+     ;;      (render deep_partial-mock-tokens
+     ;;              deep_partial-mock-ctx
+     ;;              rendered)
+     ;;      (check-equal? (get-output-string rendered)
+     ;;                    expected
+     ;;                    "deep_partial render fails"))))
 
      (test-case
       "Error_Not_Found Renderer Test"
 
       (parameterize ([current-custodian test-cust])
-        (let ([template (open-input-file error_not_found-template)]
-              [rendered (open-output-string)]
+        (let ([rendered (open-output-string)]
               [expected (file->string error_not_found-res)])
-          (render (tokenize template)
+          (render error_not_found-mock-tokens
                   error_not_found-mock-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
@@ -121,11 +117,11 @@
 
      (test-case
       "Escaped Renderer Test"
+
       (parameterize ([current-custodian test-cust])
-        (let ([template (open-input-file escaped-template)]
-              [rendered (open-output-string)]
+        (let ([rendered (open-output-string)]
               [expected (file->string escaped-res)])
-          (render (tokenize template)
+          (render escaped-mock-tokens
                   escaped-mock-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
@@ -136,10 +132,9 @@
       "Hash_Instead_Of_Array Renderer Test"
 
       (parameterize ([current-custodian test-cust])
-        (let ([template (open-input-file hioa-template)]
-              [rendered (open-output-string)]
+        (let ([rendered (open-output-string)]
               [expected (file->string hioa-res)])
-          (render (tokenize template)
+          (render hioa-mock-tokens
                   hioa-mock-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
@@ -148,11 +143,11 @@
 
      (test-case
       "Inverted Renderer Test"
+
       (parameterize ([current-custodian test-cust])
-        (let ([template (open-input-file inverted-template)]
-              [rendered (open-output-string)]
+        (let ([rendered (open-output-string)]
               [expected (file->string inverted-res)])
-          (render (tokenize template)
+          (render inverted-mock-tokens
                   inverted-mock-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
@@ -162,24 +157,23 @@
      ;; (test-case
      ;;  "Partial Renderer Test"
 
-     ;;  (let ([template (open-input-file partial-template)]
-     ;;        [rendered (open-output-string)]
-     ;;        [expected (file->string partial-res)])
-     ;;    (render (tokenize template)
-     ;;            partial-mock-ctx
-     ;;            rendered)
-     ;;    (check-equal? (get-output-string rendered)
-     ;;                   expected
-     ;;                   "partial render fails")))
+     ;;  (parameterize ([current-custodian test-cust])
+     ;;    (let ([rendered (open-output-string)]
+     ;;          [expected (file->string partial-res)])
+     ;;      (render partial-mock-tokens
+     ;;              partial-mock-ctx
+     ;;              rendered)
+     ;;      (check-equal? (get-output-string rendered)
+     ;;                    expected
+     ;;                    "partial render fails"))))
 
      (test-case
       "Recursion_With_Same_Names Renderer Test"
 
       (parameterize ([current-custodian test-cust])
-        (let ([template (open-input-file rwsn-template)]
-              [rendered (open-output-string)]
+        (let ([rendered (open-output-string)]
               [expected (file->string rwsn-res)])
-          (render (tokenize template)
+          (render rwsn-mock-tokens
                   rwsn-mock-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
@@ -190,10 +184,9 @@
       "Reuse_Of_Enumerables Renderer Test"
 
       (parameterize ([current-custodian test-cust])
-        (let ([template (open-input-file reuse_of_enumerables-template)]
-              [rendered (open-output-string)]
+        (let ([rendered (open-output-string)]
               [expected (file->string reuse_of_enumerables-res)])
-          (render (tokenize template)
+          (render reuse_of_enumerables-mock-tokens
                   reuse_of_enumerables-mock-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
@@ -204,10 +197,9 @@
       "Simple Renderer Test"
 
       (parameterize ([current-custodian test-cust])
-        (let ([template (open-input-file simple-template)]
-              [rendered (open-output-string)]
+        (let ([rendered (open-output-string)]
               [expected (file->string simple-res)])
-          (render (tokenize template)
+          (render simple-mock-tokens
                   simple-mock-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
@@ -218,10 +210,9 @@
       "Twice Renderer Test"
 
       (parameterize ([current-custodian test-cust])
-        (let ([template (open-input-file twice-template)]
-              [rendered (open-output-string)]
+        (let ([rendered (open-output-string)]
               [expected (file->string twice-res)])
-          (render (tokenize template)
+          (render twice-mock-tokens
                   twice-mock-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
@@ -232,10 +223,9 @@
       "Two_In_A_Row Renderer Test"
 
       (parameterize ([current-custodian test-cust])
-        (let ([template (open-input-file two_in_a_row-template)]
-              [rendered (open-output-string)]
+        (let ([rendered (open-output-string)]
               [expected (file->string two_in_a_row-res)])
-          (render (tokenize template)
+          (render two_in_a_row-mock-tokens
                   two_in_a_row-mock-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
@@ -245,15 +235,15 @@
      ;; (test-case
      ;;  "Unescaped Renderer Test"
 
-     ;;  (let ([template (open-input-file unescaped-template)]
-     ;;        [rendered (open-output-string)]
-     ;;        [expected (file->string unescaped-res)])
-     ;;    (render (tokenize template)
-     ;;            unescaped-mock-ctx
-     ;;            rendered)
-     ;;    (check-equal? (get-output-string rendered)
-     ;;                   expected
-     ;;                   "unescaped render fails")))
-)))
+     ;;  (parameterize ([current-custodian test-cust])
+     ;;    (let ([rendered (open-output-string)]
+     ;;          [expected (file->string unescaped-res)])
+     ;;      (render unescaped-mock-tokens
+     ;;              unescaped-mock-ctx
+     ;;              rendered)
+     ;;      (check-equal? (get-output-string rendered)
+     ;;                    expected
+     ;;                    "unescaped render fails"))))
+     )))
 
 (run-tests renderer-tests)

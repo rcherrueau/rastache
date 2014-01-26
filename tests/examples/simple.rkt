@@ -1,5 +1,7 @@
 #lang racket/base
 
+(require "../../scanner.rkt")
+
 (provide (all-defined-out))
 
 (define simple-name "simple")
@@ -43,3 +45,18 @@
           (cons 'owner null)))])
 
   (cons context rastache-ref)))
+
+(define  simple-mock-tokens
+  (list
+   (token 'static "Hello " null)
+   (token 'etag 'name null)
+   (token 'static "\nYou have just won $" null)
+   (token 'etag 'value null)
+   (token 'static "!\n" null)
+   (token 'section 'in_ca (list
+                           (token 'static "\nWell, $" null)
+                           (token 'etag 'taxed_value null)
+                           (token 'static ", after taxes.\n" null)))
+   (token 'static "\nLove, " null)
+   (token 'etag 'owner null)
+   (token 'static "\n" null)))

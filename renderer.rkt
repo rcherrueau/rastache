@@ -88,8 +88,8 @@
           (lookup-rastache-context the-ctx the-key)]
          [else ""])
         (cond
-         [(context-hash-key? the-ctx the-key)
-          (lookup-current-context the-ctx the-key)]
+         [(context-hash-key? rastache-ctx the-key)
+          (lookup-current-context rastache-ctx the-key)]
          [else ""])))
 
   ;; Do the render on tokens recursively.

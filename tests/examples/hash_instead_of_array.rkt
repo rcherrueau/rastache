@@ -1,5 +1,7 @@
 #lang racket/base
 
+(require "../../scanner.rkt")
+
 (provide (all-defined-out))
 
 (define hioa-name "hash_instead_of_array")
@@ -30,3 +32,13 @@
                     (cons 'name "Chris"))))))])
 
   (cons context rastache-ref)))
+
+(define  hioa-mock-tokens
+  (list
+   (token 'static "" null)
+   (token 'section 'person (list
+                            (token 'static "\n  Name: " null)
+                            (token 'etag 'name null)
+                            (token 'static "\n" null)
+                            ))
+   (token 'static "" null)))

@@ -1,5 +1,7 @@
 #lang racket/base
 
+(require "../../scanner.rkt")
+
 (provide (all-defined-out))
 
 (define deep_partial-name "deep_partial")
@@ -27,3 +29,11 @@
           (cons 'title "Welcome")))])
 
   (cons context rastache-ref)))
+
+(define  deep_partial-mock-tokens
+  (list
+   (token 'static "<h1>First: " null)
+   (token 'etag 'title null)
+   (token 'static "</h1>\n" null)
+   (token 'partial "partial.html" null)
+   (token 'static "" null)))

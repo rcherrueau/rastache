@@ -2,3 +2,7 @@
   (second "And it worked the second time.")
   (third "Then, surprisingly, it worked the third time.")
   (fourth "Fourth time also fine!."))
+
+(define  delimiters-mock-tokens
+  (list
+))

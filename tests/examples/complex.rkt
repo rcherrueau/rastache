@@ -1,5 +1,7 @@
 #lang racket/base
 
+(require "../../scanner.rkt")
+
 (provide (all-defined-out))
 
 (define complex-name "complex")
@@ -57,3 +59,35 @@
           (cons 'empty (λ (self) (eq? (length (rastache-ref self 'item)) 0)))))])
 
   (cons context rastache-ref)))
+
+(define  complex-mock-tokens
+  (list
+   (token 'static "<h1>" null)
+   (token 'etag 'header null)
+   (token 'static "</h1>" null)
+   (token 'section 'list
+     (list
+      (token 'static "<ul>" null)
+      (token 'section 'item
+        (list
+         (token 'static "" null)
+         (token 'section 'current
+           (list
+            (token 'static "<li><strong>" null)
+            (token 'etag 'name null)
+            (token 'static "</strong></li>" null)))
+         (token 'static "" null)
+         (token 'section 'link
+           (list
+            (token 'static "<li><a href=\"" null)
+            (token 'etag 'url null)
+            (token 'static "\">" null)
+            (token 'etag 'name null)
+            (token 'static "</a></li>" null)))
+         (token 'static "" null)))
+      (token 'static "</ul>" null)))
+   (token 'static "" null)
+   (token 'section 'empty
+     (list
+      (token 'static "<p>The list is empty.</p>" null)))
+   (token 'static "\n" null)))

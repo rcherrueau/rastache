@@ -1,5 +1,7 @@
 #lang racket/base
 
+(require "../../scanner.rkt")
+
 (provide (all-defined-out))
 
 (define rwsn-name "recursion_with_same_names")
@@ -42,3 +44,18 @@
                                (cons 'index 1)))))))])
 
   (cons context rastache-ref)))
+
+(define  rwsn-mock-tokens
+  (list
+   (token 'static "" null)
+   (token 'etag 'name null)
+   (token 'static "\n" null)
+   (token 'etag 'description null)
+   (token 'static "\n" null)
+   (token 'section 'terms (list
+                           (token 'static "\n  " null)
+                           (token 'etag 'name null)
+                           (token 'static "\n  " null)
+                           (token 'etag 'index null)
+                           (token 'static "" null)))
+   (token 'static "\n" null)))

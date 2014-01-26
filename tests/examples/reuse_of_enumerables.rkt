@@ -1,5 +1,7 @@
 #lang racket/base
 
+(require "../../scanner.rkt")
+
 (provide (all-defined-out))
 
 (define reuse_of_enumerables-name "reuse_of_enumerables")
@@ -36,3 +38,21 @@
                                (cons 'index 1)))))))])
 
   (cons context rastache-ref)))
+
+(define  reuse_of_enumerables-mock-tokens
+  (list
+   (token 'static "" null)
+   (token 'section 'terms (list
+                           (token 'static "\n  " null)
+                           (token 'etag 'name null)
+                           (token 'static "\n  " null)
+                           (token 'etag 'index null)
+                           (token 'static "" null)))
+   (token 'static "" null)
+   (token 'section 'terms (list
+                           (token 'static "\n  " null)
+                           (token 'etag 'name null)
+                           (token 'static "\n  " null)
+                           (token 'etag 'index null)
+                           (token 'static "" null)))
+   (token 'static "\n" null)))

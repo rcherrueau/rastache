@@ -1,5 +1,7 @@
 #lang racket/base
 
+(require "../../scanner.rkt")
+
 (provide (all-defined-out))
 
 (define twice-name "twice")
@@ -29,3 +31,17 @@
                     (cons 'name "tom"))))))])
 
   (cons context rastache-ref)))
+
+(define  twice-mock-tokens
+  (list
+   (token 'static "" null)
+   (token 'section 'person (list
+                            (token 'static "" null)
+                            (token 'etag 'name null)
+                            (token 'static "" null)))
+   (token 'static "\n" null)
+   (token 'section 'person (list
+                            (token 'static "" null)
+                            (token 'etag 'name null)
+                            (token 'static "" null)))
+   (token 'static "\n" null)))

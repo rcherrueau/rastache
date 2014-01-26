@@ -1,5 +1,7 @@
 #lang racket/base
 
+(require "../../scanner.rkt")
+
 (provide (all-defined-out))
 
 (define carriage_return-name "carriage_return")
@@ -27,3 +29,9 @@
           (cons 'foo "Hello World")))])
 
   (cons context rastache-ref)))
+
+(define  carriage_return-mock-tokens
+  (list
+   (token 'static "<b>\r\n" null)
+   (token 'etag 'foo null)
+   (token 'static "\r\n</b>\n" null)))

@@ -6,3 +6,7 @@
                                      (rastache-ref (rastache-ref self 'price)
                                                    'value)])
                                 (- val (* val 0.4))))))))))
+
+(define  dot_notation-mock-tokens
+  (list
+))

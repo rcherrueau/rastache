@@ -1,5 +1,7 @@
 #lang racket/base
 
+(require "../../scanner.rkt")
+
 (provide (all-defined-out))
 
 (define boolean-name "boolean")
@@ -31,3 +33,20 @@
           (cons 'admin #t)))])
 
   (cons context rastache-ref)))
+
+(define boolean-mock-tokens
+  (list
+   (token 'static "" null)
+   (token 'section 'name (list
+                          (token 'static "" null)
+                          (token 'etag 'name null)
+                          (token 'static "" null)))
+   (token 'static "\n" null)
+   (token 'section 'age (list
+                         (token 'static "" null)
+                         (token 'etag 'age null)
+                         (token 'static "" null)))
+   (token 'static "\n" null)
+   (token 'section 'admin (list
+                           (token 'static "admin" null)))
+   (token 'static "" null)))

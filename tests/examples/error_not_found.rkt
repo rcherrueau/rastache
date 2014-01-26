@@ -1,5 +1,7 @@
 #lang racket/base
 
+(require "../../scanner.rkt")
+
 (provide (all-defined-out))
 
 (define error_not_found-name "error_not_found")
@@ -27,3 +29,9 @@
           (cons 'bar 2)))])
 
   (cons context rastache-ref)))
+
+(define  error_not_found-mock-tokens
+  (list
+   (token 'static "" null)
+   (token 'etag 'foo null)
+   (token 'static "" null)))

@@ -13,7 +13,8 @@
 ; Parse mustache template and generate a list of tokens. The list of
 ; tokens describes how to render the template.
 
-(provide token?
+(provide token
+         token?
          token-sigil
          token-content
          token-section
@@ -22,8 +23,7 @@
 ; ______________________________________________________________________________
 ; import and implementation
 
-(require racket/list
-         racket/port
+(require racket/port
          racket/string)
 
 ;; Token is a meta-variable for mustache template syntactic
@@ -63,23 +63,23 @@
     (cond
       [(or (eq? sigil 'section) (eq? sigil 'inverted-section))
        (write-string
-        (format "~a< ~s, ~s, section >~n"
+        (format "~a(token '~s '~s (list~n"
                 (make-string depth #\space)
                 sigil
-                content) port)
-       (write-string
-        (format "~a--- :start-~s: ---~n"
-                (make-string (+ depth 2) #\space)
                 content) port)
        (for-each (lambda (t)
                    (token-print_ t (+ depth 2)))
                  section)
        (write-string
-        (format "~a--- :end-~s: ---~n"
-                (make-string (+ depth 2) #\space)
-                content) port)]
+        (format "~a ))~n"
+                (make-string (+ depth 2) #\space)) port)]
+      [(or (eq? sigil 'static) (eq? sigil 'partial))
+       (write-string (format "~a(token '~s ~s null)~n"
+                             (make-string depth #\space)
+                             sigil
+                             content) port)]
       [else
-       (write-string (format "~a< ~s, ~s >~n"
+       (write-string (format "~a(token '~s '~s null)~n"
                              (make-string depth #\space)
                              sigil
                              content) port)]))
@@ -98,27 +98,27 @@
 
   ;; Token constructor for static
   (define (make-token-static content)
-    (token 'static content empty))
+    (token 'static content null))
 
   ;; Token constructor for etag
   (define (make-token-etag content)
-    (token 'etag (string->symbol (string-trim content)) empty))
+    (token 'etag (string->symbol (string-trim content)) null))
 
   ;; Token constructor for utag
   (define (make-token-utag content)
-    (token 'utag (string->symbol (string-trim content)) empty))
+    (token 'utag (string->symbol (string-trim content)) null))
 
   ;; Token constructor for section
-  (define (make-token-section content [section empty])
+  (define (make-token-section content [section null])
     (token 'section (string->symbol (string-trim content)) section))
 
   ;; Token constructor for inverted section
-  (define (make-token-inverted-section content [section empty])
+  (define (make-token-inverted-section content [section null])
     (token 'inverted-section (string->symbol (string-trim content)) section))
 
   ;; Token constructor for partial
   (define (make-token-partial content)
-    (token 'partial content empty))
+    (token 'partial content null))
 
   (define state-pattern
     (pregexp
@@ -159,7 +159,7 @@
      ; Still mustache tag
      ; Create a 'static token with text until next mustach tag
      [else
-      (define content-length (car (first otag-pos)))
+      (define content-length (car (car otag-pos)))
       (define content (read-content content-length))
       (define the-token (make-token-static content))
 
@@ -177,15 +177,15 @@
     (when (not ctag-pos) (error "Bad syntax"))
 
     ; Consume content of mustache tag
-    (define content-length (car (first ctag-pos)))
+    (define content-length (car (car ctag-pos)))
     (define content (read-content content-length))
 
     ; Consume the mustache closing tag
     (read-close-tag ctag)
 
     (define l (regexp-match state-pattern content))
-    (define sigil (second l))
-    (define value (third l))
+    (define sigil (cadr l))
+    (define value (caddr l))
 
     (case sigil
       ; Normal
@@ -201,14 +201,14 @@
       ; Section
       [("#")
        (define the-token (make-token-section value
-                                             (scan 'static empty otag ctag)))
+                                             (scan 'static null otag ctag)))
        (scan 'static (append tokens (list the-token)) otag ctag)]
 
       ; Inverted Section
       [("^")
        (define the-token (make-token-inverted-section
                                      value
-                                     (scan 'static empty otag ctag)))
+                                     (scan 'static null otag ctag)))
        (scan 'static (append tokens (list the-token)) otag ctag)]
 
       ; End of (Inverted) Section
@@ -228,10 +228,10 @@
        (define ll (string-split value))
        (when (not (= (length ll) 2)) (error "Bad syntax"))
 
-       (define new-otag (first ll))
-       (define new-ctag (substring (second ll)
+       (define new-otag (car ll))
+       (define new-ctag (substring (cadr ll)
                                    0
-                                   (sub1 (string-length (second ll)))))
+                                   (sub1 (string-length (cadr ll)))))
        (scan 'static tokens new-otag new-ctag)]))
 
   ;; Scans the text and instanciate tokens. The state indicates which
@@ -247,4 +247,4 @@
       [else
        tokens]))
 
-  (scan 'static empty open-tag close-tag))
+  (scan 'static null open-tag close-tag))

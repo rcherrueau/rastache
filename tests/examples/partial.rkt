@@ -1,5 +1,7 @@
 #lang racket/base
 
+(require "../../scanner.rkt")
+
 (provide (all-defined-out))
 
 (define partial-name "partial")
@@ -26,3 +28,11 @@
           (cons 'title "Welcome")))])
 
   (cons context rastache-ref)))
+
+(define  partial-mock-tokens
+  (list
+   (token 'static "<h1>" null)
+   (token 'etag 'title null)
+   (token 'static "</h1>\n" null)
+   (token 'partial "inner_partial.html" null)
+   (token 'static "" null)))
