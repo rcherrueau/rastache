@@ -13,7 +13,7 @@
   (string-append "examples/" escaped-name ".txt"))
 
 (define escaped-ctx
-  `#hash{(title . ,(λ () "Bear > Shark"))})
+  `#hash{(title . ,(λ self "Bear > Shark"))})
 
 (define  escaped-mock-tokens
   (list

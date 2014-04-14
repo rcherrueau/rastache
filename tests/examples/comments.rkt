@@ -13,7 +13,7 @@
   (string-append "examples/" comments-name ".txt"))
 
 (define comments-ctx
-  `#hash{(title . ,(λ () "A Comedy of Errors"))})
+  `#hash{(title . ,(λ self "A Comedy of Errors"))})
 
 (define  comments-mock-tokens
   (list

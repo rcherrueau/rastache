@@ -1,6 +1,7 @@
 #lang racket/base
 
-(require "../../scanner.rkt")
+(require "../../scanner.rkt"
+         "../../context.rkt")
 
 (provide (all-defined-out))
 
@@ -13,14 +14,13 @@
   (string-append "examples/" simple-name ".txt"))
 
 (define simple-ctx
-  (let ([rast-ref hash-ref])
   `#hash{(name . "Chris")
          (value . 10000)
-         (taxed_value . ,(λ (self)
+         (taxed_value . ,(λ self
                             (let ([val (rast-ref self 'value)])
                               (inexact->exact (- val (* val 0.4))))))
          (in_ca . #t)
-         (owner . null)}))
+         (owner . ,null)})
 
 (define  simple-mock-tokens
   (list

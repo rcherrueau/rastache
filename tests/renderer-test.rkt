@@ -13,7 +13,6 @@
          rackunit/text-ui
          racket/file
          "../renderer.rkt"
-         "../scanner.rkt"
          "examples/boolean.rkt"
          "examples/carriage_return.rkt"
          "examples/comments.rkt"
@@ -44,11 +43,10 @@
         (let ([rendered (open-output-string)]
               [expected (file->string boolean-res)])
           (render boolean-mock-tokens
-                  boolean-mock-ctx
+                  boolean-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
-                        expected
-                        "boolean render fails"))))
+                        expected))))
 
      (test-case
       "Carriage_Return Renderer Test"
@@ -57,11 +55,10 @@
         (let ([rendered (open-output-string)]
               [expected (file->string carriage_return-res)])
           (render carriage_return-mock-tokens
-                  carriage_return-mock-ctx
+                  carriage_return-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
-                        expected
-                        "carriage_return render fails"))))
+                        expected))))
 
      (test-case
       "Comments Renderer Test"
@@ -70,11 +67,10 @@
         (let ([rendered (open-output-string)]
               [expected (file->string comments-res)])
           (render comments-mock-tokens
-                  comments-mock-ctx
+                  comments-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
-                        expected
-                        "comments render fails"))))
+                        expected))))
 
      (test-case
       "Complex Renderer Test"
@@ -83,24 +79,23 @@
         (let ([rendered (open-output-string)]
               [expected (file->string complex-res)])
           (render complex-mock-tokens
-                  complex-mock-ctx
+                  complex-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
-                        expected
-                        "complex render fails"))))
+                        expected))))
 
-     ;; (test-case
-     ;;  "Deep_Partial Renderer Test"
+     #;
+     (test-case
+      "Deep_Partial Renderer Test"
 
-     ;;  (parameterize ([current-custodian test-cust])
-     ;;    (let ([rendered (open-output-string)]
-     ;;          [expected (file->string deep_partial-res)])
-     ;;      (render deep_partial-mock-tokens
-     ;;              deep_partial-mock-ctx
-     ;;              rendered)
-     ;;      (check-equal? (get-output-string rendered)
-     ;;                    expected
-     ;;                    "deep_partial render fails"))))
+      (parameterize ([current-custodian test-cust])
+        (let ([rendered (open-output-string)]
+              [expected (file->string deep_partial-res)])
+          (render deep_partial-mock-tokens
+                  deep_partial-ctx
+                  rendered)
+          (check-equal? (get-output-string rendered)
+                        expected))))
 
      (test-case
       "Error_Not_Found Renderer Test"
@@ -109,11 +104,10 @@
         (let ([rendered (open-output-string)]
               [expected (file->string error_not_found-res)])
           (render error_not_found-mock-tokens
-                  error_not_found-mock-ctx
+                  error_not_found-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
-                        expected
-                        "error_not_found render fails"))))
+                        expected))))
 
      (test-case
       "Escaped Renderer Test"
@@ -122,11 +116,10 @@
         (let ([rendered (open-output-string)]
               [expected (file->string escaped-res)])
           (render escaped-mock-tokens
-                  escaped-mock-ctx
+                  escaped-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
-                        expected
-                        "escaped render fails"))))
+                        expected))))
 
      (test-case
       "Hash_Instead_Of_Array Renderer Test"
@@ -135,11 +128,10 @@
         (let ([rendered (open-output-string)]
               [expected (file->string hioa-res)])
           (render hioa-mock-tokens
-                  hioa-mock-ctx
+                  hioa-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
-                        expected
-                        "hash_instead_of_array render fails"))))
+                        expected))))
 
      (test-case
       "Inverted Renderer Test"
@@ -148,24 +140,23 @@
         (let ([rendered (open-output-string)]
               [expected (file->string inverted-res)])
           (render inverted-mock-tokens
-                  inverted-mock-ctx
+                  inverted-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
-                        expected
-                        "inverted render fails"))))
+                        expected))))
 
-     ;; (test-case
-     ;;  "Partial Renderer Test"
+     #;
+     (test-case
+      "Partial Renderer Test"
 
-     ;;  (parameterize ([current-custodian test-cust])
-     ;;    (let ([rendered (open-output-string)]
-     ;;          [expected (file->string partial-res)])
-     ;;      (render partial-mock-tokens
-     ;;              partial-mock-ctx
-     ;;              rendered)
-     ;;      (check-equal? (get-output-string rendered)
-     ;;                    expected
-     ;;                    "partial render fails"))))
+      (parameterize ([current-custodian test-cust])
+        (let ([rendered (open-output-string)]
+              [expected (file->string partial-res)])
+          (render partial-mock-tokens
+                  partial-ctx
+                  rendered)
+          (check-equal? (get-output-string rendered)
+                        expected))))
 
      (test-case
       "Recursion_With_Same_Names Renderer Test"
@@ -174,11 +165,10 @@
         (let ([rendered (open-output-string)]
               [expected (file->string rwsn-res)])
           (render rwsn-mock-tokens
-                  rwsn-mock-ctx
+                  rwsn-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
-                        expected
-                        "recursion_with_same_names render fails"))))
+                        expected))))
 
      (test-case
       "Reuse_Of_Enumerables Renderer Test"
@@ -187,11 +177,10 @@
         (let ([rendered (open-output-string)]
               [expected (file->string reuse_of_enumerables-res)])
           (render reuse_of_enumerables-mock-tokens
-                  reuse_of_enumerables-mock-ctx
+                  reuse_of_enumerables-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
-                        expected
-                        "reuse_of_enumerables render fails"))))
+                        expected))))
 
      (test-case
       "Simple Renderer Test"
@@ -200,11 +189,10 @@
         (let ([rendered (open-output-string)]
               [expected (file->string simple-res)])
           (render simple-mock-tokens
-                  simple-mock-ctx
+                  simple-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
-                        expected
-                        "simple render fails"))))
+                        expected))))
 
      (test-case
       "Twice Renderer Test"
@@ -213,11 +201,10 @@
         (let ([rendered (open-output-string)]
               [expected (file->string twice-res)])
           (render twice-mock-tokens
-                  twice-mock-ctx
+                  twice-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
-                        expected
-                        "twice render fails"))))
+                        expected))))
 
      (test-case
       "Two_In_A_Row Renderer Test"
@@ -226,24 +213,22 @@
         (let ([rendered (open-output-string)]
               [expected (file->string two_in_a_row-res)])
           (render two_in_a_row-mock-tokens
-                  two_in_a_row-mock-ctx
+                  two_in_a_row-ctx
                   rendered)
           (check-equal? (get-output-string rendered)
-                        expected
-                        "two_in_a_row render fails"))))
+                        expected))))
 
-     ;; (test-case
-     ;;  "Unescaped Renderer Test"
+     (test-case
+      "Unescaped Renderer Test"
 
-     ;;  (parameterize ([current-custodian test-cust])
-     ;;    (let ([rendered (open-output-string)]
-     ;;          [expected (file->string unescaped-res)])
-     ;;      (render unescaped-mock-tokens
-     ;;              unescaped-mock-ctx
-     ;;              rendered)
-     ;;      (check-equal? (get-output-string rendered)
-     ;;                    expected
-     ;;                    "unescaped render fails"))))
+      (parameterize ([current-custodian test-cust])
+        (let ([rendered (open-output-string)]
+              [expected (file->string unescaped-res)])
+          (render unescaped-mock-tokens
+                  unescaped-ctx
+                  rendered)
+          (check-equal? (get-output-string rendered)
+                        expected))))
      )))
 
 (run-tests renderer-tests)

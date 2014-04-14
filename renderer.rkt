@@ -17,12 +17,10 @@
 ; import and implementation
 
 (require xml
+         "context.rkt"
          "scanner.rkt")
 
 (define (render tokens context stream)
-  (define rastache-ctx (car context))
-  (define rastache-ref (cdr context))
-
   ;; Returns `#t' if the value is a rastache context, `#f' otherwise.
   (define rastache-context? hash?)
 
@@ -33,7 +31,7 @@
 
     ;; Returns `#t' if the lookup calls is done with context updating,
     ;; `#f' otherwise.
-    (define context-update? (not (eq? the-ctx rastache-ctx)))
+    (define context-update? (not (eq? the-ctx context)))
 
     ;; Returns `#t' if rastache context `the-ctx' contains a value for
     ;; the given `key', `#f' otherwise.
@@ -42,7 +40,7 @@
 
     ;; Returns the value for `the-key' in context `the-context'.
     (define (lookup-current-context the-ctx the-key)
-      (let ([val (rastache-ref the-ctx the-key)])
+      (let ([val (rast-ref the-ctx the-key)])
         (cond [(procedure? val)
                (with-handlers
                    ([exn:fail:contract? (λ (n) "")])
@@ -58,7 +56,7 @@
     ;; still get an error, we return the empty string as result of the
     ;; application of the procedure.
     (define (lookup-rastache-context current-ctx the-key)
-      (let ([val (rastache-ref rastache-ctx the-key)])
+      (let ([val (rast-ref context the-key)])
         (cond [(procedure? val)
                ; If application fails, then try with general
                ; context
@@ -69,7 +67,7 @@
                        ; string
                        (with-handlers
                            ([exn:fail:contract? (λ (n) "")])
-                       (val rastache-ctx)))])
+                       (val context)))])
                  (val current-ctx))]
               [else val])))
 
@@ -84,12 +82,12 @@
          [(context-hash-key? the-ctx the-key)
           (lookup-current-context the-ctx the-key)]
          ; Do the lookup on the general context
-         [(context-hash-key? rastache-ctx the-key)
+         [(context-hash-key? context the-key)
           (lookup-rastache-context the-ctx the-key)]
          [else ""])
         (cond
-         [(context-hash-key? rastache-ctx the-key)
-          (lookup-current-context rastache-ctx the-key)]
+         [(context-hash-key? context the-key)
+          (lookup-current-context context the-key)]
          [else ""])))
 
   ;; Do the render on tokens recursively.
@@ -162,4 +160,4 @@
         [else
          (render_ (cdr tokens) the-ctx)])]))
 
-  (render_ tokens rastache-ctx))
+  (render_ tokens context))

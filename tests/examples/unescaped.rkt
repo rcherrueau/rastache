@@ -13,7 +13,7 @@
   (string-append "examples/" unescaped-name ".txt"))
 
 (define unescaped-ctx
-  #hash{(title . ,(λ () "Bear > Shark"))})
+  `#hash{(title . ,(λ self "Bear > Shark"))})
 
 (define  unescaped-mock-tokens
   (list
