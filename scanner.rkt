@@ -174,7 +174,7 @@
 
     ; Search for mustache closing tag
     (define ctag-pos (regexp-match-peek-positions ctag template))
-    (when (not ctag-pos) (error "Bad syntax"))
+    (unless ctag-pos (error "Bad syntax"))
 
     ; Consume content of mustache tag
     (define content-length (car (car ctag-pos)))
@@ -195,6 +195,8 @@
 
       ; Unescaped HTML
       [("{" "&")
+       ; if unescaped with starting "{", in that case consume the closing "}"
+       (when (equal? sigil "{") (void (read-string (string-length "}") template)))
        (define the-token (make-token-utag value))
        (scan 'static (append tokens (list the-token)) otag ctag)]
 
