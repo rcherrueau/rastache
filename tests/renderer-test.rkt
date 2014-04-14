@@ -99,6 +99,32 @@
           (check-equal? (get-output-string rendered)
                         expected))))
 
+     #;
+     (test-case
+      "Delimiters Renderer Test"
+
+      (parameterize ([current-custodian test-cust])
+        (let ([rendered (open-output-string)]
+              [expected (file->string delimiters-res)])
+          (render delimiters-mock-tokens
+                  delimiters-ctx
+                  rendered)
+          (check-equal? (get-output-string rendered)
+                        expected))))
+
+     #;
+     (test-case
+      "Dot_Notation Renderer Test"
+
+      (parameterize ([current-custodian test-cust])
+        (let ([rendered (open-output-string)]
+              [expected (file->string dot_notation-res)])
+          (render dot_notation-mock-tokens
+                  dot_notation-ctx
+                  rendered)
+          (check-equal? (get-output-string rendered)
+                        expected))))
+
      (test-case
       "Error_Not_Found Renderer Test"
 
