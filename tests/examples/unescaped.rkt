@@ -12,23 +12,8 @@
 (define unescaped-res
   (string-append "examples/" unescaped-name ".txt"))
 
-(define unescaped-stx
-  #''((title (λ () "Bear > Shark"))))
-
-(define unescaped-mock-ctx
-  (let*
-      ([refs
-        (make-hash
-         (list
-          (cons 'title (λ (ctx) (hash-ref ctx 'title)))))]
-       [rastache-ref
-        (λ (ctx key) ((hash-ref refs key) ctx))]
-       [context
-        (make-hash
-         (list
-          (cons 'title (λ (ctx) "Bear > Shark"))))])
-
-  (cons context rastache-ref)))
+(define unescaped-ctx
+  #hash{(title . ,(λ () "Bear > Shark"))})
 
 (define  unescaped-mock-tokens
   (list

@@ -12,25 +12,8 @@
 (define twice-res
   (string-append "examples/" twice-name ".txt"))
 
-(define twice-stx #''((person '((name "tom")))))
-
-(define twice-mock-ctx
-  (let* ([refs
-          (make-hash
-           (list
-            (cons 'person (λ (ctx) (hash-ref ctx 'person)))
-            (cons 'name (λ (ctx) (hash-ref ctx 'name)))))]
-         [rastache-ref
-          (λ (ctx key) ((hash-ref refs key) ctx))]
-         [context
-          (make-hash
-           (list
-            (cons 'person
-                  (make-hash
-                   (list
-                    (cons 'name "tom"))))))])
-
-  (cons context rastache-ref)))
+(define twice-ctx
+  #hash{(person . #hash{(name . "tom")})})
 
 (define  twice-mock-tokens
   (list

@@ -12,23 +12,8 @@
 (define deep_partial-res
   (string-append "examples/" deep_partial-name ".txt"))
 
-(define deep_partial-stx
-  #''((title "Welcome")))
-
-(define deep_partial-mock-ctx
-  (let*
-      ([refs
-        (make-hash
-         (list
-          (cons 'title (λ (ctx) (hash-ref ctx 'title)))))]
-       [rastache-ref
-        (λ (ctx key) ((hash-ref refs key) ctx))]
-       [context
-        (make-hash
-         (list
-          (cons 'title "Welcome")))])
-
-  (cons context rastache-ref)))
+(define deep_partial-ctx
+  #hash{(title . "Welcome")})
 
 (define  deep_partial-mock-tokens
   (list

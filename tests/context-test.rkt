@@ -9,15 +9,13 @@
 ; A racket Mustache template engine.
 
 ; Tests for rastache.
-(require (for-syntax "examples/boolean.rkt"
-                     "examples/carriage_return.rkt"
-                     "examples/simple.rkt")
-         rackunit
+(require rackunit
          rackunit/text-ui
          "examples/boolean.rkt"
          "examples/carriage_return.rkt"
          "../context.rkt"
          "../scanner.rkt")
+
 
 ;; For debug only
 ;; (define (display-token token)
@@ -36,7 +34,7 @@
    "Tests for the mustache-make-ctx macro"
 
    (test-case
-    carriage-return-str
+    carriage_return-name
 
     (mustache-make-ctx ctx carriage-return-expr)
     (printf "~s~n" ctx)

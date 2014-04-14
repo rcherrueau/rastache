@@ -1,5 +1,14 @@
 #lang racket/base
 
+; Use #hash expression and quasiquoting to create the context.
+; http://docs.racket-lang.org/guide/hash-tables.html
+; http://docs.racket-lang.org/reference/quasiquote.html
+
+; > `#hash((k1 . "v1") (k2 . "v2") (k3 . ,(lambda (x) x)))
+; '#hash((k1 . "v1") (k2 . "v2") (k3 . #<procedure>))
+; > `#hash((k1 . "v1") (k2 . "v2") (k3 . ,((lambda () 'test))))
+; '#hash((k1 . "v1") (k2 . "v2") (k3 . test))
+
 ;                      /\ \__                /\ \
 ;  _ __    __      ____\ \ ,_\    __      ___\ \ \___      __
 ; /\`'__\/'__`\   /',__\\ \ \/  /'__`\   /'___\ \  _ `\  /'__`\

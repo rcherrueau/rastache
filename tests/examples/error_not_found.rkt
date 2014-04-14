@@ -12,23 +12,8 @@
 (define error_not_found-res
   (string-append "examples/" error_not_found-name ".txt"))
 
-(define error_not_found-stx
-  #''((bar 2)))
-
-(define error_not_found-mock-ctx
-  (let*
-      ([refs
-        (make-hash
-         (list
-          (cons 'bar (λ (ctx) (hash-ref ctx 'bar)))))]
-       [rastache-ref
-        (λ (ctx key) ((hash-ref refs key) ctx))]
-       [context
-        (make-hash
-         (list
-          (cons 'bar 2)))])
-
-  (cons context rastache-ref)))
+(define error_not_found-ctx
+  #hash{(bar . 2)})
 
 (define  error_not_found-mock-tokens
   (list
