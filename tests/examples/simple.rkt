@@ -16,7 +16,7 @@
 (define simple-ctx
   `#hash{(name . "Chris")
          (value . 10000)
-         (taxed_value . ,(λ self
+         (taxed_value . ,(λ (self)
                             (let ([val (rast-ref self 'value)])
                               (inexact->exact (- val (* val 0.4))))))
          (in_ca . #t)

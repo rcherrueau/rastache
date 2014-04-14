@@ -17,7 +17,7 @@
   (person . #hash{(name . "Chris") (in_ca . #t)})
   (price  . #hash{(value . 10000)})
   (states . #hash{(ca .
-              #hash{(taxed_value . ,(λ self
+              #hash{(taxed_value . ,(λ (self)
                                        (let ([val
                                               (rast-ref* self 'price 'value)])
                                          (- val (* val 0.4)))))})})})

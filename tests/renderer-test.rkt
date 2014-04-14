@@ -18,6 +18,8 @@
          "examples/comments.rkt"
          "examples/complex.rkt"
          "examples/deep_partial.rkt"
+         ; "example/delimiters.rkt"
+         ; "example/dot_notation.rkt"
          "examples/error_not_found.rkt"
          "examples/escaped.rkt"
          "examples/hash_instead_of_array.rkt"

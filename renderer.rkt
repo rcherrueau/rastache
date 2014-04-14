@@ -43,7 +43,7 @@
       (let ([val (rast-ref the-ctx the-key)])
         (cond [(procedure? val)
                (with-handlers
-                   ([exn:fail:contract? (λ (n) "")])
+                   ([exn:fail:contract? (λ (n) (displayln n) "")])
                  (val the-ctx))]
               [else val])))
 

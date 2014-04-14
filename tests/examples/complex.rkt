@@ -14,13 +14,13 @@
   (string-append "examples/" complex-name ".txt"))
 
 (define complex-ctx
-  `#hash{(header . ,(λ self "Colors"))
+  `#hash{(header . ,(λ _ "Colors"))
          (item . [#hash{(name . "red") (current . #t) (url . "#Red")}
                   #hash{(name . "green") (current . #f) (url . "#Green")}
                   #hash{(name . "blue") (current . #f) (url . "#Blue")}])
-         (link . ,(λ self (not (eq? (rast-ref self 'current) #t))))
-         (list . ,(λ self (not (eq? (length (rast-ref self 'item)) 0))))
-         (empty . ,(λ self (eq? (length (rast-ref self 'item)) 0)))})
+         (link . ,(λ (self) (not (eq? (rast-ref self 'current) #t))))
+         (list . ,(λ (self) (not (eq? (length (rast-ref self 'item)) 0))))
+         (empty . ,(λ (self) (eq? (length (rast-ref self 'item)) 0)))})
 
 (define  complex-mock-tokens
   (list
