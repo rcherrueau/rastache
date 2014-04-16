@@ -21,9 +21,9 @@
   (tokenize template open-tag close-tag))
 
 (define (rastache-compile/open-file
-         name mustache-file [open-tag "{{"] [close-tag "}}"])
+         mustache-file [open-tag "{{"] [close-tag "}}"])
   (define template (open-input-file mustache-file))
-  (define tokens (rastache-compile name template open-tag close-tag))
+  (define tokens (rastache-compile template open-tag close-tag))
 
   (when (not (port-closed? template))
     (close-input-port template))
@@ -31,9 +31,9 @@
   tokens)
 
 (define (rastache-compile/open-string
-         name mustache-string [open-tag "{{"] [close-tag "}}"])
+         mustache-string [open-tag "{{"] [close-tag "}}"])
   (define template (open-input-string mustache-string))
-  (define tokens (rastache-compile name template open-tag close-tag))
+  (define tokens (rastache-compile template open-tag close-tag))
 
   (when (not (port-closed? template))
     (close-input-port template))
@@ -42,3 +42,7 @@
 
 (define (rastache-render tokens context stream)
   (render tokens context stream))
+
+(define (rastache-compile/render
+         template context stream [open-tag "{{"] [close-tag "}}"])
+  (render (tokenize template open-tag close-tag) context stream))
