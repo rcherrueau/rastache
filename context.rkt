@@ -6,7 +6,7 @@
 ; \ \ \//\ \L\.\_/\__, `\\ \ \_/\ \L\.\_/\ \__/\ \ \ \ \/\  __/
 ;  \ \_\\ \__/.\_\/\____/ \ \__\ \__/.\_\ \____\\ \_\ \_\ \____\
 ;   \/_/ \/__/\/_/\/___/   \/__/\/__/\/_/\/____/ \/_/\/_/\/____/
-; A racket Mustache template engine.
+; Mustache template engine for Racket
 
 ; Macro for mustache expressions.
 ;
@@ -24,9 +24,6 @@
 ; ______________________________________________________________________________
 ; import and implementation
 
-(require (for-syntax racket/base
-                     syntax/id-table
-                     racket/dict)
-         racket/base)
+(require racket/base)
 
 (define rast-ref hash-ref)

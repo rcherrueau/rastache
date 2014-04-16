@@ -6,7 +6,12 @@
 ; \ \ \//\ \L\.\_/\__, `\\ \ \_/\ \L\.\_/\ \__/\ \ \ \ \/\  __/
 ;  \ \_\\ \__/.\_\/\____/ \ \__\ \__/.\_\ \____\\ \_\ \_\ \____\
 ;   \/_/ \/__/\/_/\/___/   \/__/\/__/\/_/\/____/ \/_/\/_/\/____/
-; A racket Mustache template engine.
+; Mustache template engine for Racket
+
+(provide (all-defined-out))
+
+; ______________________________________________________________________________
+; import and implementation
 
 (require "scanner.rkt"
          "context.rkt"

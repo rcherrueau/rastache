@@ -6,18 +6,14 @@
 ; \ \ \//\ \L\.\_/\__, `\\ \ \_/\ \L\.\_/\ \__/\ \ \ \ \/\  __/
 ;  \ \_\\ \__/.\_\/\____/ \ \__\ \__/.\_\ \____\\ \_\ \_\ \____\
 ;   \/_/ \/__/\/_/\/___/   \/__/\/__/\/_/\/____/ \/_/\/_/\/____/
-; A racket Mustache template engine.
+; Mustache template engine for Racket
 
 ; Mustache template parser.
 ;
 ; Parse mustache template and generate a list of tokens. The list of
 ; tokens describes how to render the template.
 
-(provide token
-         token?
-         token-sigil
-         token-content
-         token-section
+(provide (struct-out token)
          tokenize)
 
 ; ______________________________________________________________________________
