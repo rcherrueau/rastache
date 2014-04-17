@@ -22,9 +22,9 @@
     "Inline"
 
     (let ([rendered (open-output-string)]
-          [expected "1234567890"]
           [tokens (rastache-compile/open-string
-                    "12345{{! Comment Block! }}67890")])
+                    "12345{{! Comment Block! }}67890")]
+          [expected "1234567890"])
       (rastache-render tokens #hash() rendered)
       (check-equal? (get-output-string rendered)
                     expected
@@ -35,12 +35,12 @@
     "Multiline"
 
     (let ([rendered (open-output-string)]
-          [expected "1234567890"]
           [tokens (rastache-compile/open-string
                     "12345{{!
                        This is a
                        multi-line comment...
-                     }}67890")])
+                     }}67890")]
+          [expected "1234567890"])
       (rastache-render tokens #hash() rendered)
       (check-equal? (get-output-string rendered)
                     expected
@@ -50,12 +50,12 @@
     "Standalone"
 
     (let ([rendered (open-output-string)]
-          [expected "Begin.
-                     End."]
           [tokens (rastache-compile/open-string
                     "Begin.
                      {{! Comment Block! }}
-                     End.")])
+                     End.")]
+          [expected "Begin.
+                     End."])
       (rastache-render tokens #hash() rendered)
       (check-equal? (get-output-string rendered)
                     expected
@@ -65,12 +65,12 @@
     "Indented Standalone"
 
     (let ([rendered (open-output-string)]
-          [expected "Begin.
-                     End."]
           [tokens (rastache-compile/open-string
                     "Begin.
                        {{! Comment Block! }}
-                     End.")])
+                     End.")]
+          [expected "Begin.
+                     End."])
       (rastache-render tokens #hash() rendered)
       (check-equal? (get-output-string rendered)
                     expected
@@ -79,9 +79,9 @@
     "Standalone Line Endings"
 
     (let ([rendered (open-output-string)]
-          [expected "|\r\n|"]
           [tokens (rastache-compile/open-string
-                    "|\r\n{{! Standalone Comment }}\r\n|")])
+                    "|\r\n{{! Standalone Comment }}\r\n|")]
+          [expected "|\r\n|"])
       (rastache-render tokens #hash() rendered)
       (check-equal? (get-output-string rendered)
                     expected
@@ -91,9 +91,9 @@
     "Standalone Without Previous Line"
 
     (let ([rendered (open-output-string)]
-          [expected "!"]
           [tokens (rastache-compile/open-string
-                    "  {{! I'm Still Standalone }}\n!")])
+                    "  {{! I'm Still Standalone }}\n!")]
+          [expected "!"])
       (rastache-render tokens #hash() rendered)
       (check-equal? (get-output-string rendered)
                     expected
@@ -103,9 +103,9 @@
     "Standalone Without Newline"
 
     (let ([rendered (open-output-string)]
-          [expected "!\n"]
           [tokens (rastache-compile/open-string
-                    "!\n  {{! I'm Still Standalone }}")])
+                    "!\n  {{! I'm Still Standalone }}")]
+          [expected "!\n"])
       (rastache-render tokens #hash() rendered)
       (check-equal? (get-output-string rendered)
                     expected
@@ -115,14 +115,14 @@
     "Multiline Standalone"
 
     (let ([rendered (open-output-string)]
-          [expected "Begin.
-                     End."]
           [tokens (rastache-compile/open-string
                     "Begin.
                      {{!
                      Something's going on here...
                      }}
-                     End.")])
+                     End.")]
+          [expected "Begin.
+                     End."])
       (rastache-render tokens #hash() rendered)
       (check-equal? (get-output-string rendered)
                     expected
@@ -132,14 +132,14 @@
     "Indented Multiline Standalone"
 
     (let ([rendered (open-output-string)]
-          [expected "Begin.
-                     End."]
           [tokens (rastache-compile/open-string
                     "Begin.
                      {{!
                        Something's going on here...
                      }}
-                     End.")])
+                     End.")]
+          [expected "Begin.
+                     End."])
       (rastache-render tokens #hash() rendered)
       (check-equal? (get-output-string rendered)
                     expected
@@ -149,9 +149,9 @@
     "Indented Inline"
 
     (let ([rendered (open-output-string)]
-          [expected "  12 \n"]
           [tokens (rastache-compile/open-string
-                    "  12 {{! 34 }}\n")])
+                    "  12 {{! 34 }}\n")]
+          [expected "  12 \n"])
       (rastache-render tokens #hash() rendered)
       (check-equal? (get-output-string rendered)
                     expected
@@ -161,9 +161,9 @@
     "Surrounding Whitespace"
 
     (let ([rendered (open-output-string)]
-          [expected "12345  67890"]
           [tokens (rastache-compile/open-string
-                    "12345 {{! Comment Block! }} 67890")])
+                    "12345 {{! Comment Block! }} 67890")]
+          [expected "12345  67890"])
       (rastache-render tokens #hash() rendered)
       (check-equal? (get-output-string rendered)
                     expected
