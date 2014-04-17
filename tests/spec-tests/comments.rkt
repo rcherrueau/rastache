@@ -1,5 +1,13 @@
 #lang racket/base
 
+;                      /\ \__                /\ \
+;  _ __    __      ____\ \ ,_\    __      ___\ \ \___      __
+; /\`'__\/'__`\   /',__\\ \ \/  /'__`\   /'___\ \  _ `\  /'__`\
+; \ \ \//\ \L\.\_/\__, `\\ \ \_/\ \L\.\_/\ \__/\ \ \ \ \/\  __/
+;  \ \_\\ \__/.\_\/\____/ \ \__\ \__/.\_\ \____\\ \_\ \_\ \____\
+;   \/_/ \/__/\/_/\/___/   \/__/\/__/\/_/\/____/ \/_/\/_/\/____/
+; Mustache template engine for Racket
+
 ; Comment tags represent content that should never appear in the
 ; resulting output.
 ;
@@ -10,24 +18,7 @@
 
 (require rackunit
          rackunit/text-ui
-         "../../rastache.rkt"
-         (for-syntax racket/base))
-
-(provide (all-defined-out))
-
-(define-syntax (rast-t-case stx)
-  (syntax-case stx ()
-    [(_ t-name t-template t-expected t-error-msg)
-     #'(test-case
-        t-name
-        (let ([rendered (open-output-string)]
-              [tokens (rastache-compile/open-string t-template)]
-              [expected t-expected])
-          (rastache-render tokens #hash() rendered)
-          (check-equal? (get-output-string rendered)
-                        expected
-                        t-error-msg)))]))
-
+         "rastache-test-case.rkt")
 
 (define comment-tests
   (test-suite
@@ -54,113 +45,57 @@
                  End."
                 "All standalone comment lines should be removed.")
 
-   (test-case
-    "Indented Standalone"
+   (rast-t-case "Indented Standalone"
+                "Begin.
+                   {{! Comment Block! }}
+                 End."
+                "Begin.
+                 End."
+                "All standalone comment lines should be removed.")
 
-    (let ([rendered (open-output-string)]
-          [tokens (rastache-compile/open-string
-                    "Begin.
-                       {{! Comment Block! }}
-                     End.")]
-          [expected "Begin.
-                     End."])
-      (rastache-render tokens #hash() rendered)
-      (check-equal? (get-output-string rendered)
-                    expected
-                    "All standalone comment lines should be removed.")))
-   (test-case
-    "Standalone Line Endings"
+   (rast-t-case "Standalone Line Endings"
+                "|\r\n{{! Standalone Comment }}\r\n|"
+                "|\r\n|"
+                "'\r\n' should be considered a newline for standalone tags.")
 
-    (let ([rendered (open-output-string)]
-          [tokens (rastache-compile/open-string
-                    "|\r\n{{! Standalone Comment }}\r\n|")]
-          [expected "|\r\n|"])
-      (rastache-render tokens #hash() rendered)
-      (check-equal? (get-output-string rendered)
-                    expected
-                    "'\r\n' should be considered a newline for standalone tags.")))
+   (rast-t-case "Standalone Without Previous Line"
+                "  {{! I'm Still Standalone }}\n!"
+                "!"
+                "Standalone tags should not require a newline to precede them.")
 
-   (test-case
-    "Standalone Without Previous Line"
+   (rast-t-case "Standalone Without Newline"
+                "!\n  {{! I'm Still Standalone }}"
+                "!\n"
+                "Standalone tags should not require a newline to follow them.")
 
-    (let ([rendered (open-output-string)]
-          [tokens (rastache-compile/open-string
-                    "  {{! I'm Still Standalone }}\n!")]
-          [expected "!"])
-      (rastache-render tokens #hash() rendered)
-      (check-equal? (get-output-string rendered)
-                    expected
-                    "Standalone tags should not require a newline to precede them.")))
+   (rast-t-case "Multiline Standalone"
+                "Begin.
+                 {{!
+                   Something's going on here...
+                 }}
+                 End."
+                "Begin.
+                 End."
+                "All standalone comment lines should be removed.")
 
-   (test-case
-    "Standalone Without Newline"
+   (rast-t-case "Indented Multiline Standalone"
+                "Begin.
+                 {{!
+                   Something's going on here...
+                 }}
+                 End."
+                "Begin.
+                 End."
+                "All standalone comment lines should be removed.")
 
-    (let ([rendered (open-output-string)]
-          [tokens (rastache-compile/open-string
-                    "!\n  {{! I'm Still Standalone }}")]
-          [expected "!\n"])
-      (rastache-render tokens #hash() rendered)
-      (check-equal? (get-output-string rendered)
-                    expected
-                    "Standalone tags should not require a newline to follow them.")))
+   (rast-t-case "Indented Inline"
+                "  12 {{! 34 }}\n"
+                "  12 \n"
+                "Inline comments should not strip whitespace")
 
-   (test-case
-    "Multiline Standalone"
-
-    (let ([rendered (open-output-string)]
-          [tokens (rastache-compile/open-string
-                    "Begin.
-                     {{!
-                     Something's going on here...
-                     }}
-                     End.")]
-          [expected "Begin.
-                     End."])
-      (rastache-render tokens #hash() rendered)
-      (check-equal? (get-output-string rendered)
-                    expected
-                    "All standalone comment lines should be removed.")))
-
-   (test-case
-    "Indented Multiline Standalone"
-
-    (let ([rendered (open-output-string)]
-          [tokens (rastache-compile/open-string
-                    "Begin.
-                     {{!
-                       Something's going on here...
-                     }}
-                     End.")]
-          [expected "Begin.
-                     End."])
-      (rastache-render tokens #hash() rendered)
-      (check-equal? (get-output-string rendered)
-                    expected
-                    "All standalone comment lines should be removed.")))
-
-   (test-case
-    "Indented Inline"
-
-    (let ([rendered (open-output-string)]
-          [tokens (rastache-compile/open-string
-                    "  12 {{! 34 }}\n")]
-          [expected "  12 \n"])
-      (rastache-render tokens #hash() rendered)
-      (check-equal? (get-output-string rendered)
-                    expected
-                    "Inline comments should not strip whitespace")))
-
-   (test-case
-    "Surrounding Whitespace"
-
-    (let ([rendered (open-output-string)]
-          [tokens (rastache-compile/open-string
-                    "12345 {{! Comment Block! }} 67890")]
-          [expected "12345  67890"])
-      (rastache-render tokens #hash() rendered)
-      (check-equal? (get-output-string rendered)
-                    expected
-                    "Comment removal should preserve surrounding whitespace.")))
-))
+   (rast-t-case "Surrounding Whitespace"
+                "12345 {{! Comment Block! }} 67890"
+                "12345  67890"
+                "Comment removal should preserve surrounding whitespace.")))
 
 (run-tests comment-tests)
