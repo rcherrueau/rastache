@@ -10,56 +10,49 @@
 
 (require rackunit
          rackunit/text-ui
-         "../../rastache.rkt")
+         "../../rastache.rkt"
+         (for-syntax racket/base))
 
 (provide (all-defined-out))
+
+(define-syntax (rast-t-case stx)
+  (syntax-case stx ()
+    [(_ t-name t-template t-expected t-error-msg)
+     #'(test-case
+        t-name
+        (let ([rendered (open-output-string)]
+              [tokens (rastache-compile/open-string t-template)]
+              [expected t-expected])
+          (rastache-render tokens #hash() rendered)
+          (check-equal? (get-output-string rendered)
+                        expected
+                        t-error-msg)))]))
+
 
 (define comment-tests
   (test-suite
    "Comment tests"
 
-   (test-case
-    "Inline"
+   (rast-t-case "Inline"
+                "12345{{! Comment Block! }}67890"
+                "1234567890"
+                "Comment blocks should be removed from the template.")
 
-    (let ([rendered (open-output-string)]
-          [tokens (rastache-compile/open-string
-                    "12345{{! Comment Block! }}67890")]
-          [expected "1234567890"])
-      (rastache-render tokens #hash() rendered)
-      (check-equal? (get-output-string rendered)
-                    expected
-                    "Comment blocks should be removed from the template.")))
+   (rast-t-case "Multiline"
+                "12345{{!
+                   This is a
+                   multi-line comment...
+                 }}67890"
+                "1234567890"
+                "Multiline comments should be permitted.")
 
-
-   (test-case
-    "Multiline"
-
-    (let ([rendered (open-output-string)]
-          [tokens (rastache-compile/open-string
-                    "12345{{!
-                       This is a
-                       multi-line comment...
-                     }}67890")]
-          [expected "1234567890"])
-      (rastache-render tokens #hash() rendered)
-      (check-equal? (get-output-string rendered)
-                    expected
-                    "Multiline comments should be permitted.")))
-
-   (test-case
-    "Standalone"
-
-    (let ([rendered (open-output-string)]
-          [tokens (rastache-compile/open-string
-                    "Begin.
-                     {{! Comment Block! }}
-                     End.")]
-          [expected "Begin.
-                     End."])
-      (rastache-render tokens #hash() rendered)
-      (check-equal? (get-output-string rendered)
-                    expected
-                    "All standalone comment lines should be removed.")))
+   (rast-t-case "Standalone"
+                "Begin.
+                   {{! Comment Block! }}
+                 End."
+                "Begin.
+                 End."
+                "All standalone comment lines should be removed.")
 
    (test-case
     "Indented Standalone"
