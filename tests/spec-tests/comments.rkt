@@ -25,11 +25,13 @@
    "Comment tests"
 
    (rast-t-case "Inline"
+                #hash()
                 "12345{{! Comment Block! }}67890"
                 "1234567890"
                 "Comment blocks should be removed from the template.")
 
    (rast-t-case "Multiline"
+                #hash()
                 "12345{{!
                    This is a
                    multi-line comment...
@@ -38,6 +40,7 @@
                 "Multiline comments should be permitted.")
 
    (rast-t-case "Standalone"
+                #hash()
                 "Begin.
                    {{! Comment Block! }}
                  End."
@@ -46,6 +49,7 @@
                 "All standalone comment lines should be removed.")
 
    (rast-t-case "Indented Standalone"
+                #hash()
                 "Begin.
                    {{! Comment Block! }}
                  End."
@@ -54,21 +58,25 @@
                 "All standalone comment lines should be removed.")
 
    (rast-t-case "Standalone Line Endings"
+                #hash()
                 "|\r\n{{! Standalone Comment }}\r\n|"
                 "|\r\n|"
                 "'\r\n' should be considered a newline for standalone tags.")
 
    (rast-t-case "Standalone Without Previous Line"
+                #hash()
                 "  {{! I'm Still Standalone }}\n!"
                 "!"
                 "Standalone tags should not require a newline to precede them.")
 
    (rast-t-case "Standalone Without Newline"
+                #hash()
                 "!\n  {{! I'm Still Standalone }}"
                 "!\n"
                 "Standalone tags should not require a newline to follow them.")
 
    (rast-t-case "Multiline Standalone"
+                #hash()
                 "Begin.
                  {{!
                    Something's going on here...
@@ -79,6 +87,7 @@
                 "All standalone comment lines should be removed.")
 
    (rast-t-case "Indented Multiline Standalone"
+                #hash()
                 "Begin.
                  {{!
                    Something's going on here...
@@ -89,11 +98,13 @@
                 "All standalone comment lines should be removed.")
 
    (rast-t-case "Indented Inline"
+                #hash()
                 "  12 {{! 34 }}\n"
                 "  12 \n"
                 "Inline comments should not strip whitespace")
 
    (rast-t-case "Surrounding Whitespace"
+                #hash()
                 "12345 {{! Comment Block! }} 67890"
                 "12345  67890"
                 "Comment removal should preserve surrounding whitespace.")))
