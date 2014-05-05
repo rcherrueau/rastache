@@ -60,7 +60,8 @@
                  ]"
                 "Delimiters set outside sections should persist.")
 
-   (rast-t-case "Inverted Sections" #hash{(section . #f)
+   (rast-t-case "Inverted Sections"
+                #hash{(section . #f)
                       (data . "I got interpolated.")}
                 "[
                  {{^section}}
