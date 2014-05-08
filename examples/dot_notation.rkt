@@ -1,16 +1,16 @@
 #lang racket/base
 
-(require "../../scanner.rkt")
+(require "../scanner.rkt")
 
 (provide (all-defined-out))
 
 (define dot_notation-name "dot_notation")
 
 (define dot_notation-template
-  (string-append "examples/" dot_notation-name ".html"))
+  (string-append dot_notation-name ".html"))
 
 (define dot_notation-res
-  (string-append "examples/" dot_notation-name ".txt"))
+  (string-append dot_notation-name ".txt"))
 
 (define dot_notation-ctx
 `#hash{

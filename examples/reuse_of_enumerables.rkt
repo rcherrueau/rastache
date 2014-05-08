@@ -1,16 +1,16 @@
 #lang racket/base
 
-(require "../../scanner.rkt")
+(require "../scanner.rkt")
 
 (provide (all-defined-out))
 
 (define reuse_of_enumerables-name "reuse_of_enumerables")
 
 (define reuse_of_enumerables-template
-  (string-append "examples/" reuse_of_enumerables-name ".html"))
+  (string-append reuse_of_enumerables-name ".html"))
 
 (define reuse_of_enumerables-res
-  (string-append "examples/" reuse_of_enumerables-name ".txt"))
+  (string-append reuse_of_enumerables-name ".txt"))
 
 (define reuse_of_enumerables-ctx
   #hash{(terms . [#hash{(name . "t1") (index . 0)}

@@ -1,16 +1,16 @@
 #lang racket/base
 
-(require "../../scanner.rkt")
+(require "../scanner.rkt")
 
 (provide (all-defined-out))
 
 (define partial-name "partial")
 
 (define partial-template
-  (string-append "examples/" partial-name ".html"))
+  (string-append partial-name ".html"))
 
 (define partial-res
-  (string-append "examples/" partial-name ".txt"))
+  (string-append partial-name ".txt"))
 
 (define partial-ctx
   #hash{(title . "Welcome")})

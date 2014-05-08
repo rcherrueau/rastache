@@ -1,16 +1,16 @@
 #lang racket/base
 
-(require "../../scanner.rkt")
+(require "../scanner.rkt")
 
 (provide (all-defined-out))
 
 (define hioa-name "hash_instead_of_array")
 
 (define hioa-template
-  (string-append "examples/" hioa-name ".html"))
+  (string-append hioa-name ".html"))
 
 (define hioa-res
-  (string-append "examples/" hioa-name ".txt"))
+  (string-append hioa-name ".txt"))
 
 (define hioa-ctx
   #hash{(person . #hash{(name . "Chris")})})

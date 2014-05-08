@@ -1,16 +1,16 @@
 #lang racket/base
 
-(require "../../scanner.rkt")
+(require "../scanner.rkt")
 
 (provide (all-defined-out))
 
 (define two_in_a_row-name "two_in_a_row")
 
 (define two_in_a_row-template
-  (string-append "examples/" two_in_a_row-name ".html"))
+  (string-append two_in_a_row-name ".html"))
 
 (define two_in_a_row-res
-  (string-append "examples/" two_in_a_row-name ".txt"))
+  (string-append two_in_a_row-name ".txt"))
 
 (define two_in_a_row-ctx
   #hash{(name . "Joe") (greeting . "Welcome")})

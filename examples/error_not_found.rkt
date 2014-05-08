@@ -1,16 +1,16 @@
 #lang racket/base
 
-(require "../../scanner.rkt")
+(require "../scanner.rkt")
 
 (provide (all-defined-out))
 
 (define error_not_found-name "error_not_found")
 
 (define error_not_found-template
-  (string-append "examples/" error_not_found-name ".html"))
+  (string-append error_not_found-name ".html"))
 
 (define error_not_found-res
-  (string-append "examples/" error_not_found-name ".txt"))
+  (string-append error_not_found-name ".txt"))
 
 (define error_not_found-ctx
   #hash{(bar . 2)})

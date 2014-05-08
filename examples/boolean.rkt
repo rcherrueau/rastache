@@ -1,16 +1,16 @@
 #lang racket/base
 
-(require "../../scanner.rkt")
+(require "../scanner.rkt")
 
 (provide (all-defined-out))
 
 (define boolean-name "boolean")
 
 (define boolean-template
-  (string-append "examples/" boolean-name ".html"))
+  (string-append boolean-name ".html"))
 
 (define boolean-res
-  (string-append "examples/" boolean-name ".txt"))
+  (string-append boolean-name ".txt"))
 
 (define boolean-ctx
   #hash{(name . "Jim")(age . 24)(admin . #t)})

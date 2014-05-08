@@ -1,16 +1,16 @@
 #lang racket/base
 
-(require "../../scanner.rkt")
+(require "../scanner.rkt")
 
 (provide (all-defined-out))
 
 (define escaped-name "escaped")
 
 (define escaped-template
-  (string-append "examples/" escaped-name ".html"))
+  (string-append escaped-name ".html"))
 
 (define escaped-res
-  (string-append "examples/" escaped-name ".txt"))
+  (string-append escaped-name ".txt"))
 
 (define escaped-ctx
   `#hash{(title . ,(λ _ "Bear > Shark"))})

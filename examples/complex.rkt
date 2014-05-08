@@ -1,17 +1,17 @@
 #lang racket/base
 
-(require "../../scanner.rkt"
-         "../../context.rkt")
+(require "../scanner.rkt"
+         "../context.rkt")
 
 (provide (all-defined-out))
 
 (define complex-name "complex")
 
 (define complex-template
-  (string-append "examples/" complex-name ".html"))
+  (string-append complex-name ".html"))
 
 (define complex-res
-  (string-append "examples/" complex-name ".txt"))
+  (string-append complex-name ".txt"))
 
 (define complex-ctx
   `#hash{(header . ,(λ _ "Colors"))

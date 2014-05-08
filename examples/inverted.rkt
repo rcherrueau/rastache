@@ -1,16 +1,16 @@
 #lang racket/base
 
-(require "../../scanner.rkt")
+(require "../scanner.rkt")
 
 (provide (all-defined-out))
 
 (define inverted-name "inverted")
 
 (define inverted-template
-  (string-append "examples/" inverted-name ".html"))
+  (string-append inverted-name ".html"))
 
 (define inverted-res
-  (string-append "examples/" inverted-name ".txt"))
+  (string-append inverted-name ".txt"))
 
 (define inverted-ctx
   #hash{(admin . #f)

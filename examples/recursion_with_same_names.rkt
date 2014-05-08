@@ -1,16 +1,16 @@
 #lang racket/base
 
-(require "../../scanner.rkt")
+(require "../scanner.rkt")
 
 (provide (all-defined-out))
 
 (define rwsn-name "recursion_with_same_names")
 
 (define rwsn-template
-  (string-append "examples/" rwsn-name ".html"))
+  (string-append rwsn-name ".html"))
 
 (define rwsn-res
-  (string-append "examples/" rwsn-name ".txt"))
+  (string-append rwsn-name ".txt"))
 
 (define rwsn-ctx
   #hash{(name . "name")

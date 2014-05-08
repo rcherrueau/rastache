@@ -1,16 +1,16 @@
 #lang racket/base
 
-(require "../../scanner.rkt")
+(require "../scanner.rkt")
 
 (provide (all-defined-out))
 
 (define unescaped-name "unescaped")
 
 (define unescaped-template
-  (string-append "examples/" unescaped-name ".html"))
+  (string-append unescaped-name ".html"))
 
 (define unescaped-res
-  (string-append "examples/" unescaped-name ".txt"))
+  (string-append unescaped-name ".txt"))
 
 (define unescaped-ctx
   `#hash{(title . ,(λ _ "Bear > Shark"))})
