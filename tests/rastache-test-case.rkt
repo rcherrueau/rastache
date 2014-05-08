@@ -1,7 +1,7 @@
 #lang racket/base
 
 (require rackunit
-         "../../rastache.rkt"
+         "../rastache.rkt"
          (for-syntax racket/base))
 
 (provide (all-defined-out))
