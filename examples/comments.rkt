@@ -1,16 +1,16 @@
 #lang racket/base
 
-(require "../../scanner.rkt")
+(require "../scanner.rkt")
 
 (provide (all-defined-out))
 
 (define comments-name "comments")
 
 (define comments-template
-  (string-append "examples/" comments-name ".html"))
+  (string-append comments-name ".html"))
 
 (define comments-res
-  (string-append "examples/" comments-name ".txt"))
+  (string-append comments-name ".txt"))
 
 (define comments-ctx
   `#hash{(title . ,(λ _ "A Comedy of Errors"))})

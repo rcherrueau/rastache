@@ -1,16 +1,16 @@
 #lang racket/base
 
-(require "../../scanner.rkt")
+(require "../scanner.rkt")
 
 (provide (all-defined-out))
 
 (define deep_partial-name "deep_partial")
 
 (define deep_partial-template
-  (string-append "examples/" deep_partial-name ".html"))
+  (string-append deep_partial-name ".html"))
 
 (define deep_partial-res
-  (string-append "examples/" deep_partial-name ".txt"))
+  (string-append deep_partial-name ".txt"))
 
 (define deep_partial-ctx
   #hash{(title . "Welcome")})

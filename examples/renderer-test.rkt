@@ -13,24 +13,24 @@
          rackunit/text-ui
          racket/file
          "../renderer.rkt"
-         "examples/boolean.rkt"
-         "examples/carriage_return.rkt"
-         "examples/comments.rkt"
-         "examples/complex.rkt"
-         "examples/deep_partial.rkt"
-         ; "example/delimiters.rkt"
-         ; "example/dot_notation.rkt"
-         "examples/error_not_found.rkt"
-         "examples/escaped.rkt"
-         "examples/hash_instead_of_array.rkt"
-         "examples/inverted.rkt"
-         "examples/partial.rkt"
-         "examples/recursion_with_same_names.rkt"
-         "examples/reuse_of_enumerables.rkt"
-         "examples/simple.rkt"
-         "examples/twice.rkt"
-         "examples/two_in_a_row.rkt"
-         "examples/unescaped.rkt")
+         "boolean.rkt"
+         "carriage_return.rkt"
+         "comments.rkt"
+         "complex.rkt"
+         "deep_partial.rkt"
+         ; "delimiters.rkt"
+         ; "dot_notation.rkt"
+         "error_not_found.rkt"
+         "escaped.rkt"
+         "hash_instead_of_array.rkt"
+         "inverted.rkt"
+         "partial.rkt"
+         "recursion_with_same_names.rkt"
+         "reuse_of_enumerables.rkt"
+         "simple.rkt"
+         "twice.rkt"
+         "two_in_a_row.rkt"
+         "unescaped.rkt")
 
 (define renderer-tests
   (let ([test-cust (make-custodian)])

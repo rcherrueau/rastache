@@ -1,16 +1,16 @@
 #lang racket/base
 
-(require "../../scanner.rkt")
+(require "../scanner.rkt")
 
 (provide (all-defined-out))
 
 (define twice-name "twice")
 
 (define twice-template
-  (string-append "examples/" twice-name ".html"))
+  (string-append twice-name ".html"))
 
 (define twice-res
-  (string-append "examples/" twice-name ".txt"))
+  (string-append twice-name ".txt"))
 
 (define twice-ctx
   #hash{(person . #hash{(name . "tom")})})

@@ -1,16 +1,16 @@
 #lang racket/base
 
-(require "../../scanner.rkt")
+(require "../scanner.rkt")
 
 (provide (all-defined-out))
 
 (define delimiters-name "delimiters")
 
 (define delimiters-template
-  (string-append "examples/" delimiters-name ".html"))
+  (string-append delimiters-name ".html"))
 
 (define delimiters-res
-  (string-append "examples/" delimiters-name ".txt"))
+  (string-append delimiters-name ".txt"))
 
 (define delimiters-ctx
   #hash{(first . "It worked the first time.")

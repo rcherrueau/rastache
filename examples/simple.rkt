@@ -1,17 +1,17 @@
 #lang racket/base
 
-(require "../../scanner.rkt"
-         "../../context.rkt")
+(require "../scanner.rkt"
+         "../context.rkt")
 
 (provide (all-defined-out))
 
 (define simple-name "simple")
 
 (define simple-template
-  (string-append "examples/" simple-name ".html"))
+  (string-append simple-name ".html"))
 
 (define simple-res
-  (string-append "examples/" simple-name ".txt"))
+  (string-append simple-name ".txt"))
 
 (define simple-ctx
   `#hash{(name . "Chris")
