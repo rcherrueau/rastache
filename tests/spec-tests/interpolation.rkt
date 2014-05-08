@@ -167,31 +167,29 @@
                 "Any falsey value prior to the last part of the name should yield ''.")
 
    (rast-t-case "Dotted Names - Broken Chain Resolution"
-                '(#hash{(a . #hash{(b . #hash())})}
-                  #hash{(c . #hash{(name . "Jim")})})
+                #hash{( a . #hash{( b . #hash() )} )
+                      ( c . #hash{( name . "Jim" )} )}
                 "\"{{a.b.c.name}}\" == \"\""
                 "\"\" == \"\""
                 "Each part of a dotted name should resolve only against its parent.")
 
    (rast-t-case "Dotted Names - Initial Resolution"
-                '(#hash{(a .
-                    #hash{(b .
-                      #hash{(c .
-                        #hash{(d .
-                          #hash{(e .
-                            #hash{(name . "Phil")})})})})})}
-                  #hash{(b .
-                    #hash{(c .
-                      #hash{(d .
-                        #hash{(e .
-                          #hash{(name . "Wrong")})})})})})
+                #hash{( a . #hash{( b .
+                              #hash{( c .
+                                #hash{( d .
+                                  #hash{( e .
+                                    #hash{( name . "Phil" )} )})})})})
+                      ( b . #hash{( c .
+                              #hash{( d .
+                                #hash{( e .
+                                  #hash{( name . "Wrong")} )})})}) }
                 "\"{{#a}}{{b.c.d.e.name}}{{/a}}\" == \"Phil\""
                 "\"Phil\" == \"Phil\""
                 "The first part of a dotted name should resolve as any other name.")
 
    (rast-t-case "Dotted Names - Context Precedence"
-                '(#hash{(a . #hash{(b . #hash())})}
-                  #hash{(b . #hash{(c . "ERROR")})})
+                #hash{( a . #hash{( b . #hash() )} )
+                      ( b . #hash{( c . "ERROR" )} )}
                 "{{#a}}{{b.c}}{{/a}}"
                 ""
                 "Dotted names should be resolved against former resolutions.")
