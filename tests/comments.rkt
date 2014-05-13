@@ -68,6 +68,10 @@
 
    (rast-t-case "Standalone Line Endings"
                 #hash()
+                ;; Template of this test is equivalent to:
+                ;; "|
+                ;;  {{! Standalone Comment }}
+                ;;  |"
                 "|\r\n{{! Standalone Comment }}\r\n|"
                 "|\r\n|"
                 (list (token 'static "|\r\n" null)
@@ -76,6 +80,9 @@
 
    (rast-t-case "Standalone Without Previous Line"
                 #hash()
+                ;; Template of this test is equivalent to:
+                ;; "  {{! Standalone Comment }}
+                ;;  !"
                 "  {{! I'm Still Standalone }}\n!"
                 "!"
                 (list (token 'static "!" null))
