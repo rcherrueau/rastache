@@ -45,7 +45,6 @@
                       (token 'static ")" null))
                 "Characters with special meaning regexen should be valid delimiters.")
 
-#;
    (rast-t-case "Sections"
                 #hash{(section . #t)
                       (data . "I got interpolated.")}
@@ -55,7 +54,7 @@
                    |data|
                  {{/section}}
 
-                 {{= | | =}}
+                 {{=| |=}}
                  |#section|
                    {{data}}
                    |data|
@@ -68,9 +67,26 @@
                    {{data}}
                    I got interpolated.
                  ]"
+                (list
+                 (token 'static "[\n" null)
+                 (token 'section
+                        'section
+                        (list
+                         (token 'static "                   " null)
+                         (token 'etag 'data null)
+                         (token 'static "\n" null)
+                         (token 'static "                   |data|\n" null)))
+                 (token 'static "\n" null)
+                 (token 'section
+                        'section
+                        (list
+                         (token 'static "                   {{data}}\n" null)
+                         (token 'static "                   " null)
+                         (token 'etag 'data null)
+                         (token 'static "\n" null)))
+                 (token 'static "                 ]" null))
                 "Delimiters set outside sections should persist.")
 
-#;
    (rast-t-case "Inverted Sections"
                 #hash{(section . #f)
                       (data . "I got interpolated.")}
@@ -80,7 +96,7 @@
                    |data|
                  {{/section}}
 
-                 {{= | | =}}
+                 {{=| |=}}
                  |^section|
                    {{data}}
                    |data|
@@ -93,6 +109,24 @@
                    {{data}}
                    I got interpolated.
                  ]"
+                (list
+                 (token 'static "[\n" null)
+                 (token 'inverted-section
+                        'section
+                        (list
+                         (token 'static "                   " null)
+                         (token 'etag 'data null)
+                         (token 'static "\n" null)
+                         (token 'static "                   |data|\n" null)))
+                 (token 'static "\n" null)
+                 (token 'inverted-section
+                        'section
+                        (list
+                         (token 'static "                   {{data}}\n" null)
+                         (token 'static "                   " null)
+                         (token 'etag 'data null)
+                         (token 'static "\n" null)))
+                 (token 'static "                 ]" null))
                 "Delimiters set outside inverted sections should persist.")
 
    ;; TODO partials
