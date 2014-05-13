@@ -18,6 +18,7 @@
 
 (require rackunit
          rackunit/text-ui
+         "../scanner.rkt"
          "rastache-test-case.rkt")
 
 (define comment-tests
@@ -28,6 +29,8 @@
                 #hash()
                 "12345{{! Comment Block! }}67890"
                 "1234567890"
+                (list (token 'static "12345" null)
+                      (token 'static "67890" null))
                 "Comment blocks should be removed from the template.")
 
    (rast-t-case "Multiline"
@@ -37,15 +40,19 @@
                    multi-line comment...
                  }}67890"
                 "1234567890"
+                (list (token 'static "12345" null)
+                      (token 'static "67890" null))
                 "Multiline comments should be permitted.")
 
    (rast-t-case "Standalone"
                 #hash()
                 "Begin.
-                   {{! Comment Block! }}
+                 {{! Comment Block! }}
                  End."
                 "Begin.
                  End."
+                (list (token 'static "Begin.\n" null)
+                      (token 'static "                 End."  null))
                 "All standalone comment lines should be removed.")
 
    (rast-t-case "Indented Standalone"
@@ -55,35 +62,43 @@
                  End."
                 "Begin.
                  End."
+                (list (token 'static "Begin.\n" null)
+                      (token 'static "                 End."  null))
                 "All standalone comment lines should be removed.")
 
    (rast-t-case "Standalone Line Endings"
                 #hash()
                 "|\r\n{{! Standalone Comment }}\r\n|"
                 "|\r\n|"
+                (list (token 'static "|\r\n" null)
+                      (token 'static "|" null))
                 "'\r\n' should be considered a newline for standalone tags.")
 
    (rast-t-case "Standalone Without Previous Line"
                 #hash()
                 "  {{! I'm Still Standalone }}\n!"
                 "!"
+                (list (token 'static "!" null))
                 "Standalone tags should not require a newline to precede them.")
 
    (rast-t-case "Standalone Without Newline"
                 #hash()
                 "!\n  {{! I'm Still Standalone }}"
                 "!\n"
+                (list (token 'static "!\n" null))
                 "Standalone tags should not require a newline to follow them.")
 
    (rast-t-case "Multiline Standalone"
                 #hash()
                 "Begin.
                  {{!
-                   Something's going on here...
+                 Something's going on here...
                  }}
                  End."
                 "Begin.
                  End."
+                (list (token 'static "Begin.\n" null)
+                      (token 'static "                 End."  null))
                 "All standalone comment lines should be removed.")
 
    (rast-t-case "Indented Multiline Standalone"
@@ -95,18 +110,24 @@
                  End."
                 "Begin.
                  End."
+                (list (token 'static "Begin.\n" null)
+                      (token 'static "                 End."  null))
                 "All standalone comment lines should be removed.")
 
    (rast-t-case "Indented Inline"
                 #hash()
                 "  12 {{! 34 }}\n"
                 "  12 \n"
+                (list (token 'static "  12 " null)
+                      (token 'static "\n" null))
                 "Inline comments should not strip whitespace")
 
    (rast-t-case "Surrounding Whitespace"
                 #hash()
                 "12345 {{! Comment Block! }} 67890"
                 "12345  67890"
+                (list (token 'static "12345 " null)
+                      (token 'static " 67890" null))
                 "Comment removal should preserve surrounding whitespace.")))
 
 (run-tests comment-tests)
