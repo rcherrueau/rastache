@@ -68,23 +68,23 @@
 
    (rast-t-case "Standalone Line Endings"
                 #hash()
-                ;; Template of this test is equivalent to:
+                "|\r\n{{! Standalone Comment }}\r\n|"
+                "|\r\n|"
+                ;; Template should be considered as:
                 ;; "|
                 ;;  {{! Standalone Comment }}
                 ;;  |"
-                "|\r\n{{! Standalone Comment }}\r\n|"
-                "|\r\n|"
                 (list (token 'static "|\r\n" null)
                       (token 'static "|" null))
                 "'\r\n' should be considered a newline for standalone tags.")
 
    (rast-t-case "Standalone Without Previous Line"
                 #hash()
-                ;; Template of this test is equivalent to:
-                ;; "  {{! Standalone Comment }}
-                ;;  !"
                 "  {{! I'm Still Standalone }}\n!"
                 "!"
+                ;; Template should be considered as:
+                ;; "  {{! Standalone Comment }}
+                ;;  !"
                 (list (token 'static "" null)
                       (token 'static "!" null))
                 "Standalone tags should not require a newline to precede them.")

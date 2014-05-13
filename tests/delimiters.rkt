@@ -138,23 +138,23 @@
 
    (rast-t-case "Standalone Line Endings"
                 #hash()
-                ;; Template of this test should be considered as:
+                "|\r\n{{=@ @=}}\r\n|"
+                "|\r\n|"
+                ;; Template should be considered as:
                 ;; "|
                 ;;  {{=@ @=}}
                 ;;  |"
-                "|\r\n{{=@ @=}}\r\n|"
-                "|\r\n|"
                 (list (token 'static "|\r\n" null)
                       (token 'static "|" null))
                 "'\r\n' should be considered a newline for standalone tags.")
 
    (rast-t-case "Standalone Without Previous Line"
                 #hash()
-                ;; Template of this test should be considered as:
-                ;; "
-                ;;  ="
                 "  {{=@ @=}}\n="
                 "="
+                ;; Template should be considered as:
+                ;; "
+                ;;  ="
                 (list (token 'static "" null)
                       (token 'static "=" null))
                 "Standalone tags should not require a newline to precede them.")
