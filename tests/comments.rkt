@@ -85,7 +85,8 @@
                 ;;  !"
                 "  {{! I'm Still Standalone }}\n!"
                 "!"
-                (list (token 'static "!" null))
+                (list (token 'static "" null)
+                      (token 'static "!" null))
                 "Standalone tags should not require a newline to precede them.")
 
    (rast-t-case "Standalone Without Newline"
