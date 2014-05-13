@@ -19,6 +19,7 @@
 
 (require rackunit
          rackunit/text-ui
+         "../scanner.rkt"
          "rastache-test-case.rkt")
 
 (define delimiters-tests
@@ -29,13 +30,22 @@
                 #hash{(text . "Hey!")}
                 "{{=<% %>=}}(<%text%>)"
                 "(Hey!)"
+                (list (token 'static "" null)
+                      (token 'static "(" null)
+                      (token 'etag 'text null)
+                      (token 'static ")" null))
                 "The equals sign (used on both sides) should permit delimiter changes.")
+
    (rast-t-case "Special Characters"
                 #hash{(text . "It worked!")}
                 "({{=[ ]=}}[text])"
                 "(It worked!)"
+                (list (token 'static "(" null)
+                      (token 'etag 'text null)
+                      (token 'static ")" null))
                 "Characters with special meaning regexen should be valid delimiters.")
 
+#;
    (rast-t-case "Sections"
                 #hash{(section . #t)
                       (data . "I got interpolated.")}
@@ -60,6 +70,7 @@
                  ]"
                 "Delimiters set outside sections should persist.")
 
+#;
    (rast-t-case "Inverted Sections"
                 #hash{(section . #f)
                       (data . "I got interpolated.")}
@@ -91,21 +102,27 @@
                 #hash()
                 "| {{=@ @=}} |"
                 "|  |"
+                (list (token 'static "| " null)
+                      (token 'static " |" null))
                 "Surrounding whitespace should be left untouched.")
 
    (rast-t-case "Outlying Whitespace (Inline)"
                 #hash()
                 " | {{=@ @=}}\n"
                 " | \n"
+                (list (token 'static " | " null)
+                      (token 'static "\n" null))
                 "Whitespace should be left untouched.")
 
    (rast-t-case "Standalone Tag"
                 #hash()
-               "Begin.
-                {{=@ @=}}
-                End."
-               "Begin.
-                End."
+                "Begin.
+                 {{=@ @=}}
+                 End."
+                "Begin.
+                 End."
+               (list (token 'static "Begin.\n" null)
+                     (token 'static "                 End." null))
                "Standalone lines should be removed from the template.")
 
    (rast-t-case "Indented Standalone Tag"
@@ -115,24 +132,38 @@
                  End."
                 "Begin.
                  End."
+                (list (token 'static "Begin.\n" null)
+                      (token 'static "                 End." null))
                 "Indented standalone lines should be removed from the template.")
 
    (rast-t-case "Standalone Line Endings"
                 #hash()
-                "|\r\n{{= @ @ =}}\r\n|"
+                ;; Template of this test should be considered as:
+                ;; "|
+                ;;  {{=@ @=}}
+                ;;  |"
+                "|\r\n{{=@ @=}}\r\n|"
                 "|\r\n|"
+                (list (token 'static "|\r\n" null)
+                      (token 'static "|" null))
                 "'\r\n' should be considered a newline for standalone tags.")
 
    (rast-t-case "Standalone Without Previous Line"
                 #hash()
+                ;; Template of this test should be considered as:
+                ;; "
+                ;;  ="
                 "  {{=@ @=}}\n="
                 "="
+                (list (token 'static "" null)
+                      (token 'static "=" null))
                 "Standalone tags should not require a newline to precede them.")
 
    (rast-t-case "Standalone Without Newline"
                 #hash()
                 "=\n  {{=@ @=}}"
                 "=\n"
+                (list (token 'static "=\n" null))
                 "Standalone tags should not require a newline to follow them.")
 
    ;; Whitespace Insensitivity
@@ -140,6 +171,8 @@
                 #hash()
                 "|{{= @   @ =}}|"
                 "||"
+                (list (token 'static "|" null)
+                      (token 'static "|" null))
                 "Superfluous in-tag whitespace should be ignored.")))
 
 (run-tests delimiters-tests)
