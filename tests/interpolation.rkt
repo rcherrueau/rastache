@@ -39,6 +39,7 @@
 
 (require rackunit
          rackunit/text-ui
+         "../scanner.rkt"
          "rastache-test-case.rkt")
 
 (define interpolation-tests
@@ -49,66 +50,100 @@
                 #hash()
                 "Hello from {Mustache}!"
                 "Hello from {Mustache}!"
+                (list (token 'static "Hello from {Mustache}!" null))
                 "Mustache-free templates should render as-is.")
 
    (rast-t-case "Basic Interpolation"
                 #hash{(subject . "world")}
                 "Hello, {{subject}}!"
                 "Hello, world!"
+                (list (token 'static "Hello, " null)
+                      (token 'etag 'subject null)
+                      (token 'static "!" null))
                 "Unadorned tags should interpolate content into the template.")
 
    (rast-t-case "HTML Escaping"
                 #hash{(forbidden . "& \" < >")}
                 "These characters should be HTML escaped: {{forbidden}}"
                 "These characters should be HTML escaped: &amp; &quot; &lt; &gt;"
+                (list (token 'static
+                             "These characters should be HTML escaped: " null)
+                      (token 'etag 'forbidden null)
+                      (token 'static "" null))
                 "Basic interpolation should be HTML escaped.")
 
    (rast-t-case "Triple Mustache"
-                #hash{(forbidden . "& \" < > ")}
+                #hash{(forbidden . "& \" < >")}
                 "These characters should not be HTML escaped: {{{forbidden}}}"
-                "These characters should not be HTML escaped: &amp; &quot; &lt; &gt;"
+                "These characters should not be HTML escaped: & \" < >"
+                (list (token 'static
+                             "These characters should not be HTML escaped: " null)
+                      (token 'utag 'forbidden null)
+                      (token 'static "" null))
                 "Triple mustaches should interpolate without HTML escaping.")
 
    (rast-t-case "Ampersand"
-                #hash{(forbidden . "& \" < > ")}
+                #hash{(forbidden . "& \" < >")}
                 "These characters should not be HTML escaped: {{&forbidden}}"
-                "These characters should not be HTML escaped: &amp; &quot; &lt; &gt;"
+                "These characters should not be HTML escaped: & \" < >"
+                (list (token 'static
+                             "These characters should not be HTML escaped: " null)
+                      (token 'utag 'forbidden null)
+                      (token 'static "" null))
                 "Ampersand should interpolate without HTML escaping.")
 
    (rast-t-case "Basic Integer Interpolation"
-                #hash{(mph . 85)}
+                #hash{(mph . 88)}
                 "\"{{mph}} miles an hour!\""
-                "\"85 miles an hour!\""
+                "\"88 miles an hour!\""
+                (list (token 'static "\"" null)
+                      (token 'etag 'mph null)
+                      (token 'static " miles an hour!\"" null))
                 "Integers should interpolate seamlessly.")
 
    (rast-t-case "Triple Mustache Integer Interpolation"
-                #hash{(mph . 85)}
+                #hash{(mph . 88)}
                 "\"{{{mph}}} miles an hour!\""
-                "\"85 miles an hour!\""
+                "\"88 miles an hour!\""
+                (list (token 'static "\"" null)
+                      (token 'utag 'mph null)
+                      (token 'static " miles an hour!\"" null))
                 "Integers should interpolate seamlessly.")
 
    (rast-t-case "Ampersand Integer Interpolation"
-                #hash{(mph . 85)}
+                #hash{(mph . 88)}
                 "\"{{&mph}} miles an hour!\""
-                "\"85 miles an hour!\""
+                "\"88 miles an hour!\""
+                (list (token 'static "\"" null)
+                      (token 'utag 'mph null)
+                      (token 'static " miles an hour!\"" null))
                 "Integers should interpolate seamlessly.")
 
    (rast-t-case "Basic Decimal Interpolation"
                 #hash{(power . 1.210)}
                 "\"{{power}} jiggawatts!\""
                 "\"1.21 jiggawatts!\""
+                (list (token 'static "\"" null)
+                      (token 'etag 'power null)
+                      (token 'static " jiggawatts!\"" null))
                 "Decimals should interpolate seamlessly with proper significance.")
 
    (rast-t-case "Triple Mustache Decimal Interpolation"
                 #hash{(power . 1.210)}
                 "\"{{{power}}} jiggawatts!\""
                 "\"1.21 jiggawatts!\""
+                (list (token 'static "\"" null)
+                      (token 'utag 'power null)
+                      (token 'static " jiggawatts!\"" null))
                 "Decimals should interpolate seamlessly with proper significance.")
 
    (rast-t-case "Ampersand Decimal Interpolation"
                 #hash{(power . 1.210)}
                 "\"{{&power}} jiggawatts!\""
                 "\"1.21 jiggawatts!\""
+                (list (token 'static "\"" null)
+                      (token 'utag 'power null)
+                      (token 'static " jiggawatts!\"" null))
                 "Decimals should interpolate seamlessly with proper significance.")
 
    ;; Context Misses
@@ -116,18 +151,27 @@
                 #hash()
                 "I ({{cannot}}) be seen!"
                 "I () be seen!"
+                (list (token 'static "I (" null)
+                      (token 'etag 'cannot null)
+                      (token 'static ") be seen!" null))
                 "Failed context lookups should default to empty strings.")
 
    (rast-t-case "Triple Mustache Context Miss Interpolation"
                 #hash()
                 "I ({{{cannot}}}) be seen!"
                 "I () be seen!"
+                (list (token 'static "I (" null)
+                      (token 'utag 'cannot null)
+                      (token 'static ") be seen!" null))
                 "Failed context lookups should default to empty strings.")
 
    (rast-t-case "Ampersand Context Miss Interpolation"
                 #hash()
                 "I ({{&cannot}}) be seen!"
                 "I () be seen!"
+                (list (token 'static "I (" null)
+                      (token 'utag 'cannot null)
+                      (token 'static ") be seen!" null))
                 "Failed context lookups should default to empty strings.")
 
    ;; Dotted Names
@@ -135,18 +179,39 @@
                 #hash{(person . #hash{(name . "Joe")})}
                 "\"{{person.name}}\" == \"{{#person}}{{name}}{{/person}}\""
                 "\"Joe\" == \"Joe\""
+                (list (token 'static "\"" null)
+                      (token 'etag 'person.name null)
+                      (token 'static "\" == \"" null)
+                      (token 'section 'person (list (token 'static "" null)
+                                                    (token 'etag 'name null)
+                                                    (token 'static "" null)))
+                      (token 'static "\"" null))
                 "Dotted names should be considered a form of shorthand for sections.")
 
    (rast-t-case "Dotted Names - Triple Mustache Interpolation"
                 #hash{(person . #hash{(name . "Joe")})}
                 "\"{{{person.name}}}\" == \"{{#person}}{{{name}}}{{/person}}\""
                 "\"Joe\" == \"Joe\""
+                (list (token 'static "\"" null)
+                      (token 'utag 'person.name null)
+                      (token 'static "\" == \"" null)
+                      (token 'section 'person (list (token 'static "" null)
+                                                    (token 'utag 'name null)
+                                                    (token 'static "" null)))
+                      (token 'static "\"" null))
                 "Dotted names should be considered a form of shorthand for sections.")
 
    (rast-t-case "Dotted Names - Ampersand Interpolation"
                 #hash{(person . #hash{(name . "Joe")})}
                 "\"{{&person.name}}\" == \"{{#person}}{{&name}}{{/person}}\""
                 "\"Joe\" == \"Joe\""
+                (list (token 'static "\"" null)
+                      (token 'utag 'person.name null)
+                      (token 'static "\" == \"" null)
+                      (token 'section 'person (list (token 'static "" null)
+                                                    (token 'utag 'name null)
+                                                    (token 'static "" null)))
+                      (token 'static "\"" null))
                 "Dotted names should be considered a form of shorthand for sections.")
 
    (rast-t-case "Dotted Names - Arbitrary Depth"
@@ -158,12 +223,18 @@
                           #hash{(name . "Phil")})})})})})}
                 "\"{{a.b.c.d.e.name}}\" == \"Phil\""
                 "\"Phil\" == \"Phil\""
+                (list (token 'static "\"" null)
+                      (token 'etag 'a.b.c.d.e.name null)
+                      (token 'static "\" == \"Phil\"" null))
                 "Dotted names should be functional to any level of nesting.")
 
    (rast-t-case "Dotted Names - Broken Chains"
                 #hash{(a . #hash{})}
                 "\"{{a.b.c}}\" == \"\""
                 "\"\" == \"\""
+                (list (token 'static "\"" null)
+                      (token 'etag 'a.b.c null)
+                      (token 'static "\" == \"\"" null))
                 "Any falsey value prior to the last part of the name should yield ''.")
 
    (rast-t-case "Dotted Names - Broken Chain Resolution"
@@ -171,6 +242,9 @@
                       ( c . #hash{( name . "Jim" )} )}
                 "\"{{a.b.c.name}}\" == \"\""
                 "\"\" == \"\""
+                (list (token 'static "\"" null)
+                      (token 'etag 'a.b.c.name null)
+                      (token 'static "\" == \"\"" null))
                 "Each part of a dotted name should resolve only against its parent.")
 
    (rast-t-case "Dotted Names - Initial Resolution"
@@ -185,6 +259,11 @@
                                   #hash{( name . "Wrong")} )})})}) }
                 "\"{{#a}}{{b.c.d.e.name}}{{/a}}\" == \"Phil\""
                 "\"Phil\" == \"Phil\""
+                (list (token 'static "\"" null)
+                      (token 'section 'a (list (token 'static "" null)
+                                               (token 'etag 'b.c.d.e.name null)
+                                               (token 'static "" null)))
+                      (token 'static "\" == \"Phil\"" null))
                 "The first part of a dotted name should resolve as any other name.")
 
    (rast-t-case "Dotted Names - Context Precedence"
@@ -192,6 +271,11 @@
                       ( b . #hash{( c . "ERROR" )} )}
                 "{{#a}}{{b.c}}{{/a}}"
                 ""
+                (list (token 'static "" null)
+                      (token 'section 'a (list (token 'static "" null)
+                                               (token 'etag 'b.c null)
+                                               (token 'static "" null)))
+                      (token 'static "" null))
                 "Dotted names should be resolved against former resolutions.")
 
    ;; Whitespace Sensitivity
@@ -199,36 +283,54 @@
                 #hash{(string . "---")}
                 "| {{string}} |"
                 "| --- |"
+                (list (token 'static "| " null)
+                      (token 'etag 'string null)
+                      (token 'static " |" null))
                 "Interpolation should not alter surrounding whitespace.")
 
    (rast-t-case "Triple Mustache - Surrounding Whitespace"
                 #hash{(string . "---")}
                 "| {{{string}}} |"
                 "| --- |"
+                (list (token 'static "| " null)
+                      (token 'utag 'string null)
+                      (token 'static " |" null))
                 "Interpolation should not alter surrounding whitespace.")
 
    (rast-t-case "Ampersand - Surrounding Whitespace"
                 #hash{(string . "---")}
                 "| {{&string}} |"
                 "| --- |"
+                (list (token 'static "| " null)
+                      (token 'utag 'string null)
+                      (token 'static " |" null))
                 "Interpolation should not alter surrounding whitespace.")
 
    (rast-t-case "Interpolation - Standalone"
                 #hash{(string . "---")}
                 "  {{string}}\n"
                 "  ---\n"
+                (list (token 'static "  " null)
+                      (token 'etag 'string null)
+                      (token 'static "\n" null))
                 "Standalone interpolation should not alter surrounding whitespace.")
 
    (rast-t-case "Triple Mustache - Standalone"
                 #hash{(string . "---")}
                 "  {{{string}}}\n"
                 "  ---\n"
+                (list (token 'static "  " null)
+                      (token 'utag 'string null)
+                      (token 'static "\n" null))
                 "Standalone interpolation should not alter surrounding whitespace.")
 
    (rast-t-case "Ampersand - Standalone"
                 #hash{(string . "---")}
                 "  {{&string}}\n"
                 "  ---\n"
+                (list (token 'static "  " null)
+                      (token 'utag 'string null)
+                      (token 'static "\n" null))
                 "Standalone interpolation should not alter surrounding whitespace.")
 
    ;; Whitespace Insensitivity
@@ -236,19 +338,27 @@
                 #hash{(string . "---")}
                 "|{{ string }}|"
                 "|---|"
+                (list (token 'static "|" null)
+                      (token 'etag 'string null)
+                      (token 'static "|" null))
                 "Superfluous in-tag whitespace should be ignored.")
 
    (rast-t-case "Triple Mustache With Padding"
                 #hash{(string . "---")}
                 "|{{{ string }}}|"
                 "|---|"
+                (list (token 'static "|" null)
+                      (token 'utag 'string null)
+                      (token 'static "|" null))
                 "Superfluous in-tag whitespace should be ignored.")
 
    (rast-t-case "Ampersand With Padding"
                 #hash{(string . "---")}
                 "|{{& string }}|"
                 "|---|"
+                (list (token 'static "|" null)
+                      (token 'utag 'string null)
+                      (token 'static "|" null))
                 "Superfluous in-tag whitespace should be ignored.")))
-
 
 (run-tests interpolation-tests)
