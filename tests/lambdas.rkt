@@ -24,6 +24,7 @@
 
 (require rackunit
          rackunit/text-ui
+         "../scanner.rkt"
          "rastache-test-case.rkt")
 
 ; global variable for "Interpolation - Multiple Calls" test
@@ -37,6 +38,9 @@
                 `#hash{( lambda . ,(λ _ "world") )}
                 "Hello, {{lambda}}!"
                 "Hello, world!"
+                (list (token 'static "Hello, " null)
+                      (token 'etag 'lambda null)
+                      (token 'static "!" null))
                 "A lambda's return value should be interpolated.")
 
    (rast-t-case "Interpolation - Expansion"
