@@ -34,33 +34,33 @@
    "Lambdas tests"
 
    (rast-t-case "Interpolation"
-                `#hash{( lambda . ,(λ () "world") )}
+                `#hash{( lambda . ,(λ _ "world") )}
                 "Hello, {{lambda}}!"
                 "Hello, world!"
                 "A lambda's return value should be interpolated.")
 
    (rast-t-case "Interpolation - Expansion"
                 `#hash{( planet . "world" )
-                       ( lambda . ,(λ () "{{planet}}") )}
+                       ( lambda . ,(λ _ "{{planet}}") )}
                 "Hello, {{lambda}}!"
                 "Hello, world!"
                 "A lambda's return value should be parsed.")
 
    (rast-t-case "Interpolation - Alternate Delimiters"
                 `#hash{( planet . "world" )
-                       ( lambda . ,(λ () "|planet| => {{planet}}") )}
+                       ( lambda . ,(λ _ "|planet| => {{planet}}") )}
                 "{{= | | =}}\nHello, (|&lambda|)!"
                 "Hello, (|planet| => world)!"
                 "A lambda's return value should parse with the default delimiters.")
 
    (rast-t-case "Interpolation - Multiple Calls"
-                `#hash{( lambda . ,(λ () (set! g (add1 g)) g) )}
+                `#hash{( lambda . ,(λ _ (set! g (add1 g)) g) )}
                 "{{lambda}} == {{{lambda}}} == {{lambda}}"
                 "1 == 2 == 3"
                 "Interpolated lambdas should not be cached.")
 
    (rast-t-case "Escaping"
-                `#hash{( lambda . ,(λ () ">") )}
+                `#hash{( lambda . ,(λ _ ">") )}
                 "<{{lambda}}{{{lambda}}}"
                 "<&gt;>"
                 "Lambda results should be appropriately escaped.")
