@@ -224,12 +224,13 @@
       ; Set delimiters
       [("=")
        (define ll (string-split value))
-       (when (not (= (length ll) 2)) (error "Bad syntax"))
+       (unless (= (length ll) 2) (error "Bad syntax"))
 
-       (define new-otag (car ll))
-       (define new-ctag (substring (cadr ll)
-                                   0
-                                   (sub1 (string-length (cadr ll)))))
+       (define new-otag (regexp-quote (car ll)))
+       (define new-ctag (regexp-quote
+                         (substring (cadr ll) 0
+                                    (sub1 (string-length (cadr ll))))))
+
        (scan 'static tokens new-otag new-ctag)]))
 
   ;; Scans the text and instanciate tokens. The state indicates which
@@ -245,4 +246,6 @@
       [else
        tokens]))
 
-  (scan 'static null open-tag close-tag))
+  (scan 'static null
+        (regexp-quote open-tag)
+        (regexp-quote close-tag)))
