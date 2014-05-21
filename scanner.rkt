@@ -133,11 +133,16 @@
     (read-string! content template 0 content-length)
     content)
 
-  (define (read-open-tag open-tag)
-    (void (read-string (string-length open-tag) template)))
+  ;; Reads and consumes open-tag from the template. `open-tag-quoted'
+  ;; should be a pattern that matches exactly the original open-tag.
+  (define (read-open-tag open-tag-quoted)
+    (void (regexp-match open-tag-quoted template)))
 
-  (define (read-close-tag close-tag)
-    (void (read-string (string-length close-tag) template)))
+  ;; Reads and consumes close-tag from the template.
+  ;; `close-tag-quoted' should be a pattern that matches exactly the
+  ;; original `close-tag'.
+  (define (read-close-tag close-tag-quoted)
+    (void (regexp-match close-tag-quoted template)))
 
   ;; Scans the static text until the next mustache tag.
   ;; scan-tag: (listof token) string string -> (listof tokens)

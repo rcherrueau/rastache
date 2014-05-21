@@ -41,6 +41,7 @@
                 "({{=[ ]=}}[text])"
                 "(It worked!)"
                 (list (token 'static "(" null)
+                      (token 'static "" null)
                       (token 'etag 'text null)
                       (token 'static ")" null))
                 "Characters with special meaning regexen should be valid delimiters.")
@@ -208,5 +209,6 @@
                 (list (token 'static "|" null)
                       (token 'static "|" null))
                 "Superfluous in-tag whitespace should be ignored.")))
+
 
 (run-tests delimiters-tests)
