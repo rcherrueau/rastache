@@ -229,12 +229,16 @@
       ; Set delimiters
       [("=")
        (define ll (string-split value))
-       (unless (= (length ll) 2) (error "Bad syntax"))
+       (when (< (length ll) 2) (error "Bad syntax"))
 
        (define new-otag (regexp-quote (car ll)))
        (define new-ctag (regexp-quote
-                         (substring (cadr ll) 0
-                                    (sub1 (string-length (cadr ll))))))
+                         (if (= (length ll) 2)
+                             (substring (cadr ll) 0
+                                        (sub1 (string-length (cadr ll))))
+                             ; Superfluous in-tag whitespace should be ignored:
+                             ; {{= @   @ =}}
+                             (cadr ll))))
 
        (scan 'static tokens new-otag new-ctag)]))
 
