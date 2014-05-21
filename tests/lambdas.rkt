@@ -48,6 +48,9 @@
                        ( lambda . ,(λ _ "{{planet}}") )}
                 "Hello, {{lambda}}!"
                 "Hello, world!"
+                (list (token 'static "Hello, " null)
+                      (token 'etag 'lambda null)
+                      (token 'static "!" null))
                 "A lambda's return value should be parsed.")
 
    (rast-t-case "Interpolation - Alternate Delimiters"
@@ -55,18 +58,34 @@
                        ( lambda . ,(λ _ "|planet| => {{planet}}") )}
                 "{{= | | =}}\nHello, (|&lambda|)!"
                 "Hello, (|planet| => world)!"
+                (list (token 'static "" null)
+                      (token 'static "Hello, (" null)
+                      (token 'utag 'lambda null)
+                      (token 'static ")!" null))
                 "A lambda's return value should parse with the default delimiters.")
 
    (rast-t-case "Interpolation - Multiple Calls"
                 `#hash{( lambda . ,(λ _ (set! g (add1 g)) g) )}
                 "{{lambda}} == {{{lambda}}} == {{lambda}}"
                 "1 == 2 == 3"
+                (list (token 'static "" null)
+                      (token 'etag 'lambda null)
+                      (token 'static " == " null)
+                      (token 'utag 'lambda null)
+                      (token 'static " == " null)
+                      (token 'etag 'lambda null)
+                      (token 'static "" null))
                 "Interpolated lambdas should not be cached.")
 
    (rast-t-case "Escaping"
                 `#hash{( lambda . ,(λ _ ">") )}
                 "<{{lambda}}{{{lambda}}}"
                 "<&gt;>"
+                (list (token 'static "<" null)
+                      (token 'etag 'lambda null)
+                      (token 'static "" null)
+                      (token 'utag 'lambda null)
+                      (token 'static "" null))
                 "Lambda results should be appropriately escaped.")
 
    (rast-t-case "Section"
@@ -76,6 +95,12 @@
                                           "yes" "no")) )}
                 "<{{#lambda}}{{x}}{{/lambda}}>"
                 "<yes>"
+                (list (token 'static "<" null)
+                      (token 'section 'lambda
+                             (list (token 'static "" null)
+                                   (token 'etag 'x null)
+                                   (token 'static "" null)))
+                      (token 'static ">" null))
                 "Lambdas used for sections should receive the raw section string.")
 
    (rast-t-case "Section - Expansion"
@@ -84,6 +109,10 @@
                                       (string-append text "{{planet}}" text)) )}
                 "<{{#lambda}}-{{/lambda}}>"
                 "<-Earth->"
+                (list (token 'static "<" null)
+                      (token 'section 'lambda
+                             (list (token 'static "-" null)))
+                      (token 'static ">" null))
                 "Lambdas used for sections should have their results parsed.")
 
    (rast-t-case "Section - Alternate Delimiters"
@@ -93,19 +122,36 @@
                                                      "{{planet}} => |planet|" text)) )}
                 "{{= | | =}}<|#lambda|-|/lambda|>"
                 "<-{{planet}} => Earth->"
+                (list (token 'static "" null)
+                      (token 'static "<" null)
+                      (token 'section 'lambda
+                             (list (token 'static "-" null)))
+                      (token 'static ">" null))
                 "Lambdas used for sections should parse with the current delimiters.")
-
 
    (rast-t-case "Section - Multiple Calls"
                 `#hash{( lambda . ,(λ (text) (string-append "__" text "__")) )}
                 "{{#lambda}}FILE{{/lambda}} != {{#lambda}}LINE{{/lambda}}"
                 "__FILE__ != __LINE__"
+                (list (token 'static "" null)
+                      (token 'section 'lambda
+                             (list (token 'static "FILE" null)))
+                      (token 'static " != " null)
+                      (token 'section 'lambda
+                             (list (token 'static "LINE" null)))
+                      (token 'static "" null))
                 "Lambdas used for sections should not be cached.")
 
    (rast-t-case "Inverted Section"
                 `#hash{( lambda . ,(λ (text) #f) )}
                 "<{{^lambda}}{{static}}{{/lambda}}>"
                 "<>"
+                (list (token 'static "<" null)
+                      (token 'inverted-section 'lambda
+                             (list (token 'static "" null)
+                                   (token 'etag 'static  null)
+                                   (token 'static "" null)))
+                      (token 'static ">" null))
                 "Lambdas used for inverted sections should be considered truthy.")))
 
 (run-tests lambdas-tests)
