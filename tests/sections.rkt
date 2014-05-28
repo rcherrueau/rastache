@@ -56,6 +56,7 @@
 
 (require rackunit
          rackunit/text-ui
+         "../scanner.rkt"
          "rastache-test-case.rkt")
 
 (define sections-tests
@@ -66,18 +67,32 @@
                 #hash{( boolean . #t )}
                 "\"{{#boolean}}This should be rendered.{{/boolean}}\""
                 "\"This should be rendered.\""
+                (list (token 'static "\"" null)
+                      (token 'section 'boolean
+                             (list (token 'static "This should be rendered." null)))
+                      (token 'static "\"" null))
                 "Truthy sections should have their contents rendered.")
 
    (rast-t-case "Falsey"
                 #hash{( boolean . #f )}
                 "\"{{#boolean}}This should not be rendered.{{/boolean}}\""
                 "\"\""
+                (list (token 'static "\"" null)
+                      (token 'section 'boolean
+                             (list (token 'static "This should not be rendered." null)))
+                      (token 'static "\"" null))
                 "Falsey sections should have their contents omitted.")
 
    (rast-t-case "Context"
                 #hash{( context . #hash{( name . "Joe" )} )}
                 "\"{{#context}}Hi {{name}}.{{/context}}\""
                 "\"Hi Joe.\""
+                (list (token 'static "\"" null)
+                      (token 'section 'context
+                             (list (token 'static "Hi " null)
+                                   (token 'etag 'name null)
+                                   (token 'static "." null)))
+                      (token 'static "\"" null))
                 "Objects and hashes should be pushed onto the context stack.")
 
    (rast-t-case "Deeply Nested Contexts"
@@ -114,6 +129,110 @@
                  12321
                  121
                  1"
+                (list
+                 (token 'static "" null)
+                 (token 'section 'a
+                        (list
+                         (token 'static "                 " null)
+                         (token 'etag 'one null)
+                         (token 'static "\n" null)
+                         (token 'section 'b
+                                (list
+                                 (token 'static "                 " null)
+                                 (token 'etag 'one null)
+                                 (token 'static "" null)
+                                 (token 'etag 'two null)
+                                 (token 'static "" null)
+                                 (token 'etag 'one null)
+                                 (token 'static "\n" null)
+                                 (token 'section 'c
+                                        (list
+                                         (token 'static "                 " null)
+                                         (token 'etag 'one null)
+                                         (token 'static "" null)
+                                         (token 'etag 'two null)
+                                         (token 'static "" null)
+                                         (token 'etag 'three null)
+                                         (token 'static "" null)
+                                         (token 'etag 'two null)
+                                         (token 'static "" null)
+                                         (token 'etag 'one null)
+                                         (token 'static "\n" null)
+                                         (token 'section 'd
+                                                (list
+                                                 (token 'static "                 " null)
+                                                 (token 'etag 'one null)
+                                                 (token 'static "" null)
+                                                 (token 'etag 'two null)
+                                                 (token 'static "" null)
+                                                 (token 'etag 'three null)
+                                                 (token 'static "" null)
+                                                 (token 'etag 'four null)
+                                                 (token 'static "" null)
+                                                 (token 'etag 'three null)
+                                                 (token 'static "" null)
+                                                 (token 'etag 'two null)
+                                                 (token 'static "" null)
+                                                 (token 'etag 'one null)
+                                                 (token 'static "\n" null)
+                                                 (token 'section 'e
+                                                        (list
+                                                         (token 'static "                 " null)
+                                                         (token 'etag 'one null)
+                                                         (token 'static "" null)
+                                                         (token 'etag 'two null)
+                                                         (token 'static "" null)
+                                                         (token 'etag 'three null)
+                                                         (token 'static "" null)
+                                                         (token 'etag 'four null)
+                                                         (token 'static "" null)
+                                                         (token 'etag 'five null)
+                                                         (token 'static "" null)
+                                                         (token 'etag 'four null)
+                                                         (token 'static "" null)
+                                                         (token 'etag 'three null)
+                                                         (token 'static "" null)
+                                                         (token 'etag 'two null)
+                                                         (token 'static "" null)
+                                                         (token 'etag 'one null)
+                                                         (token 'static "\n" null)))
+                                                 (token 'static "                 " null)
+                                                 (token 'etag 'one null)
+                                                 (token 'static "" null)
+                                                 (token 'etag 'two null)
+                                                 (token 'static "" null)
+                                                 (token 'etag 'three null)
+                                                 (token 'static "" null)
+                                                 (token 'etag 'four null)
+                                                 (token 'static "" null)
+                                                 (token 'etag 'three null)
+                                                 (token 'static "" null)
+                                                 (token 'etag 'two null)
+                                                 (token 'static "" null)
+                                                 (token 'etag 'one null)
+                                                 (token 'static "\n" null)))
+                                         (token 'static "                 " null)
+                                         (token 'etag 'one null)
+                                         (token 'static "" null)
+                                         (token 'etag 'two null)
+                                         (token 'static "" null)
+                                         (token 'etag 'three null)
+                                         (token 'static "" null)
+                                         (token 'etag 'two null)
+                                         (token 'static "" null)
+                                         (token 'etag 'one null)
+                                         (token 'static "\n" null)))
+                                 (token 'static "                 " null)
+                                 (token 'etag 'one null)
+                                 (token 'static "" null)
+                                 (token 'etag 'two null)
+                                 (token 'static "" null)
+                                 (token 'etag 'one null)
+                                 (token 'static "\n" null)))
+                         (token 'static "                 " null)
+                         (token 'etag 'one null)
+                         (token 'static "" null)))
+                 (token 'static "" null))
                 "All elements on the context stack should be accessible.")
 
    (rast-t-case "List"
@@ -122,12 +241,22 @@
                                   #hash{( item . 3 )} ) )}
                 "\"{{#list}}{{item}}{{/list}}\""
                 "\"123\""
+                (list (token 'static "\"" null)
+                      (token 'section 'list
+                             (list (token 'static "" null)
+                                   (token 'etag 'item null)
+                                   (token 'static "" null)))
+                      (token 'static "\"" null))
                 "Lists should be iterated; list items should visit the context stack.")
 
    (rast-t-case "Empty List"
                 #hash{( list . '() )}
                 "\"{{#list}}Yay lists!{{/list}}\""
                 "\"\""
+                (list (token 'static "\"" null)
+                      (token 'section 'list
+                             (list (token 'static "Yay lists!" null)))
+                      (token 'static "\"" null))
                 "Empty lists should behave like falsey values.")
 
    (rast-t-case "Doubled"
@@ -142,24 +271,51 @@
                 "* first
                  * second
                  * third"
+                (list (token 'static "" null)
+                      (token 'section 'bool
+                             (list (token 'static "* first\n" null)))
+                      (token 'static "                 * " null)
+                      (token 'etag 'two null)
+                      (token 'static "\n" null)
+                      (token 'section 'bool
+                             (list (token 'static "                 * third" null)))
+                      (token 'static "" null))
                 "Multiple sections per template should be permitted.")
 
    (rast-t-case "Nested (Truthy)"
                 #hash{( bool . #t )}
                 "| A {{#bool}}B {{#bool}}C{{/bool}} D{{/bool}} E |"
                 "| A B C D E |"
+                (list (token 'static "| A " null)
+                      (token 'section 'bool
+                             (list (token 'static "B " null)
+                                   (token 'section 'bool
+                                          (list (token 'static "C" null)))
+                                   (token 'static " D"  null)))
+                      (token 'static " E |" null))
                 "Nested truthy sections should have their contents rendered.")
 
    (rast-t-case "Nested (Falsey)"
                 #hash{( bool . #f )}
                 "| A {{#bool}}B {{#bool}}C{{/bool}} D{{/bool}} E |"
                 "| A  E |"
+                (list (token 'static "| A " null)
+                      (token 'section 'bool
+                             (list (token 'static "B " null)
+                                   (token 'section 'bool
+                                          (list (token 'static "C" null)))
+                                   (token 'static " D"  null)))
+                      (token 'static " E |" null))
                 "Nested falsey sections should be omitted.")
 
    (rast-t-case "Context Misses"
                 #hash()
                 "[{{#missing}}Found key 'missing'!{{/missing}}]"
                 "[]"
+                (list (token 'static "[" null)
+                      (token 'section 'missing
+                             (list (token 'static "Found key 'missing'!" null)))
+                      (token 'static "]" null))
                 "Failed context lookups should be considered falsey.")
 
    ;; Implicit Iterators
@@ -167,18 +323,36 @@
                 #hash{( list . '("a" "b" "c" "d" "e") )}
                 "\"{{#list}}({{.}}){{/list}}\""
                 "\"(a)(b)(c)(d)(e)\""
+                (list (token 'static "\"" null)
+                      (token 'section 'list
+                             (list (token 'static "(" null)
+                                   (token 'etag '|.| null)
+                                   (token 'static ")" null)))
+                      (token 'static "\"" null))
                 "Implicit iterators should directly interpolate strings.")
 
    (rast-t-case "Implicit Iterator - Integer"
                 #hash{( list . '(1 2 3 4 5) )}
                 "\"{{#list}}({{.}}){{/list}}\""
                 "\"(1)(2)(3)(4)(5)\""
+                (list (token 'static "\"" null)
+                      (token 'section 'list
+                             (list (token 'static "(" null)
+                                   (token 'etag '|.| null)
+                                   (token 'static ")" null)))
+                      (token 'static "\"" null))
                 "Implicit iterators should cast integers to strings and interpolate.")
 
    (rast-t-case "Implicit Iterator - Decimal"
                 #hash{( list . '(1.10 2.20 3.30 4.40 5.50) )}
                 "\"{{#list}}({{.}}){{/list}}\""
                 "\"(1.1)(2.2)(3.3)(4.4)(5.5)\""
+                (list (token 'static "\"" null)
+                      (token 'section 'list
+                             (list (token 'static "(" null)
+                                   (token 'etag '|.| null)
+                                   (token 'static ")" null)))
+                      (token 'static "\"" null))
                 "Implicit iterators should cast decimals to strings and interpolate.")
 
    ;; Dotted Names
@@ -186,18 +360,30 @@
                 #hash{( a . #hash{( b . #hash{( c . #t )} )} )}
                 "\"{{#a.b.c}}Here{{/a.b.c}}\" == \"Here\""
                 "\"Here\" == \"Here\""
+                (list (token 'static "\"" null)
+                      (token 'section 'a.b.c
+                             (list (token 'static "Here" null)))
+                      (token 'static "\" == \"Here\"" null))
                 "Dotted names should be valid for Section tags.")
 
    (rast-t-case "Dotted Names - Falsey"
                 #hash{( a . #hash{( b . #hash{( c . #f )} )} )}
                 "\"{{#a.b.c}}Here{{/a.b.c}}\" == \"\""
                 "\"\" == \"\""
+                (list (token 'static "\"" null)
+                      (token 'section 'a.b.c
+                             (list (token 'static "Here" null)))
+                      (token 'static "\" == \"\"" null))
                 "Dotted names should be valid for Section tags.")
 
    (rast-t-case "Dotted Names - Broken Chains"
                 #hash{( a . #hash() )}
                 "\"{{#a.b.c}}Here{{/a.b.c}}\" == \"\""
                 "\"\" == \"\""
+                (list (token 'static "\"" null)
+                      (token 'section 'a.b.c
+                             (list (token 'static "Here" null)))
+                      (token 'static "\" == \"\"" null))
                 "Dotted names that cannot be resolved should be considered falsey.")
 
    ;; Whitespace Sensitivity
@@ -205,18 +391,37 @@
                 #hash{( boolean . #t )}
                 " | {{#boolean}}\t|\t{{/boolean}} | \n"
                 " | \t|\t | \n"
+                (list (token 'static " | " null)
+                      (token 'section 'boolean
+                             (list (token 'static "\t|\t" null)))
+                      (token 'static " | \n" null))
                 "Sections should not alter surrounding whitespace.")
 
    (rast-t-case "Internal Whitespace"
                 #hash{( boolean . #t )}
                 " | {{#boolean}} {{! Important Whitespace }}\n {{/boolean}} | \n"
                 " |  \n  | \n"
+                (list (token 'static " | " null)
+                      (token 'section 'boolean
+                             (list (token 'static " " null)
+                                   (token 'static "\n " null)))
+                      (token 'static " | \n" null))
                 "Sections should not alter internal whitespace.")
 
    (rast-t-case "Indented Inline Sections"
                 #hash{( boolean . #t )}
                 " {{#boolean}}YES{{/boolean}}\n {{#boolean}}GOOD{{/boolean}}\n"
                 " YES\n GOOD\n"
+                ;; Template should be considere as:
+                ;; ␣{{#boolean}}YES{{/boolean}}↩
+                ;; ␣{{#boolean}}GOOD{{/boolean}}↩
+                (list (token 'static " " null)
+                      (token 'section 'boolean
+                             (list (token 'static "YES" null)))
+                      (token 'static "\n " null)
+                      (token 'section 'boolean
+                             (list (token 'static "GOOD" null)))
+                      (token 'static "\n" null))
                 "Single-line sections should not alter surrounding whitespace.")
 
    (rast-t-case "Standalone Lines"
@@ -229,6 +434,10 @@
                 "| This Is
                  |
                  | A Line"
+                (list (token 'static "| This Is\n" null)
+                      (token 'section 'boolean
+                             (list (token 'static "                 |\n" null)))
+                      (token 'static "                 | A Line" null))
                 "Standalone lines should be removed from the template.")
 
    (rast-t-case "Indented Standalone Lines"
@@ -241,23 +450,48 @@
                 "| This Is
                  |
                  | A Line"
+                (list (token 'static "| This Is\n" null)
+                      (token 'section 'boolean
+                             (list (token 'static "                 |\n" null)))
+                      (token 'static "                 | A Line" null))
                 "Indented standalone lines should be removed from the template.")
 
    (rast-t-case "Standalone Line Endings"
                 #hash{( boolean . #t )}
                 "|\r\n{{#boolean}}\r\n{{/boolean}}\r\n|"
                 "|\r\n|"
+                ;; Template should be considered as:
+                ;; "|↩
+                ;;  {{#boolean}}
+                ;;  {{/boolean}}
+                ;;  |"
+                (list (token 'static "|\r\n" null)
+                      (token 'section 'boolean
+                             (list (token 'static "" null)))
+                      (token 'static "|" null))
                 "'\r\n' should be considered a newline for standalone tags.")
 
    (rast-t-case "Standalone Without Previous Line"
                 #hash{( boolean . #t )}
                 "  {{#boolean}}\n#{{/boolean}}\n/"
                 "#\n/"
+                ;; Template should be considered as:
+                ;; "  {{#boolean}}
+                ;;  #{{/boolean}}↩
+                ;;  /"
+                (list (token 'static "" null)
+                      (token 'section 'boolean
+                             (list (token 'static "#" null)))
+                      (token 'static "\n/" null))
                 "Standalone tags should not require a newline to precede them.")
 
    (rast-t-case "Standalone Without Newline"
                 #hash{( boolean . #t )}
                 "#{{#boolean}}\n/\n  {{/boolean}}"
+                ;; Template should be considered as
+                ;; "#{{#boolean}}↩
+                ;;  /↩
+                ;;  {{/boolean}}
                 "#\n/\n"
                 "Standalone tags should not require a newline to follow them.")
 
@@ -266,6 +500,10 @@
                 #hash{( boolean . #t )}
                 "|{{# boolean }}={{/ boolean }}|"
                 "|=|"
+                (list (token 'static "|" null)
+                      (token 'section 'boolean
+                             (list (token 'static "=" null)))
+                      (token 'static "|" null))
                 "Superfluous in-tag whitespace should be ignored.")))
 
 (run-tests sections-tests)
