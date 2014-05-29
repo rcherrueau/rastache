@@ -6,57 +6,155 @@
 *** Standalone tag
     Standalone tag should be removed from the template:
     - [[file:comments.rkt::47]]
-    #+BEGIN_SRC racket
-    (rast-t-case "Standalone"
-             #hash()
-             "Begin.
-              {{! Comment Block! }}
-              End."
-             "Begin.
-              End."
-             (list (token 'static "Begin.\n" null)
-                   (token 'static "                 End."  null))
-             "All standalone comment lines should be removed.")
-    #+END_SRC
+      #+BEGIN_SRC racket
+      (rast-t-case "Standalone"
+               #hash()
+               "Begin.
+                {{! Comment Block! }}
+                End."
+               "Begin.
+                End."
+               (list (token 'static "Begin.\n" null)
+                     (token 'static "                 End."  null))
+               "All standalone comment lines should be removed.")
+      #+END_SRC
     - [[file:comments.rkt::58]]
-    #+BEGIN_SRC racket
-    (rast-t-case "Indented Standalone"
-                #hash()
-                "Begin.
-                   {{! Comment Block! }}
-                 End."
-                "Begin.
-                 End."
-                (list (token 'static "Begin.\n" null)
-                      (token 'static "                 End."  null))
-                "All standalone comment lines should be removed.")
-    #+END_SRC
+      #+BEGIN_SRC racket
+      (rast-t-case "Indented Standalone"
+                  #hash()
+                  "Begin.
+                     {{! Comment Block! }}
+                   End."
+                  "Begin.
+                   End."
+                  (list (token 'static "Begin.\n" null)
+                        (token 'static "                 End."  null))
+                  "All standalone comment lines should be removed.")
+      #+END_SRC
     - [[file:comments.rkt::102]]
-    #+BEGIN_SRC racket
-    (rast-t-case "Multiline Standalone"
-                #hash()
-                "Begin.
-                 {{!
-                 Something's going on here...
-                 }}
-                 End."
-                "Begin.
-                 End."
-                (list (token 'static "Begin.\n" null)
-                      (token 'static "                 End."  null))
-                "All standalone comment lines should be removed.")
-    #+END_SRC
+      #+BEGIN_SRC racket
+      (rast-t-case "Multiline Standalone"
+                  #hash()
+                  "Begin.
+                   {{!
+                   Something's going on here...
+                   }}
+                   End."
+                  "Begin.
+                   End."
+                  (list (token 'static "Begin.\n" null)
+                        (token 'static "                 End."  null))
+                  "All standalone comment lines should be removed.")
+      #+END_SRC
 
     Tag is not treated as standalone if a non blank char happens
     before :
     - [[file:comments.rkt::128]]
+      #+BEGIN_SRC racket
+      (rast-t-case "Indented Inline"
+                #hash()
+                "  12 {{! 34 }}\n"
+                "  12 \n"
+                (list (token 'static "  12 " null)
+                      (token 'static "\n" null))
+                "Inline comments should not strip whitespace")
+      #+END_SRC
     - [[file:sections.rkt::492]]
+      #+BEGIN_SRC racket
+      (rast-t-case "Standalone Without Newline"
+                #hash{( boolean . #t )}
+                "#{{#boolean}}\n/\n  {{/boolean}}"
+                ; Template should be considered as
+                ; "#{{#boolean}}↩
+                ;  /↩
+                ;  {{/boolean}}
+                "#\n/\n"
+                "Standalone tags should not require a newline to follow them.")
+      #+END_SRC
     - [[file:sections.rkt::480]]
+      #+BEGIN_SRC racket
+      (rast-t-case "Standalone Without Previous Line"
+                #hash{( boolean . #t )}
+                "  {{#boolean}}\n#{{/boolean}}\n/"
+                "#\n/"
+                ; Template should be considered as:
+                ; "  {{#boolean}}
+                ;  #{{/boolean}}↩
+                ;  /"
+                (list (token 'static "" null)
+                      (token 'section 'boolean
+                             (list (token 'static "#" null)))
+                      (token 'static "\n/" null))
+                "Standalone tags should not require a newline to precede them.")
+      #+END_SRC
     - [[file:inverted.rkt::335]]
+      #+BEGIN_SRC racket
+      (rast-t-case "Standalone Without Newline"
+                #hash{( boolean . #f )}
+                "^{{^boolean}}\n/\n  {{/boolean}}"
+                "^\n/\n"
+                ; Should be considered as:
+                ; "^{{^boolean}}↩
+                ;  /↩
+                ;    {{/boolean}}"
+                (list (token 'static "^" null)
+                      (token 'inverted-section
+                             'boolean
+                             (list (token 'static "\n/\n" null)))
+                      (token 'static "" null))
+                "Standalone tags should not require a newline to follow them.")
+      #+END_SRC
     - [[file:inverted.rkt::320]]
+      #+BEGIN_SRC racket
+      (rast-t-case "Standalone Without Previous Line"
+                #hash{( boolean . #f )}
+                "  {{^boolean}}\n^{{/boolean}}\n/"
+                "^\n/"
+                ; Should be considered as:
+                ; "  {{^boolean}}
+                ; ^{{/boolean}}↩
+                ; /"
+                (list (token 'static "" null)
+                      (token 'inverted-section
+                             'boolean
+                             (list (token 'static "^" null)
+                                   (token 'static "\n" null)))
+                      (token 'static "/" null))
+                "Standalone tags should not require a newline to precede them.")
+      #+END_SRC
 
     Standalone interpolation tag should not be removed from the
     template:
     - [[file:interpolation.rkt::309]]
+      #+BEGIN_SRC racket
+      (rast-t-case "Interpolation - Standalone"
+                #hash{(string . "---")}
+                "  {{string}}\n"
+                "  ---\n"
+                (list (token 'static "  " null)
+                      (token 'etag 'string null)
+                      (token 'static "\n" null))
+                "Standalone interpolation should not alter surrounding whitespace.")
+      #+END_SRC
     - [[file:interpolation.rkt::318]]
+      #+BEGIN_SRC racket
+      (rast-t-case "Triple Mustache - Standalone"
+                #hash{(string . "---")}
+                "  {{{string}}}\n"
+                "  ---\n"
+                (list (token 'static "  " null)
+                      (token 'utag 'string null)
+                      (token 'static "\n" null))
+                "Standalone interpolation should not alter surrounding whitespace.")
+      #+END_SRC
     - [[file:interpolation.rkt::327]]
+      #+BEGIN_SRC racket
+      (rast-t-case "Ampersand - Standalone"
+                #hash{(string . "---")}
+                "  {{&string}}\n"
+                "  ---\n"
+                (list (token 'static "  " null)
+                      (token 'utag 'string null)
+                      (token 'static "\n" null))
+                "Standalone interpolation should not alter surrounding whitespace.")
+      #+END_SRC
