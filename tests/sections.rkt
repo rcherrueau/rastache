@@ -412,9 +412,9 @@
                 #hash{( boolean . #t )}
                 " {{#boolean}}YES{{/boolean}}\n {{#boolean}}GOOD{{/boolean}}\n"
                 " YES\n GOOD\n"
-                ;; Template should be considere as:
-                ;; ␣{{#boolean}}YES{{/boolean}}↩
-                ;; ␣{{#boolean}}GOOD{{/boolean}}↩
+                ; Template should be considered as:
+                ; ␣{{#boolean}}YES{{/boolean}}↩
+                ; ␣{{#boolean}}GOOD{{/boolean}}↩
                 (list (token 'static " " null)
                       (token 'section 'boolean
                              (list (token 'static "YES" null)))
@@ -460,11 +460,11 @@
                 #hash{( boolean . #t )}
                 "|\r\n{{#boolean}}\r\n{{/boolean}}\r\n|"
                 "|\r\n|"
-                ;; Template should be considered as:
-                ;; "|↩
-                ;;  {{#boolean}}
-                ;;  {{/boolean}}
-                ;;  |"
+                ; Template should be considered as:
+                ; "|↩
+                ;  {{#boolean}}
+                ;  {{/boolean}}
+                ;  |"
                 (list (token 'static "|\r\n" null)
                       (token 'section 'boolean
                              (list (token 'static "" null)))
@@ -475,10 +475,10 @@
                 #hash{( boolean . #t )}
                 "  {{#boolean}}\n#{{/boolean}}\n/"
                 "#\n/"
-                ;; Template should be considered as:
-                ;; "  {{#boolean}}
-                ;;  #{{/boolean}}↩
-                ;;  /"
+                ; Template should be considered as:
+                ; "  {{#boolean}}
+                ;  #{{/boolean}}↩
+                ;  /"
                 (list (token 'static "" null)
                       (token 'section 'boolean
                              (list (token 'static "#" null)))
@@ -488,10 +488,10 @@
    (rast-t-case "Standalone Without Newline"
                 #hash{( boolean . #t )}
                 "#{{#boolean}}\n/\n  {{/boolean}}"
-                ;; Template should be considered as
-                ;; "#{{#boolean}}↩
-                ;;  /↩
-                ;;  {{/boolean}}
+                ; Template should be considered as
+                ; "#{{#boolean}}↩
+                ;  /↩
+                ;  {{/boolean}}
                 "#\n/\n"
                 "Standalone tags should not require a newline to follow them.")
 

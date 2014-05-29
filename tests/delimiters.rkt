@@ -175,10 +175,10 @@
                 #hash()
                 "|\r\n{{=@ @=}}\r\n|"
                 "|\r\n|"
-                ;; Template should be considered as:
-                ;; "|
-                ;;  {{=@ @=}}
-                ;;  |"
+                ; Template should be considered as:
+                ; "|↩
+                ;  {{=@ @=}}
+                ;  |"
                 (list (token 'static "|\r\n" null)
                       (token 'static "|" null))
                 "'\r\n' should be considered a newline for standalone tags.")
@@ -187,9 +187,9 @@
                 #hash()
                 "  {{=@ @=}}\n="
                 "="
-                ;; Template should be considered as:
-                ;; "
-                ;;  ="
+                ; Template should be considered as:
+                ; "  {{=@ @=}}
+                ;  ="
                 (list (token 'static "" null)
                       (token 'static "=" null))
                 "Standalone tags should not require a newline to precede them.")

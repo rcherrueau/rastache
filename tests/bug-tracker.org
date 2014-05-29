@@ -1,0 +1,24 @@
+#+TITLE: Bug Tracker
+#+AUTHOR: Rl3x Fish ⚓
+
+* Bug tracker
+** Scanner
+*** Standalone tag
+    Standalone tag should be removed from the template:
+    - [[file:comments.rkt::47]]
+    - [[file:comments.rkt::58]]
+    - [[file:comments.rkt::102]]
+
+    Tag is not treated as standalone if a non blank char happens
+    before :
+    - [[file:comments.rkt::128]]
+    - [[file:sections.rkt::492]]
+    - [[file:sections.rkt::480]]
+    - [[file:inverted.rkt::335]]
+    - [[file:inverted.rkt::320]]
+
+    Standalone interpolation tag should not be removed from the
+    template:
+    - [[file:interpolation.rkt::309]]
+    - [[file:interpolation.rkt::318]]
+    - [[file:interpolation.rkt::327]]

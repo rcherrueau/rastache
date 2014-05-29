@@ -303,7 +303,7 @@
                 "|\r\n{{^boolean}}\r\n{{/boolean}}\r\n|"
                 "|\r\n|"
                 ; Should be considered as:
-                ; "|
+                ; "|↩
                 ;  {{^boolean}}
                 ;  {{/boolean}}
                 ;  |"
@@ -317,7 +317,7 @@
                 "^\n/"
                 ; Should be considered as:
                 ; "  {{^boolean}}
-                ; ^{{/boolean}}
+                ; ^{{/boolean}}↩
                 ; /"
                 (list (token 'static "" null)
                       (token 'inverted-section
@@ -331,6 +331,10 @@
                 #hash{( boolean . #f )}
                 "^{{^boolean}}\n/\n  {{/boolean}}"
                 "^\n/\n"
+                ; Should be considered as:
+                ; "^{{^boolean}}↩
+                ;  /↩
+                ;    {{/boolean}}"
                 (list (token 'static "^" null)
                       (token 'inverted-section
                              'boolean
