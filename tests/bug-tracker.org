@@ -1,4 +1,3 @@
-#+TITLE: Bug Tracker
 #+AUTHOR: Rl3x Fish ⚓
 
 * Bug tracker
@@ -6,18 +5,20 @@
 *** Standalone tag
     Standalone tag should be removed from the template:
     - [[file:comments.rkt::47]]
-      #+BEGIN_SRC racket
-      (rast-t-case "Standalone"
-               #hash()
-               "Begin.
-                {{! Comment Block! }}
-                End."
-               "Begin.
-                End."
-               (list (token 'static "Begin.\n" null)
-                     (token 'static "                 End."  null))
-               "All standalone comment lines should be removed.")
-      #+END_SRC
+      # #+BEGIN_SRC racket
+      # (rast-t-case "Standalone"
+      #          #hash()
+      #          "Begin.
+      #           {{! Comment Block! }}
+      #           End."
+      #          "Begin.
+      #           End."
+      #          (list (token 'static "Begin.\n" null)
+      #                (token 'static "                 End."  null))
+      #          "All standalone comment lines should be removed.")
+      # #+END_SRC
+#+INCLUDE: "comments.rkt" :lines "47-56" src racket
+
     - [[file:comments.rkt::58]]
       #+BEGIN_SRC racket
       (rast-t-case "Indented Standalone"
