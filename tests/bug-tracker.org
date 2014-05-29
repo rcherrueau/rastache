@@ -6,8 +6,46 @@
 *** Standalone tag
     Standalone tag should be removed from the template:
     - [[file:comments.rkt::47]]
+    #+BEGIN_SRC racket
+    (rast-t-case "Standalone"
+             #hash()
+             "Begin.
+              {{! Comment Block! }}
+              End."
+             "Begin.
+              End."
+             (list (token 'static "Begin.\n" null)
+                   (token 'static "                 End."  null))
+             "All standalone comment lines should be removed.")
+    #+END_SRC
     - [[file:comments.rkt::58]]
+    #+BEGIN_SRC racket
+    (rast-t-case "Indented Standalone"
+                #hash()
+                "Begin.
+                   {{! Comment Block! }}
+                 End."
+                "Begin.
+                 End."
+                (list (token 'static "Begin.\n" null)
+                      (token 'static "                 End."  null))
+                "All standalone comment lines should be removed.")
+    #+END_SRC
     - [[file:comments.rkt::102]]
+    #+BEGIN_SRC racket
+    (rast-t-case "Multiline Standalone"
+                #hash()
+                "Begin.
+                 {{!
+                 Something's going on here...
+                 }}
+                 End."
+                "Begin.
+                 End."
+                (list (token 'static "Begin.\n" null)
+                      (token 'static "                 End."  null))
+                "All standalone comment lines should be removed.")
+    #+END_SRC
 
     Tag is not treated as standalone if a non blank char happens
     before :
