@@ -51,7 +51,8 @@
                  End."
                 "Begin.
                  End."
-                (list (token 'static "Begin.\n" null)
+                (list (token 'static "Begin." null)
+                      (token 'static "\n" null)
                       (token 'static "                 End."  null))
                 "All standalone comment lines should be removed.")
 
@@ -62,7 +63,8 @@
                  End."
                 "Begin.
                  End."
-                (list (token 'static "Begin.\n" null)
+                (list (token 'static "Begin." null)
+                      (token 'static "\n" null)
                       (token 'static "                 End."  null))
                 "All standalone comment lines should be removed.")
 
@@ -74,7 +76,8 @@
                 ; "|↩
                 ;  {{! Standalone Comment }}
                 ;  |"
-                (list (token 'static "|\r\n" null)
+                (list (token 'static "|\r" null)
+                      (token 'static "\n" null)
                       (token 'static "|" null))
                 "'\r\n' should be considered a newline for standalone tags.")
 
@@ -85,8 +88,7 @@
                 ; Template should be considered as:
                 ; "  {{! Standalone Comment }}
                 ;  !"
-                (list (token 'static "" null)
-                      (token 'static "!" null))
+                (list (token 'static "!" null))
                 "Standalone tags should not require a newline to precede them.")
 
    (rast-t-case "Standalone Without Newline"
@@ -96,7 +98,8 @@
                 ; Template should be considered as:
                 ; "!↩
                 ;    {{! Standalone Comment }}"
-                (list (token 'static "!\n" null))
+                (list (token 'static "!" null)
+                      (token 'static "\n" null))
                 "Standalone tags should not require a newline to follow them.")
 
    (rast-t-case "Multiline Standalone"
@@ -108,7 +111,8 @@
                  End."
                 "Begin.
                  End."
-                (list (token 'static "Begin.\n" null)
+                (list (token 'static "Begin." null)
+                      (token 'static "\n" null)
                       (token 'static "                 End."  null))
                 "All standalone comment lines should be removed.")
 
@@ -121,7 +125,8 @@
                  End."
                 "Begin.
                  End."
-                (list (token 'static "Begin.\n" null)
+                (list (token 'static "Begin." null)
+                      (token 'static "\n" null)
                       (token 'static "                 End."  null))
                 "All standalone comment lines should be removed.")
 
@@ -130,6 +135,7 @@
                 "  12 {{! 34 }}\n"
                 "  12 \n"
                 (list (token 'static "  12 " null)
+                      (token 'static "" null)
                       (token 'static "\n" null))
                 "Inline comments should not strip whitespace")
 

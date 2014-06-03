@@ -69,24 +69,29 @@
                    I got interpolated.
                  ]"
                 (list
-                 (token 'static "[\n" null)
-                 (token 'section
-                        'section
-                        (list
-                         (token 'static "                   " null)
-                         (token 'etag 'data null)
-                         (token 'static "\n" null)
-                         (token 'static "                   |data|\n" null)))
+                 (token 'static "[" null)
                  (token 'static "\n" null)
-                 (token 'section
-                        'section
+                 (token 'section 'section
                         (list
-                         (token 'static "                   {{data}}\n" null)
                          (token 'static "                   " null)
                          (token 'etag 'data null)
+                         (token 'static "" null)
+                         (token 'static "\n" null)
+                         (token 'static "                   |data|" null)
+                         (token 'static "\n" null)))
+                 (token 'static "" null)
+                 (token 'static "\n" null)
+                 (token 'section 'section
+                        (list
+                         (token 'static "                   {{data}}" null)
+                         (token 'static "\n" null)
+                         (token 'static "                   " null)
+                         (token 'etag 'data null)
+                         (token 'static "" null)
                          (token 'static "\n" null)))
                  (token 'static "                 ]" null))
                 "Delimiters set outside sections should persist.")
+
 
    (rast-t-case "Inverted Sections"
                 #hash{(section . #f)
@@ -111,21 +116,25 @@
                    I got interpolated.
                  ]"
                 (list
-                 (token 'static "[\n" null)
-                 (token 'inverted-section
-                        'section
-                        (list
-                         (token 'static "                   " null)
-                         (token 'etag 'data null)
-                         (token 'static "\n" null)
-                         (token 'static "                   |data|\n" null)))
+                 (token 'static "[" null)
                  (token 'static "\n" null)
-                 (token 'inverted-section
-                        'section
+                 (token 'inverted-section 'section
                         (list
-                         (token 'static "                   {{data}}\n" null)
                          (token 'static "                   " null)
                          (token 'etag 'data null)
+                         (token 'static "" null)
+                         (token 'static "\n" null)
+                         (token 'static "                   |data|" null)
+                         (token 'static "\n" null)))
+                 (token 'static "" null)
+                 (token 'static "\n" null)
+                 (token 'inverted-section 'section
+                        (list
+                         (token 'static "                   {{data}}" null)
+                         (token 'static "\n" null)
+                         (token 'static "                   " null)
+                         (token 'etag 'data null)
+                         (token 'static "" null)
                          (token 'static "\n" null)))
                  (token 'static "                 ]" null))
                 "Delimiters set outside inverted sections should persist.")
@@ -146,6 +155,7 @@
                 " | {{=@ @=}}\n"
                 " | \n"
                 (list (token 'static " | " null)
+                      (token 'static "" null)
                       (token 'static "\n" null))
                 "Whitespace should be left untouched.")
 
@@ -156,7 +166,8 @@
                  End."
                 "Begin.
                  End."
-               (list (token 'static "Begin.\n" null)
+               (list (token 'static "Begin." null)
+                     (token 'static "\n" null)
                      (token 'static "                 End." null))
                "Standalone lines should be removed from the template.")
 
@@ -167,7 +178,8 @@
                  End."
                 "Begin.
                  End."
-                (list (token 'static "Begin.\n" null)
+                (list (token 'static "Begin." null)
+                      (token 'static "\n" null)
                       (token 'static "                 End." null))
                 "Indented standalone lines should be removed from the template.")
 
@@ -179,7 +191,8 @@
                 ; "|↩
                 ;  {{=@ @=}}
                 ;  |"
-                (list (token 'static "|\r\n" null)
+                (list (token 'static "|\r" null)
+                      (token 'static "\n" null)
                       (token 'static "|" null))
                 "'\r\n' should be considered a newline for standalone tags.")
 
@@ -190,15 +203,15 @@
                 ; Template should be considered as:
                 ; "  {{=@ @=}}
                 ;  ="
-                (list (token 'static "" null)
-                      (token 'static "=" null))
+                (list (token 'static "=" null))
                 "Standalone tags should not require a newline to precede them.")
 
    (rast-t-case "Standalone Without Newline"
                 #hash()
                 "=\n  {{=@ @=}}"
                 "=\n"
-                (list (token 'static "=\n" null))
+                (list (token 'static "=" null)
+                      (token 'static "\n" null))
                 "Standalone tags should not require a newline to follow them.")
 
    ;; Whitespace Insensitivity

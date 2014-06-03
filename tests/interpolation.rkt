@@ -312,6 +312,7 @@
                 "  ---\n"
                 (list (token 'static "  " null)
                       (token 'etag 'string null)
+                      (token 'static "" null)
                       (token 'static "\n" null))
                 "Standalone interpolation should not alter surrounding whitespace.")
 
@@ -321,6 +322,7 @@
                 "  ---\n"
                 (list (token 'static "  " null)
                       (token 'utag 'string null)
+                      (token 'static "" null)
                       (token 'static "\n" null))
                 "Standalone interpolation should not alter surrounding whitespace.")
 
@@ -330,6 +332,7 @@
                 "  ---\n"
                 (list (token 'static "  " null)
                       (token 'utag 'string null)
+                      (token 'static "" null)
                       (token 'static "\n" null))
                 "Standalone interpolation should not alter surrounding whitespace.")
 

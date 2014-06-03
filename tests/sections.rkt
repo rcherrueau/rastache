@@ -128,13 +128,13 @@
                  1234321
                  12321
                  121
-                 1"
+                 1\n"
                 (list
-                 (token 'static "" null)
                  (token 'section 'a
                         (list
                          (token 'static "                 " null)
                          (token 'etag 'one null)
+                         (token 'static "" null)
                          (token 'static "\n" null)
                          (token 'section 'b
                                 (list
@@ -144,6 +144,7 @@
                                  (token 'etag 'two null)
                                  (token 'static "" null)
                                  (token 'etag 'one null)
+                                 (token 'static "" null)
                                  (token 'static "\n" null)
                                  (token 'section 'c
                                         (list
@@ -157,6 +158,7 @@
                                          (token 'etag 'two null)
                                          (token 'static "" null)
                                          (token 'etag 'one null)
+                                         (token 'static "" null)
                                          (token 'static "\n" null)
                                          (token 'section 'd
                                                 (list
@@ -174,6 +176,7 @@
                                                  (token 'etag 'two null)
                                                  (token 'static "" null)
                                                  (token 'etag 'one null)
+                                                 (token 'static "" null)
                                                  (token 'static "\n" null)
                                                  (token 'section 'e
                                                         (list
@@ -195,6 +198,7 @@
                                                          (token 'etag 'two null)
                                                          (token 'static "" null)
                                                          (token 'etag 'one null)
+                                                         (token 'static "" null)
                                                          (token 'static "\n" null)))
                                                  (token 'static "                 " null)
                                                  (token 'etag 'one null)
@@ -210,6 +214,7 @@
                                                  (token 'etag 'two null)
                                                  (token 'static "" null)
                                                  (token 'etag 'one null)
+                                                 (token 'static "" null)
                                                  (token 'static "\n" null)))
                                          (token 'static "                 " null)
                                          (token 'etag 'one null)
@@ -221,6 +226,7 @@
                                          (token 'etag 'two null)
                                          (token 'static "" null)
                                          (token 'etag 'one null)
+                                         (token 'static "" null)
                                          (token 'static "\n" null)))
                                  (token 'static "                 " null)
                                  (token 'etag 'one null)
@@ -228,11 +234,12 @@
                                  (token 'etag 'two null)
                                  (token 'static "" null)
                                  (token 'etag 'one null)
+                                 (token 'static "" null)
                                  (token 'static "\n" null)))
                          (token 'static "                 " null)
                          (token 'etag 'one null)
-                         (token 'static "" null)))
-                 (token 'static "" null))
+                         (token 'static "" null)
+                         (token 'static "\n" null))))
                 "All elements on the context stack should be accessible.")
 
    (rast-t-case "List"
@@ -270,16 +277,17 @@
                  {{/bool}}"
                 "* first
                  * second
-                 * third"
-                (list (token 'static "" null)
-                      (token 'section 'bool
-                             (list (token 'static "* first\n" null)))
+                 * third\n"
+                (list (token 'section 'bool
+                             (list (token 'static "                 * first" null)
+                                   (token 'static "\n" null)))
                       (token 'static "                 * " null)
                       (token 'etag 'two null)
+                      (token 'static "" null)
                       (token 'static "\n" null)
                       (token 'section 'bool
-                             (list (token 'static "                 * third" null)))
-                      (token 'static "" null))
+                             (list (token 'static "                 * third" null)
+                                   (token 'static "\n" null))))
                 "Multiple sections per template should be permitted.")
 
    (rast-t-case "Nested (Truthy)"
@@ -394,7 +402,8 @@
                 (list (token 'static " | " null)
                       (token 'section 'boolean
                              (list (token 'static "\t|\t" null)))
-                      (token 'static " | \n" null))
+                      (token 'static " | " null)
+                      (token 'static "\n" null))
                 "Sections should not alter surrounding whitespace.")
 
    (rast-t-case "Internal Whitespace"
@@ -404,8 +413,11 @@
                 (list (token 'static " | " null)
                       (token 'section 'boolean
                              (list (token 'static " " null)
-                                   (token 'static "\n " null)))
-                      (token 'static " | \n" null))
+                                   (token 'static "" null)
+                                   (token 'static "\n" null)
+                                   (token 'static " " null)))
+                      (token 'static " | " null)
+                      (token 'static "\n" null))
                 "Sections should not alter internal whitespace.")
 
    (rast-t-case "Indented Inline Sections"
@@ -418,9 +430,12 @@
                 (list (token 'static " " null)
                       (token 'section 'boolean
                              (list (token 'static "YES" null)))
-                      (token 'static "\n " null)
+                      (token 'static "" null)
+                      (token 'static "\n" null)
+                      (token 'static " " null)
                       (token 'section 'boolean
                              (list (token 'static "GOOD" null)))
+                      (token 'static "" null)
                       (token 'static "\n" null))
                 "Single-line sections should not alter surrounding whitespace.")
 
@@ -434,9 +449,11 @@
                 "| This Is
                  |
                  | A Line"
-                (list (token 'static "| This Is\n" null)
+                (list (token 'static "| This Is" null)
+                      (token 'static "\n" null)
                       (token 'section 'boolean
-                             (list (token 'static "                 |\n" null)))
+                             (list (token 'static "                 |" null)
+                                   (token 'static "\n" null)))
                       (token 'static "                 | A Line" null))
                 "Standalone lines should be removed from the template.")
 
@@ -450,9 +467,11 @@
                 "| This Is
                  |
                  | A Line"
-                (list (token 'static "| This Is\n" null)
+                (list (token 'static "| This Is" null)
+                      (token 'static "\n" null)
                       (token 'section 'boolean
-                             (list (token 'static "                 |\n" null)))
+                             (list (token 'static "                 |" null)
+                                   (token 'static "\n" null)))
                       (token 'static "                 | A Line" null))
                 "Indented standalone lines should be removed from the template.")
 
@@ -465,9 +484,9 @@
                 ;  {{#boolean}}
                 ;  {{/boolean}}
                 ;  |"
-                (list (token 'static "|\r\n" null)
-                      (token 'section 'boolean
-                             (list (token 'static "" null)))
+                (list (token 'static "|\r" null)
+                      (token 'static "\n" null)
+                      (token 'section 'boolean (list))
                       (token 'static "|" null))
                 "'\r\n' should be considered a newline for standalone tags.")
 
@@ -479,20 +498,27 @@
                 ; "  {{#boolean}}
                 ;  #{{/boolean}}↩
                 ;  /"
-                (list (token 'static "" null)
-                      (token 'section 'boolean
+                (list (token 'section 'boolean
                              (list (token 'static "#" null)))
-                      (token 'static "\n/" null))
+                      (token 'static "" null)
+                      (token 'static "\n" null)
+                      (token 'static "/" null))
                 "Standalone tags should not require a newline to precede them.")
 
    (rast-t-case "Standalone Without Newline"
                 #hash{( boolean . #t )}
                 "#{{#boolean}}\n/\n  {{/boolean}}"
+                "#\n/\n"
                 ; Template should be considered as
                 ; "#{{#boolean}}↩
                 ;  /↩
                 ;  {{/boolean}}
-                "#\n/\n"
+                (list (token 'static "#" null)
+                      (token 'section 'boolean
+                             (list (token 'static "" null)
+                                   (token 'static "\n" null)
+                                   (token 'static "/" null)
+                                   (token 'static "\n" null))))
                 "Standalone tags should not require a newline to follow them.")
 
    ;; Whitespace Insensitivity

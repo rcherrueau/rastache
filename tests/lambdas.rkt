@@ -58,8 +58,7 @@
                        ( lambda . ,(λ _ "|planet| => {{planet}}") )}
                 "{{= | | =}}\nHello, (|&lambda|)!"
                 "Hello, (|planet| => world)!"
-                (list (token 'static "" null)
-                      (token 'static "Hello, (" null)
+                (list (token 'static "Hello, (" null)
                       (token 'utag 'lambda null)
                       (token 'static ")!" null))
                 "A lambda's return value should parse with the default delimiters.")

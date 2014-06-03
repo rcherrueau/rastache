@@ -135,17 +135,16 @@
                  * second
                  * third"
                 (list
-                 (token 'static "" null)
-                 (token 'inverted-section
-                        'bool
-                        (list (token 'static "                 * first\n" null)))
+                 (token 'inverted-section 'bool
+                        (list (token 'static "                 * first" null)
+                              (token 'static "\n" null)))
                  (token 'static "                 * " null)
                  (token 'etag 'two null)
+                 (token 'static "" null)
                  (token 'static "\n" null)
-                 (token 'inverted-section
-                        'bool
-                        (list (token 'static "                 * third\n" null)))
-                 (token 'static "" null))
+                 (token 'inverted-section 'bool
+                        (list (token 'static "                 * third" null)
+                              (token 'static "\n" null))))
                 "Multiple inverted sections per template should be permitted.")
 
    (rast-t-case "Nested (Falsey)"
@@ -232,7 +231,8 @@
                       (token 'inverted-section
                              'boolean
                              (list (token 'static "\t|\t" null)))
-                      (token 'static " | \n" null))
+                      (token 'static " | " null)
+                      (token 'static "\n" null))
                 "Inverted sections should not alter surrounding whitespace.")
 
    (rast-t-case "Internal Whitespace"
@@ -240,11 +240,13 @@
                 " | {{^boolean}} {{! Important Whitespace }}\n {{/boolean}} | \n"
                 " |  \n  | \n"
                 (list (token 'static " | " null)
-                      (token 'inverted-section
-                             'boolean
+                      (token 'inverted-section 'boolean
                              (list (token 'static " " null)
-                                   (token 'static "\n " null)))
-                      (token 'static " | \n" null))
+                                   (token 'static "" null)
+                                   (token 'static "\n" null)
+                                   (token 'static " " null)))
+                      (token 'static " | " null)
+                      (token 'static "\n" null))
                 "Inverted should not alter internal whitespace.")
 
    (rast-t-case "Indented Inline Sections"
@@ -252,13 +254,14 @@
                 " {{^boolean}}NO{{/boolean}}\n {{^boolean}}WAY{{/boolean}}\n"
                 " NO\n WAY\n"
                 (list (token 'static " " null)
-                      (token 'inverted-section
-                             'boolean
+                      (token 'inverted-section 'boolean
                              (list (token 'static "NO" null)))
-                      (token 'static "\n " null)
-                      (token 'inverted-section
-                             'boolean
+                      (token 'static "" null)
+                      (token 'static "\n" null)
+                      (token 'static " " null)
+                      (token 'inverted-section 'boolean
                              (list (token 'static "WAY" null)))
+                      (token 'static "" null)
                       (token 'static "\n" null))
                 "Single-line sections should not alter surrounding whitespace.")
 
@@ -273,10 +276,11 @@
                  |
                  | A Line"
                 (list
-                 (token 'static "| This Is\n" null)
-                 (token 'inverted-section
-                        'boolean
-                        (list (token 'static "                 |\n" null)))
+                 (token 'static "| This Is" null)
+                 (token 'static "\n" null)
+                 (token 'inverted-section 'boolean
+                        (list (token 'static "                 |" null)
+                              (token 'static "\n" null)))
                  (token 'static "                 | A Line" null))
                 "Standalone lines should be removed from the template.")
 
@@ -291,10 +295,11 @@
                  |
                  | A Line"
                 (list
-                 (token 'static "| This Is\n" null)
-                 (token 'inverted-section
-                        'boolean
-                        (list (token 'static "                 |\n" null)))
+                 (token 'static "| This Is" null)
+                 (token 'static "\n" null)
+                 (token 'inverted-section 'boolean
+                        (list (token 'static "                 |" null)
+                              (token 'static "\n" null)))
                  (token 'static "                 | A Line" null))
                 "Standalone indented lines should be removed from the template.")
 
@@ -307,7 +312,9 @@
                 ;  {{^boolean}}
                 ;  {{/boolean}}
                 ;  |"
-                (list (token 'static "|\r\n" null)
+                (list (token 'static "|\r" null)
+                      (token 'static "\n" null)
+                      (token 'inverted-section 'boolean (list))
                       (token 'static "|" null))
                 "'\r\n' should be considered a newline for standalone tags.")
 
@@ -319,11 +326,10 @@
                 ; "  {{^boolean}}
                 ; ^{{/boolean}}↩
                 ; /"
-                (list (token 'static "" null)
-                      (token 'inverted-section
-                             'boolean
-                             (list (token 'static "^" null)
-                                   (token 'static "\n" null)))
+                (list (token 'inverted-section 'boolean
+                             (list (token 'static "^" null)))
+                      (token 'static "" null)
+                      (token 'static "\n" null)
                       (token 'static "/" null))
                 "Standalone tags should not require a newline to precede them.")
 
@@ -336,10 +342,11 @@
                 ;  /↩
                 ;    {{/boolean}}"
                 (list (token 'static "^" null)
-                      (token 'inverted-section
-                             'boolean
-                             (list (token 'static "\n/\n" null)))
-                      (token 'static "" null))
+                      (token 'inverted-section 'boolean
+                             (list (token 'static "" null)
+                                   (token 'static "\n" null)
+                                   (token 'static "/" null)
+                                   (token 'static "\n" null))))
                 "Standalone tags should not require a newline to follow them.")
 
    ;; Whitespace Insensitivity
