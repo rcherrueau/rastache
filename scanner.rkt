@@ -17,8 +17,40 @@
          tokenize)
 
 ; ______________________________________________________________________________
-; import and implementation
+; utils
+(define (token-print token port mode)
+  (let _token-print ([the-token token]
+                     [depth 0])
+    (define sigil (token-sigil the-token))
+    (define content (token-content the-token))
+    (define section (token-section the-token))
 
+    (cond
+      [(or (eq? sigil 'section) (eq? sigil 'inverted-section))
+       (write-string
+        (format "~a(token '~s '~s (list~n"
+                (make-string depth #\space)
+                sigil
+                content) port)
+       (for-each (lambda (t)
+                   (_token-print t (+ depth 2)))
+                 section)
+       (write-string
+        (format "~a ))~n"
+                (make-string (+ depth 2) #\space)) port)]
+      [(or (eq? sigil 'static) (eq? sigil 'partial))
+       (write-string (format "~a(token '~s ~s null)~n"
+                             (make-string depth #\space)
+                             sigil
+                             content) port)]
+      [else
+       (write-string (format "~a(token '~s '~s null)~n"
+                             (make-string depth #\space)
+                             sigil
+                             content) port)])))
+
+; ______________________________________________________________________________
+; import and implementation
 (require racket/port
          racket/string)
 
@@ -26,7 +58,7 @@
 ;; categories. Mustache defines 6 syntatic categories, i.e: 'static,
 ;; 'etag, 'utag, 'section, 'inverted-section and 'partial. A token
 ;; instance stores the syntatic category in the `sigil' attribute. For
-;; each category, the instance contains different informations.
+;; each category the instance contains different informations.
 ;;
 ;; 'static for static content. `content' contains static text.
 ;; `section' is always empty.
@@ -50,37 +82,6 @@
 ;;
 ;; see http://mustache.github.io/mustache.5.html for the meaning of
 ;; each category.
-(define (token-print token port mode)
-  (define (token-print_ the-token depth)
-    (define sigil (token-sigil the-token))
-    (define content (token-content the-token))
-    (define section (token-section the-token))
-
-    (cond
-      [(or (eq? sigil 'section) (eq? sigil 'inverted-section))
-       (write-string
-        (format "~a(token '~s '~s (list~n"
-                (make-string depth #\space)
-                sigil
-                content) port)
-       (for-each (lambda (t)
-                   (token-print_ t (+ depth 2)))
-                 section)
-       (write-string
-        (format "~a ))~n"
-                (make-string (+ depth 2) #\space)) port)]
-      [(or (eq? sigil 'static) (eq? sigil 'partial))
-       (write-string (format "~a(token '~s ~s null)~n"
-                             (make-string depth #\space)
-                             sigil
-                             content) port)]
-      [else
-       (write-string (format "~a(token '~s '~s null)~n"
-                             (make-string depth #\space)
-                             sigil
-                             content) port)]))
-  (token-print_ token 0))
-
 (struct token (sigil content section)
         #:methods gen:custom-write
         [(define write-proc token-print)])
@@ -116,73 +117,108 @@
   (define (make-token-partial content)
     (token 'partial content null))
 
+  ;; Make the pattern that recognizes standalone tag. `otag' and
+  ;; `ctag' should be patterns that matche exactly the original
+  ;; open-tag and close-tag.
+  ;; make-standalone-pattern: string string -> pregexp
+  (define (make-standalone-pattern otag-quoted ctag-quoted)
+    (pregexp
+     (string-append "^\\s*"
+                    otag-quoted
+                    "(!|#|\\^|/|>|=)"
+                    "\\s*"
+                    "("
+                      ".*?"ctag-quoted"\\s*"
+                    "|"
+                      "[^("ctag-quoted")]*"
+                    ")")))
+
   (define state-pattern
     (pregexp
      (string-append
       "^"
-      "\\s*"                            ; Skip any whitespace
-      "(#|\\^|/|=|!|<|>|&|\\{)?"        ; Check for a tag type and capture it
-      "\\s*"                            ; Skip any whitespace
-      "(.+)"                            ; Capture the text inside of the tag
-      "\\s*"                            ; Skip any whitespace
-      "\\}?"                            ; Skip balancing '}' if it exists
-      "(.*)$")))                        ; Capture the rest of the string
+      "\\s*" ; Skip any whitespace
+      "(#|\\^|/|=|!|<|>|&|\\{)?" ; Check for a tag type and capture it
+      "\\s*" ; Skip any whitespace
+      "(.+)" ; Capture the text inside of the tag
+      "\\s*" ; Skip any whitespace
+      "\\}?" ; Skip balancing '}' if it exists
+      "(.*)$"))) ; Capture the rest of the string
 
-  (define (read-content content-length)
-    (define content (make-string content-length))
-    (read-string! content template 0 content-length)
-    content)
+  read-byte
+  (define is-standalone? regexp-match-exact?)
+
+  ;; Returns a srting containing the next line of bytes from `in'.
+  ;; read-line: in -> (values line/eof linefeed?)
+  (define (read-line in)
+    (let rline ([acc ""])
+      (let ([c (read-char in)])
+        (cond
+         [(eof-object? c)
+          (if (eq? acc "")
+              (values eof #f)
+              (values acc #f))]
+         [(eq? c #\newline)
+          (values acc #t)]
+         [else
+          (rline (string-append acc (string c)))]))))
+
+  ;; Returns a string containing the next multi-line of bytes from
+  ;; `in'.
+  ;; read-multiline: in ctag -> (values line/eof linefeed? ctag-pos)
+  (define (read-multiline in line ctag)
+    (let rmline ([acc (port->string line)])
+      (let*-values ([(new-line linefeed?) (read-line in)]
+                    [(ctag-pos) (unless (eof-object? new-line)
+                                  (regexp-match-peek-positions ctag
+                                            (open-input-string new-line)))]
+                    [(full-line) (unless (eof-object? new-line)
+                                   (string-append acc new-line))])
+        (cond
+         [(eof-object? new-line)
+          (error "Error while reading a multi-ligne tag")]
+         [ctag-pos
+          (let* ([acc-length (string-length acc)]
+                 [full-ctag-pos (list(cons (+ acc-length (car (car ctag-pos))) (+ acc-length (cdr (car ctag-pos)))))])
+            (values (open-input-string full-line)
+                    linefeed?
+                    full-ctag-pos))]
+         [else
+          (rmline full-line)]))))
+
 
   ;; Reads and consumes open-tag from the template. `open-tag-quoted'
   ;; should be a pattern that matches exactly the original open-tag.
-  (define (read-open-tag open-tag-quoted)
-    (void (regexp-match open-tag-quoted template)))
+  (define (read-open-tag open-tag-quoted port)
+    (void (regexp-match open-tag-quoted port)))
 
   ;; Reads and consumes close-tag from the template.
   ;; `close-tag-quoted' should be a pattern that matches exactly the
   ;; original `close-tag'.
-  (define (read-close-tag close-tag-quoted)
-    (void (regexp-match close-tag-quoted template)))
+  (define (read-close-tag close-tag-quoted port)
+    (void (regexp-match close-tag-quoted port)))
 
-  ;; Scans the static text until the next mustache tag.
-  ;; scan-tag: (listof token) string string -> (listof tokens)
-  (define (scan-static tokens otag ctag)
-    ; Search for mustache opening tag
-    (define otag-pos (regexp-match-peek-positions otag template))
-
-    (cond
-     ; No more mustache tag
-     ; Create a 'static token with the end of template
-     [(not otag-pos)
-      (define the-token (make-token-static (port->string template)))
-      (scan 'end (append tokens (list the-token)) otag ctag)]
-
-     ; Still mustache tag
-     ; Create a 'static token with text until next mustach tag
-     [else
-      (define content-length (car (car otag-pos)))
-      (define content (read-content content-length))
-      (define the-token (make-token-static content))
-
-      (scan 'tag (append tokens (list the-token)) otag ctag)]))
-
-  ;; Scans a mustache tag. It applies differents scan strategies
-  ;; depending on the tag category.
-  ;; scan-tag: (listof token) string string -> (listof tokens)
-  (define (scan-tag tokens otag ctag)
+  (define (scan-tag line tokens otag ctag standalone? linefeed? standalone-pattern)
     ; Consume the mustache opening tag
-    (read-open-tag otag)
+    (read-open-tag otag line)
 
     ; Search for mustache closing tag
-    (define ctag-pos (regexp-match-peek-positions ctag template))
-    (unless ctag-pos (error "Bad syntax"))
+
+    (define ctag-pos (regexp-match-peek-positions ctag line))
+    ; S'il n'y a pas de ctag => je suis dans un multiligne.
+    ; Il faut donc constriure la nouvelle ligne jusqu'au prochain ctag
+    ; je peux faire ça avec un flodr
+    (define-values (new-line new-linefeed? new-ctag-pos)
+      (if (not ctag-pos)
+          (read-multiline template line ctag)
+          (values line linefeed? ctag-pos)))
 
     ; Consume content of mustache tag
-    (define content-length (car (car ctag-pos)))
-    (define content (read-content content-length))
+    (define content-length (car (car new-ctag-pos)))
+    (define content (read-string content-length new-line))
 
     ; Consume the mustache closing tag
-    (read-close-tag ctag)
+    (read-close-tag ctag new-line)
 
     (define l (regexp-match state-pattern content))
     (define sigil (cadr l))
@@ -192,44 +228,52 @@
       ; Normal
       [(#f)
        (define the-token (make-token-etag value))
-       (scan 'static (append tokens (list the-token)) otag ctag)]
+       (scan-static new-line (append tokens (list the-token))
+                    otag ctag standalone? new-linefeed? standalone-pattern)]
 
       ; Unescaped HTML
       [("{" "&")
-       ; if unescaped with starting "{", in that case consume the closing "}"
-       (when (equal? sigil "{") (void (read-string (string-length "}") template)))
+       ; if unescaped starting with "{", then consumes the closing "}"
+       (when (equal? sigil "{") (void (read-string (string-length "}") new-line)))
        (define the-token (make-token-utag value))
-       (scan 'static (append tokens (list the-token)) otag ctag)]
+       (scan-static new-line (append tokens (list the-token))
+                    otag ctag standalone? new-linefeed? standalone-pattern)]
 
       ; Section
       [("#")
-       (define the-token (make-token-section value
-                                             (scan 'static null otag ctag)))
-       (scan 'static (append tokens (list the-token)) otag ctag)]
+       ;; eol is for end-of-line
+       (define-values (sec-tokens eol eol-standalone? eol-linefeed?)
+         (scan-static new-line (list) otag ctag standalone? new-linefeed? standalone-pattern))
+       (define the-token (make-token-section value sec-tokens))
+       (scan-static eol (append tokens (list the-token))
+                    otag ctag eol-standalone? eol-linefeed? standalone-pattern)]
 
       ; Inverted Section
       [("^")
-       (define the-token (make-token-inverted-section
-                                     value
-                                     (scan 'static null otag ctag)))
-       (scan 'static (append tokens (list the-token)) otag ctag)]
+       ;; eol is for end-of-line
+       (define-values (inverted-tokens  eol eol-standalone? eol-linefeed?)
+         (scan-static new-line (list) otag ctag standalone? new-linefeed? standalone-pattern))
+       (define the-token (make-token-inverted-section value inverted-tokens))
+       (scan-static eol (append tokens (list the-token))
+                    otag ctag eol-standalone? eol-linefeed? standalone-pattern)]
 
       ; End of (Inverted) Section
-      [("/") tokens]
+      [("/") (values tokens new-line standalone? new-linefeed?)]
 
       ; Comments
       [("!")
-       (scan 'static tokens otag ctag)]
+       (scan-static new-line tokens otag ctag standalone? new-linefeed? standalone-pattern)]
 
       ; Partial
       [(">" "<")
        (define the-token (make-token-partial value))
-       (scan 'static (append tokens (list the-token)) otag ctag)]
+       (scan-static new-line (append tokens (list the-token))
+                    otag ctag standalone? new-linefeed? standalone-pattern)]
 
       ; Set delimiters
       [("=")
        (define ll (string-split value))
-       (when (< (length ll) 2) (error "Bad syntax"))
+       (when (< (length ll) 2) (error "Bad delimeter syntax"))
 
        (define new-otag (regexp-quote (car ll)))
        (define new-ctag (regexp-quote
@@ -239,22 +283,79 @@
                              ; Superfluous in-tag whitespace should be ignored:
                              ; {{= @   @ =}}
                              (cadr ll))))
+       (define new-standalone-pattern
+         (make-standalone-pattern new-otag new-ctag))
 
-       (scan 'static tokens new-otag new-ctag)]))
+       (scan-static new-line tokens new-otag new-ctag
+                    standalone? new-linefeed? new-standalone-pattern)]))
 
-  ;; Scans the text and instanciate tokens. The state indicates which
-  ;; scan to opare. 'static is for the scan of static text until the
-  ;; next mustache tag. 'tag is for the scan of mustache tag. The tag
-  ;; scan applies differents scan strategies depending on the tag
-  ;; category. At start of a new scan, you want to do a 'static scan!
-  ;; scan: symbol (listof tokens) string string -> (listof tokens)
-  (define (scan state tokens otag ctag)
+  ;; Scans the static text until the next mustache tag.
+  ;; scan-static:
+  ;;  (listof token) string string boolean pregexp -> (listof tokens)
+  (define (scan-static line tokens otag ctag standalone? linefeed?
+                       standalone-pattern)
+    ; Search for the mustache opening tag
+    (define otag-pos (regexp-match-peek-positions otag line))
+
     (cond
-      [(eq? state 'static) (scan-static tokens otag ctag)]
-      [(eq? state 'tag) (scan-tag tokens otag ctag)]
-      [else
-       tokens]))
+     ; No more mustache tag
+     ; Create a static token with the rest of the template.
+     [(not otag-pos)
+      (define content (port->string line))
+      (define new-tokens
+        ; Don't keep the value of a standalone line.
+        (cond
+          [standalone?
+           tokens]
+          [linefeed?
+           (append tokens (list (make-token-static content)
+                                 (make-token-static "\n")))]
+          [else
+           (append tokens (list (make-token-static content)))]))
+      (scan new-tokens otag ctag #f standalone-pattern)]
 
-  (scan 'static null
-        (regexp-quote open-tag)
-        (regexp-quote close-tag)))
+     ; Still mustache tag
+     ; Creates a static token with the text until next mustache tag.
+     ; Then processes the mustache tag.
+     [else
+      (define content-length (car (car otag-pos)))
+      (define content (read-string content-length line))
+      (define new-tokens
+        ; Don't keep the value of a standalone line.
+        (if (not standalone?)
+            (append tokens (list (make-token-static content)))
+            tokens))
+      (scan-tag line new-tokens otag ctag standalone? linefeed?
+                standalone-pattern)]))
+
+  ;; Scans the text and instanciate tokens. `otag' and `ctag' should
+  ;; be patterns that matche exactly the original open-tag and
+  ;; close-tag.
+  ;; scan: (listof tokens) string string pregexp -> (listof tokens)
+  (define (scan tokens otag ctag standalone? standalone-pattern)
+    (define-values (line linefeed?) (read-line template))
+    (cond
+     [(eof-object? line)
+      tokens]
+     [else
+      (scan-static (open-input-string line) tokens otag ctag
+                   (is-standalone? standalone-pattern line)
+                   linefeed?
+                   standalone-pattern)]))
+
+  ;; empty string est reconnu comme eof. Ce qui fait que le template "
+  ;; \n" qui devrai être interpréter comme
+  ;; "  <|"
+  ;; ""
+  ;; est finalement seulement interpréter en " <|". Ce qui merdouille
+  ;; le template. Un solution est donc de passer une regepx sur la
+  ;; template poour connaitre la forme finale de la template c-a-d
+  ;; "\n" ou non et faire en fonction.
+
+  (let ([otag-quoted (regexp-quote open-tag)]
+        [ctag-quoted (regexp-quote close-tag)])
+    (scan (list)
+          otag-quoted
+          ctag-quoted
+          #f
+          (make-standalone-pattern otag-quoted ctag-quoted))))
