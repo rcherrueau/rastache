@@ -90,6 +90,11 @@
           (lookup-current-context context the-key)]
          [else ""])))
 
+  (define (htmlescape-string string)
+    (regexp-replace* #rx"\""
+                     (xexpr->string string)
+                     (regexp-replace-quote "&quot;")))
+
   ;; Do the render on tokens recursively.
   ;; render_: (listof token) rastache-context -> void
   (define (render_ tokens the-ctx)
@@ -113,7 +118,7 @@
          (display (cond
                    [(null? val) ""]
                    [(number? val) (number->string val)]
-                   [else (xexpr->string val)]) stream)
+                   [else (htmlescape-string val)]) stream)
          (render_ (cdr tokens) the-ctx)]
 
         ; Unescaped variable
