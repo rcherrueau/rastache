@@ -16,6 +16,8 @@
 ;
 ; Comment tags SHOULD be treated as standalone when appropriate.
 
+(provide comment-tests)
+
 (require rackunit
          rackunit/text-ui
          "../scanner.rkt"

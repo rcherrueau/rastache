@@ -21,6 +21,7 @@
 ; String containing the unprocessed section contents). The returned
 ; value MUST be rendered against the current delimiters, then
 ; interpolated in place of the section.
+(provide lambdas-tests)
 
 (require rackunit
          rackunit/text-ui

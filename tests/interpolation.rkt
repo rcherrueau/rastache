@@ -37,6 +37,8 @@
 ;
 ; The Interpolation tags MUST NOT be treated as standalone.
 
+(provide interpolation-tests)
+
 (require rackunit
          rackunit/text-ui
          "../scanner.rkt"

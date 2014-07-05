@@ -52,6 +52,8 @@
 ; Inverted Section and End Section tags SHOULD be treated as
 ; standalone when appropriate.
 
+(provide inverted-tests)
+
 (require rackunit
          rackunit/text-ui
          "../scanner.rkt"

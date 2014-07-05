@@ -54,6 +54,8 @@
 ; Section and End Section tags SHOULD be treated as standalone when
 ; appropriate.
 
+(provide sections-tests)
+
 (require rackunit
          rackunit/text-ui
          "../scanner.rkt"
