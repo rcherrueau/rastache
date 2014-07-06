@@ -195,33 +195,45 @@
                 #hash{( a . #hash{( b . #hash{( c . #t )} )} )}
                 "\"{{^a.b.c}}Not Here{{/a.b.c}}\" == \"\""
                 "\"\" == \"\""
-                (list (token 'static "\"" null)
-                      (token 'inverted-section
-                             'a.b.c
-                             (list (token 'static "Not Here" null)))
-                      (token 'static "\" == \"\"" null))
+                (list
+                 (token 'static "\"" null)
+                 (token 'section 'a
+                        (list
+                         (token 'section 'b
+                                (list
+                                 (token 'inverted-section 'c
+                                        (list (token 'static "Not Here" null)))))))
+                 (token 'static "\" == \"\"" null))
                 "Dotted names should be valid for Inverted Section tags.")
 
    (rast-t-case "Dotted Names - Falsey"
                 #hash{( a . #hash{( b . #hash{( c . #f )} )} )}
                 "\"{{^a.b.c}}Not Here{{/a.b.c}}\" == \"Not Here\""
                 "\"Not Here\" == \"Not Here\""
-                (list (token 'static "\"" null)
-                      (token 'inverted-section
-                             'a.b.c
-                             (list (token 'static "Not Here" null)))
-                      (token 'static "\" == \"Not Here\"" null))
+                (list
+                 (token 'static "\"" null)
+                 (token 'section 'a
+                        (list
+                         (token 'section 'b
+                                (list
+                                 (token 'inverted-section 'c
+                                        (list (token 'static "Not Here" null)))))))
+                 (token 'static "\" == \"Not Here\"" null))
                 "Dotted names that cannot be resolved should be considered falsey.")
 
    (rast-t-case "Dotted Names - Broken Chains"
                 #hash{( a . #hash() )}
                 "\"{{^a.b.c}}Not Here{{/a.b.c}}\" == \"Not Here\""
                 "\"Not Here\" == \"Not Here\""
-                (list (token 'static "\"" null)
-                      (token 'inverted-section
-                             'a.b.c
-                             (list (token 'static "Not Here" null)))
-                      (token 'static "\" == \"Not Here\"" null))
+                (list
+                 (token 'static "\"" null)
+                 (token 'section 'a
+                        (list
+                         (token 'section 'b
+                                (list
+                                 (token 'inverted-section 'c
+                                        (list (token 'static "Not Here" null)))))))
+                 (token 'static "\" == \"Not Here\"" null))
                 "Dotted names that cannot be resolved should be considered falsey.")
 
    ;; Whitespace Sensitivity

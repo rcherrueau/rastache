@@ -370,30 +370,45 @@
                 #hash{( a . #hash{( b . #hash{( c . #t )} )} )}
                 "\"{{#a.b.c}}Here{{/a.b.c}}\" == \"Here\""
                 "\"Here\" == \"Here\""
-                (list (token 'static "\"" null)
-                      (token 'section 'a.b.c
-                             (list (token 'static "Here" null)))
-                      (token 'static "\" == \"Here\"" null))
+                (list
+                 (token 'static "\"" null)
+                 (token 'section 'a
+                        (list
+                         (token 'section 'b
+                                (list
+                                 (token 'section 'c
+                                        (list (token 'static "Here" null)))))))
+                 (token 'static "\" == \"Here\"" null))
                 "Dotted names should be valid for Section tags.")
 
    (rast-t-case "Dotted Names - Falsey"
                 #hash{( a . #hash{( b . #hash{( c . #f )} )} )}
                 "\"{{#a.b.c}}Here{{/a.b.c}}\" == \"\""
                 "\"\" == \"\""
-                (list (token 'static "\"" null)
-                      (token 'section 'a.b.c
-                             (list (token 'static "Here" null)))
-                      (token 'static "\" == \"\"" null))
+                (list
+                 (token 'static "\"" null)
+                 (token 'section 'a
+                        (list
+                         (token 'section 'b
+                                (list
+                                 (token 'section 'c
+                                        (list (token 'static "Here" null)))))))
+                 (token 'static "\" == \"\"" null))
                 "Dotted names should be valid for Section tags.")
 
    (rast-t-case "Dotted Names - Broken Chains"
                 #hash{( a . #hash() )}
                 "\"{{#a.b.c}}Here{{/a.b.c}}\" == \"\""
                 "\"\" == \"\""
-                (list (token 'static "\"" null)
-                      (token 'section 'a.b.c
-                             (list (token 'static "Here" null)))
-                      (token 'static "\" == \"\"" null))
+                (list
+                 (token 'static "\"" null)
+                 (token 'section 'a
+                        (list
+                         (token 'section 'b
+                                (list
+                                 (token 'section 'c
+                                        (list (token 'static "Here" null)))))))
+                 (token 'static "\" == \"\"" null))
                 "Dotted names that cannot be resolved should be considered falsey.")
 
    ;; Whitespace Sensitivity

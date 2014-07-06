@@ -182,7 +182,7 @@
                 "\"{{person.name}}\" == \"{{#person}}{{name}}{{/person}}\""
                 "\"Joe\" == \"Joe\""
                 (list (token 'static "\"" null)
-                      (token 'etag 'person.name null)
+                      (token 'section 'person (list (token 'etag 'name null)))
                       (token 'static "\" == \"" null)
                       (token 'section 'person (list (token 'static "" null)
                                                     (token 'etag 'name null)
@@ -190,12 +190,13 @@
                       (token 'static "\"" null))
                 "Dotted names should be considered a form of shorthand for sections.")
 
+
    (rast-t-case "Dotted Names - Triple Mustache Interpolation"
                 #hash{(person . #hash{(name . "Joe")})}
                 "\"{{{person.name}}}\" == \"{{#person}}{{{name}}}{{/person}}\""
                 "\"Joe\" == \"Joe\""
                 (list (token 'static "\"" null)
-                      (token 'utag 'person.name null)
+                      (token 'section 'person (list (token 'utag 'name null)))
                       (token 'static "\" == \"" null)
                       (token 'section 'person (list (token 'static "" null)
                                                     (token 'utag 'name null)
@@ -208,7 +209,7 @@
                 "\"{{&person.name}}\" == \"{{#person}}{{&name}}{{/person}}\""
                 "\"Joe\" == \"Joe\""
                 (list (token 'static "\"" null)
-                      (token 'utag 'person.name null)
+                      (token 'section 'person (list (token 'utag 'name null)))
                       (token 'static "\" == \"" null)
                       (token 'section 'person (list (token 'static "" null)
                                                     (token 'utag 'name null)
@@ -225,17 +226,32 @@
                           #hash{(name . "Phil")})})})})})}
                 "\"{{a.b.c.d.e.name}}\" == \"Phil\""
                 "\"Phil\" == \"Phil\""
-                (list (token 'static "\"" null)
-                      (token 'etag 'a.b.c.d.e.name null)
-                      (token 'static "\" == \"Phil\"" null))
+                (list
+                 (token 'static "\"" null)
+                 (token 'section 'a
+                        (list
+                         (token 'section 'b
+                                (list
+                                 (token 'section 'c
+                                        (list
+                                         (token 'section 'd
+                                                (list
+                                                 (token 'section 'e
+                                                        (list
+                                                         (token 'etag 'name null)))))))))))
+                 (token 'static "\" == \"Phil\"" null))
                 "Dotted names should be functional to any level of nesting.")
 
    (rast-t-case "Dotted Names - Broken Chains"
                 #hash{(a . #hash{})}
                 "\"{{a.b.c}}\" == \"\""
                 "\"\" == \"\""
-                (list (token 'static "\"" null)
-                      (token 'etag 'a.b.c null)
+                (list
+                 (token 'static "\"" null)
+                 (token 'section 'a
+                        (list
+                         (token 'section 'b
+                                (list (token 'etag 'c null)))))
                       (token 'static "\" == \"\"" null))
                 "Any falsey value prior to the last part of the name should yield ''.")
 
@@ -244,9 +260,15 @@
                       ( c . #hash{( name . "Jim" )} )}
                 "\"{{a.b.c.name}}\" == \"\""
                 "\"\" == \"\""
-                (list (token 'static "\"" null)
-                      (token 'etag 'a.b.c.name null)
-                      (token 'static "\" == \"\"" null))
+                (list
+                 (token 'static "\"" null)
+                 (token 'section 'a
+                        (list
+                         (token 'section 'b
+                                (list
+                                 (token 'section 'c
+                                        (list (token 'etag 'name null)))))))
+                 (token 'static "\" == \"\"" null))
                 "Each part of a dotted name should resolve only against its parent.")
 
    (rast-t-case "Dotted Names - Initial Resolution"
@@ -261,11 +283,21 @@
                                   #hash{( name . "Wrong")} )})})}) }
                 "\"{{#a}}{{b.c.d.e.name}}{{/a}}\" == \"Phil\""
                 "\"Phil\" == \"Phil\""
-                (list (token 'static "\"" null)
-                      (token 'section 'a (list (token 'static "" null)
-                                               (token 'etag 'b.c.d.e.name null)
-                                               (token 'static "" null)))
-                      (token 'static "\" == \"Phil\"" null))
+                (list
+                 (token 'static "\"" null)
+                 (token 'section 'a
+                        (list
+                         (token 'static "" null)
+                         (token 'section 'b
+                                (list
+                                 (token 'section 'c
+                                        (list
+                                         (token 'section 'd
+                                                (list
+                                                 (token 'section 'e
+                                                        (list (token 'etag 'name null)))))))))
+                         (token 'static "" null)))
+                 (token 'static "\" == \"Phil\"" null))
                 "The first part of a dotted name should resolve as any other name.")
 
    (rast-t-case "Dotted Names - Context Precedence"
@@ -273,11 +305,15 @@
                       ( b . #hash{( c . "ERROR" )} )}
                 "{{#a}}{{b.c}}{{/a}}"
                 ""
-                (list (token 'static "" null)
-                      (token 'section 'a (list (token 'static "" null)
-                                               (token 'etag 'b.c null)
-                                               (token 'static "" null)))
-                      (token 'static "" null))
+                (list
+                 (token 'static "" null)
+                 (token 'section 'a
+                        (list
+                         (token 'static "" null)
+                         (token 'section 'b
+                                (list (token 'etag 'c null)))
+                         (token 'static "" null)))
+                 (token 'static "" null))
                 "Dotted names should be resolved against former resolutions.")
 
    ;; Whitespace Sensitivity
