@@ -215,3 +215,28 @@ one:
 (check-false (is-standalone? "  {{{string}}}"))
 (check-false (is-standalone? "  {{&string}}"))
 #+END_SRC
+
+*** Dotted
+Dotted tag's name (e.g.: ={{a.b.c}}=) should be split on periods and
+generally be considered as a form of shorthand for sections:
+#+BEGIN_EXAMPLE
+{{person.name}} == {{#person}}{{name}}{{/person}}
+{{a.b.c}} == {{#a}}{{#b}}{{c}}{{/b}}{{/a}}
+{{&a.b.c}} == {{#a}}{{#b}}{{&c}}{{/b}}{{/a}}
+{{{a.b.c}}} == {{#a}}{{#b}}{{{c}}}{{/b}}{{/a}}
+#+END_EXAMPLE
+
+For section, the consideration is:
+#+BEGIN_EXAMPLE
+{{#person.name}}Here{{/person.name}} == {{#person}}{{#name}}Here{{/person}}{{/name}}
+{{#a.b.c}}Here{{/a.b.c}} == {{#a}}{{#b}}{{#c}}Here{{/c}}{{/b}}{{/a}}
+#+END_EXAMPLE
+
+For inverted section, the consideration is:
+#+BEGIN_EXAMPLE
+{{^person.name}}Here{{/person.name}} == {{#person}}{{^name}}Here{{/person}}{{/name}}
+{{^a.b.c}}Here{{/a.b.c}} == {{#a}}{{#b}}{{^c}}Here{{/c}}{{/b}}{{/a}}
+#+END_EXAMPLE
+
+** Render
+*** Sections
