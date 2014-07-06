@@ -99,7 +99,7 @@
 
 ;; Token constructor for etag token.
 (define (token-etag content)
-  (token 'etag (string->symbol (string-trim content)) null))
+  (token 'etag (string->symbol content) null))
 
 ;; Token constructor for utag token.
 (define (token-utag content)
@@ -276,38 +276,104 @@
       (define value (caddr l))
 
       (case sigil
-        ;; Normal
+        ;; Etag
         [(#f)
-         (define the-token (token-etag value))
-         (scan-static new-line (append tokens (list the-token))
-                      otag ctag standalone-pattern)]
+         (let ([periods-split (regexp-split #rx"\\." (string-trim value))]
+               [scan-ahead (lambda (the-token)
+                             (scan-static new-line
+                                          (append tokens (list the-token))
+                                          otag ctag standalone-pattern))])
+           (cond
+            ;; Single periode
+            [(equal? value ".")
+             (scan-ahead (token-etag "."))]
+            ;; Simple Etag
+            [(equal? (length periods-split) 1)
+             (scan-ahead (token-etag (car periods-split)))]
+            ;; Dotted names should be considered a form of shorthand
+            ;; for sections
+            [else
+             (scan-ahead
+              (let make-token ([tags periods-split])
+                (if (> (length tags) 1)
+                    (token-sec (car tags) (list (make-token (cdr tags))))
+                    (token-etag (car tags)))))]))]
 
         ;; Unescaped HTML
         [("{" "&")
          ;; if unescaped starting with "{", then consumes the closing "}"
          (when (equal? sigil "{")
            (read-string (string-length "}") (line-content new-line)))
-         (define the-token (token-utag value))
-         (scan-static new-line (append tokens (list the-token))
-                      otag ctag standalone-pattern)]
+         (let ([periods-split (regexp-split #rx"\\." (string-trim value))]
+               [scan-ahead (lambda (the-token)
+                             (scan-static new-line
+                                          (append tokens (list the-token))
+                                          otag ctag standalone-pattern))])
+           (cond
+            ;; Single periode
+            [(equal? value ".")
+             (scan-ahead (token-utag "."))]
+            ;; Simple Etag
+            [(equal? (length periods-split) 1)
+             (scan-ahead (token-utag (car periods-split)))]
+            ;; Dotted names should be considered a form of shorthand
+            ;; for sections
+            [else
+             (scan-ahead
+              (let make-token ([tags periods-split])
+                (if (> (length tags) 1)
+                    (token-sec (car tags) (list (make-token (cdr tags))))
+                    (token-utag (car tags)))))]))]
 
         ;; Section
         [("#")
-         ;; eol is for end-of-line
-         (define-values (sec-tokens eol)
+         ;; First compute nested tokens; eol is for end-of-line
+         (define-values (nested-tokens eol)
            (scan-static new-line (list) otag ctag standalone-pattern))
-         (define the-token (token-sec value sec-tokens))
-         (scan-static eol (append tokens (list the-token))
-                      otag ctag standalone-pattern)]
+         ;; Then add nested tokens and continue with the end of line.
+         ;; Dotted names should be considered a form of shorthand for
+         ;; sections.
+         (let ([periods-split (regexp-split #rx"\\." (string-trim value))]
+               [scan-ahead (lambda (the-token)
+                             (scan-static eol
+                                          (append tokens (list the-token))
+                                          otag ctag standalone-pattern))])
+           (cond
+            ;; Simple section name
+            [(equal? (length periods-split) 1)
+             (scan-ahead (token-sec (car periods-split) nested-tokens))]
+            ;; Section name with periods
+            [else
+             (scan-ahead
+              (let make-token ([tags periods-split])
+                (if (> (length tags) 1)
+                    (token-sec (car tags) (list (make-token (cdr tags))))
+                    (token-sec (car tags) nested-tokens))))]))]
 
         ;; Inverted Section
         [("^")
-         ;; eol is for end-of-line
-         (define-values (inverted-tokens  eol)
+         ;; First compute nested tokens; eol is for end-of-line
+         (define-values (nested-tokens eol)
            (scan-static new-line (list) otag ctag standalone-pattern))
-         (define the-token (token-inv-sec value inverted-tokens))
-         (scan-static eol (append tokens (list the-token))
-                      otag ctag standalone-pattern)]
+         ;; Then add nested tokens and continue with the end of line.
+         ;; Dotted names should be considered a form of shorthand for
+         ;; sections.
+         (let ([periods-split (regexp-split #rx"\\." (string-trim value))]
+               [scan-ahead (lambda (the-token)
+                             (scan-static eol
+                                          (append tokens (list the-token))
+                                          otag ctag standalone-pattern))])
+           (cond
+            ;; Simple section name
+            [(equal? (length periods-split) 1)
+             (scan-ahead (token-inv-sec (car periods-split) nested-tokens))]
+            ;; Section name with periods
+            [else
+             (scan-ahead
+              (let make-token ([tags periods-split])
+                (if (> (length tags) 1)
+                    (token-sec (car tags) (list (make-token (cdr tags))))
+                    (token-inv-sec (car tags) nested-tokens))))]))]
 
         ;; End of (Inverted) Section
         [("/") (values tokens new-line)]
