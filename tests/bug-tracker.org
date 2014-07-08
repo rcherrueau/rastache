@@ -239,4 +239,82 @@ For inverted section, the consideration is:
 #+END_EXAMPLE
 
 ** Render
+*** Variable
+A ={{name}}= tag renders the value of the =name= key in the current
+context. If there is no such key, nothing is rendered.
+
+If the value of the =name= key is a function, the data is the value
+returned by the method with the given =name=. The function should be
+called with no arguments.
+
 *** Sections
+Section render blocks of text one or more time, depending on the value
+of the key in the current context. The behavior of the section is
+determined by the value of the key.
+
+**** Non-Empty List
+When the value is a non-empty list, the block is rendered once
+for each item in the list. The context of the block is set to
+the current item in the list for each iteration (the context is
+the context of section overloaded with the context of the
+current item).
+
+For instance, template:
+#+BEGIN_EXAMPLE
+{{#upper}} {{#repo}} {{name}} {{surname}}, {{/repo}} {{/upper}}
+#+END_EXAMPLE
+
+With hash 1:
+#+BEGIN_EXAMPLE
+{
+  "upper: {
+    "repo": [
+      { "name": "resque" },
+      { "name": "hub" },
+      { "name": "rip" }
+    ]
+  },
+  surname: "foo"
+}
+#+END_EXAMPLE
+
+Produce:
+#+BEGIN_EXAMPLE
+resque foo, hub foo, rip foo,
+#+END_EXAMPLE
+
+Whereas, whit hash 2:
+#+BEGIN_EXAMPLE
+{
+  "upper: {
+    "repo": [
+      { "name": "resque" },
+      { "name": "hub" },
+      { "name": "rip" }
+    ],
+    surname: "bar"
+  },
+  surname: "foo"
+}
+#+END_EXAMPLE
+
+Produce:
+#+BEGIN_EXAMPLE
+resque bar, hub bar, rip bar,
+#+END_EXAMPLE
+
+Which is a sort of context overloading.
+
+_Function_:
+If the value of a section variable is a function, it will be called
+in the context of the current item in the list on each iteration.
+
+**** Non-false values
+When the value is non-false but not a list, it will be used as the
+context for a single rendering of the block. +This is also true if the
+value is a function with no parameters+ (not sure about this,
+implements this only at the end of the implementation to ensure if
+this is a requirement or not).
+
+**** TODO False values or Empty lists
+**** TODO Lambdas
