@@ -1,4 +1,6 @@
 #+AUTHOR: Rl3x Fish ⚓
+#+STARTUP: entitiespretty
+#+OPTIONS: ^:{}
 
 * Bug tracker
 ** Scanner
@@ -234,18 +236,36 @@ For section, the consideration is:
 
 For inverted section, the consideration is:
 #+BEGIN_EXAMPLE
-{{^person.name}}Here{{/person.name}} == {{#person}}{{^name}}Here{{/person}}{{/name}}
-{{^a.b.c}}Here{{/a.b.c}} == {{#a}}{{#b}}{{^c}}Here{{/c}}{{/b}}{{/a}}
+\not{} {{a.b.c}} == {{^a.b.c}}
+
+And the logical interpretation:
+\not{} (a \wedge{} b \wedge{} c)      (1)
+\equiv{} \not{}a \vee{} \not{}b \vee{} \not{}c     (2)
 #+END_EXAMPLE
+Because (2) isn't encodable with current mustache syntax, we have to
+introduce a new syntactic category. The new syntactic category named
+`inverted-section-or' enables the encoding of dotted tag's name
+inverted section on split tag's name.
 
 ** Render
 *** Variable
 A ={{name}}= tag renders the value of the =name= key in the current
 context. If there is no such key, nothing is rendered.
 
-If the value of the =name= key is a function, the data is the value
-returned by the method with the given =name=. The function should be
-called with no arguments.
+_Lambda_: If the value of the =name= key is a lambda, the data is the
+value returned by the method with the given =name=. The lambda should
+be called with zero or one argument. In presence of lambda with arity
+1, the context is passed.
+
+/Note:/ To get the arity of a procedure use =procedure-arity=:
+#+BEGIN_SRC racket
+> (procedure-arity (lambda (a b c) '88mph))
+3
+> (procedure-arity (lambda () '88mph))
+0
+> (procedure-arity (lambda _ '88mph))
+(arity-at-least 0)
+#+END_SRC
 
 *** Sections
 Section render blocks of text one or more time, depending on the value
@@ -256,7 +276,7 @@ determined by the value of the key.
 When the value is a non-empty list, the block is rendered once
 for each item in the list. The context of the block is set to
 the current item in the list for each iteration (the context is
-the context of section overloaded with the context of the
+the context of section overriding with the context of the
 current item).
 
 For instance, template:
@@ -265,18 +285,14 @@ For instance, template:
 #+END_EXAMPLE
 
 With hash 1:
-#+BEGIN_EXAMPLE
-{
-  "upper: {
-    "repo": [
-      { "name": "resque" },
-      { "name": "hub" },
-      { "name": "rip" }
-    ]
-  },
-  surname: "foo"
-}
-#+END_EXAMPLE
+#+BEGIN_SRC racket
+#hash{ ("upper" .
+        #hash{ ("repo" .
+                '( #hash{ ("name" . "resque") }
+                   #hash{ ("name" . "hub") }
+                   #hash{ ("name" . "rip") } ) )} )
+       ("surname" . "foo") }
+#+END_SRC
 
 Produce:
 #+BEGIN_EXAMPLE
@@ -284,30 +300,42 @@ resque foo, hub foo, rip foo,
 #+END_EXAMPLE
 
 Whereas, whit hash 2:
-#+BEGIN_EXAMPLE
-{
-  "upper: {
-    "repo": [
-      { "name": "resque" },
-      { "name": "hub" },
-      { "name": "rip" }
-    ],
-    surname: "bar"
-  },
-  surname: "foo"
-}
-#+END_EXAMPLE
+#+BEGIN_SRC racket
+#hash{ ("upper" .
+        #hash{ ("repo" .
+                '( #hash{ ("name" . "resque") }
+                   #hash{ ("name" . "hub") }
+                   #hash{ ("name" . "rip") }) )
+              ("surname" . "bar")} )
+       ("surname" . "foo") }
+#+END_SRC
 
 Produce:
 #+BEGIN_EXAMPLE
 resque bar, hub bar, rip bar,
 #+END_EXAMPLE
 
-Which is a sort of context overloading.
+Which is a sort of context overriding.
 
-_Function_:
-If the value of a section variable is a function, it will be called
-in the context of the current item in the list on each iteration.
+_Lambda_: If the *value of a section variable is a Lambda*, it will be
+called with the context of the current item in the list on each
+iteration. (To be more expressive, implements the context passing just
+like we've done for [[*Variable][variable]], but override context with context of the
+current item.
+#+BEGIN_EXAMPLE
+{{#repo}}{{BIGNAME}}{{/repo}}
+#+END_EXAMPLE
+
+#+BEGIN_SRC racket
+`#hash{ ("repo"    . '( #hash{ ("name" . "resque") }
+                        #hash{ ("name" . "hub") }
+                        #hash{ ("name" . "rip") } ))
+        ("BIGNAME" . ,(λ (self) (string-upcase (rast-ref self 'name)))) }
+#+END_SRC
+
+#+BEGIN_EXAMPLE
+RESQUE HUB RIP
+#+END_EXAMPLE
 
 **** Non-false values
 When the value is non-false but not a list, it will be used as the
@@ -316,5 +344,33 @@ value is a function with no parameters+ (not sure about this,
 implements this only at the end of the implementation to ensure if
 this is a requirement or not).
 
-**** TODO False values or Empty lists
-**** TODO Lambdas
+**** False values, Empty lists or Not existing key
+If the ={{#name}}= tag doesn't exist or resolves to a false value or
+empty lists, henceforth the section will not be displayed.
+
+On the other hand, inverted section should be print if the tag
+resolves to a false value, an empty list or a not existing key.
+
+**** Lambdas
+When *the value is a lambda*, it is called with the section's literal
+block of text *un-rendered* as its first argument. The second argument
+is the rendering function that use the current view as its view
+argument.
+
+Template:
+#+BEGIN_EXAMPLE
+{{#bold}}Hi {{name}}.{{/bold}}
+#+END_EXAMPLE
+
+Context:
+#+BEGIN_SRC racket
+`#hash{
+  ("name" . "Tater")
+  ("bold" . ,(λ (text, render)
+              (string-append "<b>" (render text) "</b>"))) }
+#+END_SRC
+
+Produce:
+#+BEGIN_SRC html
+<b>Hi Tater.</b>
+#+END_SRC
