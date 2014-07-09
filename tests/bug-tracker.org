@@ -252,20 +252,10 @@ inverted section on split tag's name.
 A ={{name}}= tag renders the value of the =name= key in the current
 context. If there is no such key, nothing is rendered.
 
-_Lambda_: If the value of the =name= key is a lambda, the data is the
+/Lambda:/ If the value of the =name= key is a lambda, the data is the
 value returned by the method with the given =name=. The lambda should
 be called with zero or one argument. In presence of lambda with arity
 1, the context is passed.
-
-/Note:/ To get the arity of a procedure use =procedure-arity=:
-#+BEGIN_SRC racket
-> (procedure-arity (lambda (a b c) '88mph))
-3
-> (procedure-arity (lambda () '88mph))
-0
-> (procedure-arity (lambda _ '88mph))
-(arity-at-least 0)
-#+END_SRC
 
 *** Sections
 Section render blocks of text one or more time, depending on the value
@@ -317,15 +307,18 @@ resque bar, hub bar, rip bar,
 
 Which is a sort of context overriding.
 
-_Lambda_: If the *value of a section variable is a Lambda*, it will be
+/Lambda:/ If the *value of a section variable is a Lambda*, it will be
 called with the context of the current item in the list on each
 iteration. (To be more expressive, implements the context passing just
 like we've done for [[*Variable][variable]], but override context with context of the
-current item.
+current item)
+
+Template:
 #+BEGIN_EXAMPLE
 {{#repo}}{{BIGNAME}}{{/repo}}
 #+END_EXAMPLE
 
+Context:
 #+BEGIN_SRC racket
 `#hash{ ("repo"    . '( #hash{ ("name" . "resque") }
                         #hash{ ("name" . "hub") }
@@ -333,6 +326,7 @@ current item.
         ("BIGNAME" . ,(λ (self) (string-upcase (rast-ref self 'name)))) }
 #+END_SRC
 
+Produce:
 #+BEGIN_EXAMPLE
 RESQUE HUB RIP
 #+END_EXAMPLE
@@ -373,4 +367,81 @@ Context:
 Produce:
 #+BEGIN_SRC html
 <b>Hi Tater.</b>
+#+END_SRC
+
+*** Lambdas
+If the *value of the =name= key is a lambda*, the data is the value
+returned by the method with the given =name=. The lambda should be
+called with zero or one argument. In presence of lambda with arity 1,
+the context is passed.
+
+Template:
+#+BEGIN_EXAMPLE
+{{foo}}
+#+END_EXAMPLE
+
+#+BEGIN_SRC racket
+`#hash{ ("foo" . ,(λ (self) (string-upcase (rast-ref self 'bar))))
+        ("bar" . "bar") }
+#+END_SRC
+
+#+BEGIN_EXAMPLE
+BAR
+#+END_EXAMPLE
+
+If the *value of a section variable is a Lambda*, it will be called
+with the context of the current item in the list on each iteration.
+(To be more expressive, implements the context passing just like we've
+done for variable, but override context with context of the current
+item)
+
+Template:
+#+BEGIN_EXAMPLE
+{{#repo}}{{BIGNAME}}{{/repo}}
+#+END_EXAMPLE
+
+Context:
+#+BEGIN_SRC racket
+`#hash{ ("repo"    . '( #hash{ ("name" . "resque") }
+                        #hash{ ("name" . "hub") }
+                        #hash{ ("name" . "rip") } ))
+        ("BIGNAME" . ,(λ (self) (string-upcase (rast-ref self 'name)))) }
+#+END_SRC
+
+Produce:
+#+BEGIN_EXAMPLE
+RESQUE HUB RIP
+#+END_EXAMPLE
+
+When *the section key value is a lambda*, it is called with the
+section's literal block of text *un-rendered* as its first argument.
+The second argument is the rendering function that use the current
+view as its view argument.
+
+Template:
+#+BEGIN_EXAMPLE
+{{#bold}}Hi {{name}}.{{/bold}}
+#+END_EXAMPLE
+
+Context:
+#+BEGIN_SRC racket
+`#hash{
+  ("name" . "Tater")
+  ("bold" . ,(λ (text, render)
+              (string-append "<b>" (render text) "</b>"))) }
+#+END_SRC
+
+Produce:
+#+BEGIN_SRC html
+<b>Hi Tater.</b>
+#+END_SRC
+
+/Note:/ To get the arity of a procedure use =procedure-arity=:
+#+BEGIN_SRC racket
+> (procedure-arity (lambda (a b c) '88mph))
+3
+> (procedure-arity (lambda () '88mph))
+0
+> (procedure-arity (lambda _ '88mph))
+(arity-at-least 0)
 #+END_SRC
