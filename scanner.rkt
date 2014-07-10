@@ -88,7 +88,7 @@
 ;; is standalone.
 (struct line (content linefeed? standalone?))
 
-;; Returns #t is line is `eof', #f otherwise.
+;; Returns #t if line is `eof', #f otherwise.
 (define (line-eof?  line)
   (and (line? line)
        (eof-object? (line-content line))))
