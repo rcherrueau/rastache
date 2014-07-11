@@ -44,6 +44,8 @@
                       (token 'static "!" null))
                 "A lambda's return value should be interpolated.")
 
+   #;
+   ;; Interpolation expansion is not implemented by mustache.js
    (rast-t-case "Interpolation - Expansion"
                 `#hash{( planet . "world" )
                        ( lambda . ,(λ _ "{{planet}}") )}
@@ -53,7 +55,8 @@
                       (token 'etag 'lambda null)
                       (token 'static "!" null))
                 "A lambda's return value should be parsed.")
-
+   #;
+   ;; Interpolation expansion is not implemented by mustache.js
    (rast-t-case "Interpolation - Alternate Delimiters"
                 `#hash{( planet . "world" )
                        ( lambda . ,(λ _ "|planet| => {{planet}}") )}
@@ -90,7 +93,7 @@
 
    (rast-t-case "Section"
                 `#hash{( x      . "Error!" )
-                       ( lambda . ,(λ (text)
+                       ( lambda . ,(λ (text _)
                                       (if (equal? text "{{x}}")
                                           "yes" "no")) )}
                 "<{{#lambda}}{{x}}{{/lambda}}>"
@@ -104,9 +107,11 @@
                 "Lambdas used for sections should receive the raw section string.")
 
    (rast-t-case "Section - Expansion"
-                `#hash{( planet . "Earth" )
-                       ( lambda . ,(λ (text)
-                                      (string-append text "{{planet}}" text)) )}
+                `#hash{ (planet . "Earth")
+                        (lambda . ,(λ (text render)
+                                      (render (string-append text
+                                                             "{{planet}}"
+                                                             text)))) }
                 "<{{#lambda}}-{{/lambda}}>"
                 "<-Earth->"
                 (list (token 'static "<" null)
@@ -115,11 +120,15 @@
                       (token 'static ">" null))
                 "Lambdas used for sections should have their results parsed.")
 
+   ;; FIXME: mustachize has to take into account the update of
+   ;; mustahce delimiters
    (rast-t-case "Section - Alternate Delimiters"
-                `#hash{( planet . "Earth" )
-                       ( lambda . ,(λ (text)
-                                      (string-append text
-                                                     "{{planet}} => |planet|" text)) )}
+                `#hash{ (planet . "Earth")
+                        (lambda . ,(λ (text render)
+                                      (render
+                                       (string-append text
+                                                      "{{planet}} => |planet|"
+                                                      text)))) }
                 "{{= | | =}}<|#lambda|-|/lambda|>"
                 "<-{{planet}} => Earth->"
                 (list (token 'static "" null)
@@ -130,7 +139,8 @@
                 "Lambdas used for sections should parse with the current delimiters.")
 
    (rast-t-case "Section - Multiple Calls"
-                `#hash{( lambda . ,(λ (text) (string-append "__" text "__")) )}
+                `#hash{(lambda . ,(λ (text render)
+                                     (render (string-append "__" text "__")))) }
                 "{{#lambda}}FILE{{/lambda}} != {{#lambda}}LINE{{/lambda}}"
                 "__FILE__ != __LINE__"
                 (list (token 'static "" null)

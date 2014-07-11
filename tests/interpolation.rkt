@@ -271,6 +271,7 @@
                  (token 'static "\" == \"\"" null))
                 "Each part of a dotted name should resolve only against its parent.")
 
+
    (rast-t-case "Dotted Names - Initial Resolution"
                 #hash{( a . #hash{( b .
                               #hash{( c .

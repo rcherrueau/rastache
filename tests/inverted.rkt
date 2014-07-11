@@ -114,7 +114,7 @@
                 "Lists should behave like truthy values.")
 
    (rast-t-case "Empty List"
-                #hash{( list . '() )}
+                #hash{( list . () )}
                 "\"{{^list}}Yay lists!{{/list}}\""
                 "\"Yay lists!\""
                 (list (token 'static "\"" null)
@@ -133,9 +133,10 @@
                  {{^bool}}
                  * third
                  {{/bool}}"
-                "* first
+                "                 * first
                  * second
-                 * third"
+                 * third
+"
                 (list
                  (token 'inverted-section 'bool
                         (list (token 'static "                 * first" null)
@@ -167,7 +168,7 @@
    (rast-t-case "Nested (Truthy)"
                 #hash{( bool . #t )}
                 "| A {{^bool}}B {{^bool}}C{{/bool}} D{{/bool}} E |"
-                "| A E |"
+                "| A  E |"
                 (list (token 'static "| A " null)
                       (token 'inverted-section
                              'bool

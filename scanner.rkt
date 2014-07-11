@@ -13,7 +13,8 @@
 ; Parse mustache template and generate a list of tokens. The list of
 ; tokens describes how to render the template.
 (provide (struct-out token)
-         tokenize)
+         tokenize
+         mustachize)
 
 ; ______________________________________________________________________________
 ; import and implementation
@@ -448,3 +449,55 @@
      [(line-eof? line) tokens]
      [else
       (scan-static line tokens otag ctag standalone-pattern)])))
+
+;; FIXME: Delimiters set outside sections or inverted-section should
+;; persists! See delimiters.rkt tests.
+(define (mustachize tokens)
+  (cond
+   [(null? tokens) ""]
+   [else
+    (define token (car tokens))
+    (define sigil (token-sigil token))
+    (define content (token-content token))
+    (define section (token-section token))
+
+    (case sigil
+      ;; Static content
+      ['static
+       (string-append content
+                      (mustachize (cdr tokens)))]
+
+      ;; Variable
+      ['etag
+       (string-append "{{" (symbol->string content) "}}"
+                      (mustachize (cdr tokens)))]
+
+      ;; Unescaped variable
+      ['utag
+       (string-append "{{&" (symbol->string content) "}}"
+                      (mustachize (cdr tokens)))]
+
+      ;; Section
+      ['section
+       (let ([sec-name (symbol->string content)])
+         (string-append "{{#" sec-name "}}"
+                        (mustachize section)
+                        "{{/" sec-name "}}"
+                        (mustachize (cdr tokens))))]
+
+      ;; Inverted Section
+      ['inverted-section
+       (let ([sec-name (symbol->string content)])
+         (string-append "{{^" sec-name "}}"
+                        (mustachize section)
+                        "{{/" sec-name "}}"
+                        (mustachize (cdr tokens))))]
+
+      ;; Parial
+      ['partial
+       (string-append "{{> " (string->symbol content) "}}"
+                      (mustachize (cdr tokens)))]
+
+      ;; If this is a unknow token, proceed without processing this
+      ;; token
+      [else (mustachize (cdr tokens))])]))

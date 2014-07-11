@@ -122,7 +122,7 @@
                  {{/b}}
                  {{one}}
                  {{/a}}"
-                "1
+                "                 1
                  121
                  12321
                  1234321
@@ -245,9 +245,9 @@
                 "All elements on the context stack should be accessible.")
 
    (rast-t-case "List"
-                #hash{( list . '( #hash{( item . 1 )}
-                                  #hash{( item . 2 )}
-                                  #hash{( item . 3 )} ) )}
+                #hash{( list . (list #hash{( item . 1 )}
+                                     #hash{( item . 2 )}
+                                     #hash{( item . 3 )} ) )}
                 "\"{{#list}}{{item}}{{/list}}\""
                 "\"123\""
                 (list (token 'static "\"" null)
@@ -259,7 +259,7 @@
                 "Lists should be iterated; list items should visit the context stack.")
 
    (rast-t-case "Empty List"
-                #hash{( list . '() )}
+                #hash{( list . () )}
                 "\"{{#list}}Yay lists!{{/list}}\""
                 "\"\""
                 (list (token 'static "\"" null)
@@ -277,7 +277,7 @@
                  {{#bool}}
                  * third
                  {{/bool}}"
-                "* first
+                "                 * first
                  * second
                  * third\n"
                 (list (token 'section 'bool

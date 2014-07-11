@@ -258,39 +258,39 @@ be called with zero or one argument. In presence of lambda with arity
 1, the context is passed.
 
 *** Sections
-Section render blocks of text one or more time, depending on the value
-of the key in the current context. The behavior of the section is
+section render blocks of text one or more time, depending on the value
+of the key in the current context. the behavior of the section is
 determined by the value of the key.
 
-**** Non-Empty List
-When the value is a non-empty list, the block is rendered once
-for each item in the list. The context of the block is set to
+**** non-empty list
+when the value is a non-empty list, the block is rendered once
+for each item in the list. the context of the block is set to
 the current item in the list for each iteration (the context is
 the context of section overriding with the context of the
 current item).
 
-For instance, template:
-#+BEGIN_EXAMPLE
+for instance, template:
+#+begin_example
 {{#upper}} {{#repo}} {{name}} {{surname}}, {{/repo}} {{/upper}}
-#+END_EXAMPLE
+#+end_example
 
-With hash 1:
-#+BEGIN_SRC racket
+with hash 1:
+#+begin_src racket
 #hash{ (upper .
         #hash{ (repo .
                 '( #hash{ (name . "resque") }
                    #hash{ (name . "hub") }
                    #hash{ (name . "rip") } ) )} )
        (surname . "foo") }
-#+END_SRC
+#+end_src
 
-Produce:
-#+BEGIN_EXAMPLE
+produce:
+#+begin_example
 resque foo, hub foo, rip foo,
-#+END_EXAMPLE
+#+end_example
 
-Whereas, whit hash 2:
-#+BEGIN_SRC racket
+whereas, whit hash 2:
+#+begin_src racket
 #hash{ (upper .
         #hash{ (repo .
                 '( #hash{ (name . "resque") }
@@ -298,99 +298,100 @@ Whereas, whit hash 2:
                    #hash{ (name . "rip") }) )
               (surname . "bar")} )
        (surname . "foo") }
-#+END_SRC
+#+end_src
 
-Produce:
-#+BEGIN_EXAMPLE
+produce:
+#+begin_example
 resque bar, hub bar, rip bar,
-#+END_EXAMPLE
+#+end_example
 
-Which is a sort of context overriding.
+which is a sort of context overriding.
 
-/Lambda:/ If the *value of a section variable is a Lambda*, it will be
+/lambda:/ if the *value of a section variable is a lambda*, it will be
 called with the context of the current item in the list on each
-iteration. (To be more expressive, implements the context passing just
-like we've done for [[*Variable][variable]], but override context with context of the
+iteration. (to be more expressive, implements the context passing just
+like we've done for [[*variable][variable]], but override context with context of the
 current item)
 
-Template:
-#+BEGIN_EXAMPLE
-{{#repo}}{{BIGNAME}}{{/repo}}
-#+END_EXAMPLE
+template:
+#+begin_example
+{{#repo}}{{bigname}}{{/repo}}
+#+end_example
 
-Context:
-#+BEGIN_SRC racket
+context:
+#+begin_src racket
 `#hash{ (repo    . '( #hash{ (name . "resque") }
                       #hash{ (name . "hub") }
                       #hash{ (name . "rip") } ))
-        (BIGNAME . ,(λ (self) (string-upcase (rast-ref self 'name)))) }
-#+END_SRC
+        (bigname . ,(λ (self) (string-upcase (rast-ref self 'name)))) }
+#+end_src
 
-Produce:
-#+BEGIN_EXAMPLE
-RESQUE HUB RIP
-#+END_EXAMPLE
+produce:
+#+begin_example
+resque hub rip
+#+end_example
 
-**** Lambdas
-When *the value is a lambda*, it is called with the section's literal
-block of text *un-rendered* as its first argument. The second argument
+**** lambdas
+when *the value is a lambda*, it is called with the section's literal
+block of text *un-rendered* as its first argument. the second argument
 is the rendering function that use the current view as its view
 argument.
 
-Template:
-#+BEGIN_EXAMPLE
-{{#bold}}Hi {{name}}.{{/bold}}
-#+END_EXAMPLE
+template:
+#+begin_example
+{{#bold}}hi {{name}}.{{/bold}}
+#+end_example
 
-Context:
-#+BEGIN_SRC racket
+context:
+#+begin_src racket
 `#hash{
-  (name . "Tater")
+  (name . "tater")
   (bold . ,(λ (text, render)
               (string-append "<b>" (render text) "</b>"))) }
-#+END_SRC
+#+end_src
 
-Produce:
-#+BEGIN_SRC html
-<b>Hi Tater.</b>
-#+END_SRC
+produce:
+#+begin_src html
+<b>hi tater.</b>
+#+end_src
 
-**** Non-false values (bot not a lambda)
-When the value is non-false but not a list, it will be used as the
+**** non-false values (bot not a lambda)
+when the value is non-false but not a list, it will be used as the
 context for a single rendering of the block.
 
-**** False values, Empty lists or Not existing key
-If the ={{#name}}= tag doesn't exist or resolves to a false value or
+**** false values, empty lists or not existing key
+if the ={{#name}}= tag doesn't exist or resolves to a false value or
 empty lists, henceforth the section will not be displayed.
 
-On the other hand, inverted section should be print if the tag
+on the other hand, inverted section should be print if the tag
 resolves to a false value, an empty list or a not existing key.
 
-*** Lambdas
-If the *value of the =name= key is a lambda*, the data is the value
-returned by the method with the given =name=. The lambda should be
-called with zero or one argument. In presence of lambda with arity 1,
+*** lambdas
+if the *value of the =name= key is a lambda*, the data is the value
+returned by the method with the given =name=. the lambda should be
+called with zero or one argument. in presence of lambda with arity 1,
 the context is passed.
 
-Template:
-#+BEGIN_EXAMPLE
+template:
+#+begin_example
 {{foo}}
-#+END_EXAMPLE
+#+end_example
 
-#+BEGIN_SRC racket
+#+begin_src racket
 `#hash{ (foo . ,(λ (self) (string-upcase (rast-ref self 'bar))))
         (bar . "bar") }
-#+END_SRC
+#+end_src
 
-#+BEGIN_EXAMPLE
-BAR
-#+END_EXAMPLE
+#+begin_example
+bar
+#+end_example
 
-If the *value of a section variable is a Lambda*, it will be called
+if the *value of a section variable is a lambda*, it will be called
 with the context of the current item in the list on each iteration.
-(To be more expressive, implements the context passing just like we've
-done for variable, but override context with context of the current
-item)
++(to be more expressive, implements the context passing just like+
++we've done for variable, but override context with context of the+
++current item)+ (don't do that, this could lead to errors, see test
+[[file:interpolation.rkt::258]] Dotted Names - Broken Chain Resolution)
 
 Template:
 #+BEGIN_EXAMPLE
@@ -399,9 +400,9 @@ Template:
 
 Context:
 #+BEGIN_SRC racket
-`#hash{ (repo    . '( #hash{ ("name" . "resque") }
-                        #hash{ ("name" . "hub") }
-                        #hash{ ("name" . "rip") } ))
+`#hash{ (repo     . '( #hash{ (name . "resque") }
+                       #hash{ (name . "hub") }
+                       #hash{ (name . "rip") } ))
         (BIGNAME" . ,(λ (self) (string-upcase (rast-ref self 'name)))) }
 #+END_SRC
 
