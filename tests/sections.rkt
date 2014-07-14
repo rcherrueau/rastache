@@ -96,13 +96,13 @@
                                    (token 'static "." null)))
                       (token 'static "\"" null))
                 "Objects and hashes should be pushed onto the context stack.")
-
+   #;
    (rast-t-case "Deeply Nested Contexts"
-                #hash{( a . #hash{( one   . 1 )} )
-                      ( b . #hash{( two   . 2 )} )
-                      ( c . #hash{( three . 3 )} )
-                      ( d . #hash{( four  . 4 )} )
-                      ( e . #hash{( five  . 5 )} )}
+                #hash{ (a . #hash{ (one   . 1) })
+                       (b . #hash{ (two   . 2) })
+                       (c . #hash{ (three . 3) })
+                       (d . #hash{ (four  . 4) })
+                       (e . #hash{ (five  . 5) }) }
                 "{{#a}}
                  {{one}}
                  {{#b}}
