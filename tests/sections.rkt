@@ -245,9 +245,9 @@
                 "All elements on the context stack should be accessible.")
 
    (rast-t-case "List"
-                #hash{( list . (list #hash{( item . 1 )}
-                                     #hash{( item . 2 )}
-                                     #hash{( item . 3 )} ) )}
+                #hash{ (list . (#hash{ (item . 1) }
+                                #hash{ (item . 2) }
+                                #hash{ (item . 3) })) }
                 "\"{{#list}}{{item}}{{/list}}\""
                 "\"123\""
                 (list (token 'static "\"" null)
@@ -330,7 +330,7 @@
 
    ;; Implicit Iterators
    (rast-t-case "Implicit Iterator - String"
-                #hash{( list . '("a" "b" "c" "d" "e") )}
+                #hash{ (list . ("a" "b" "c" "d" "e")) }
                 "\"{{#list}}({{.}}){{/list}}\""
                 "\"(a)(b)(c)(d)(e)\""
                 (list (token 'static "\"" null)
@@ -342,7 +342,7 @@
                 "Implicit iterators should directly interpolate strings.")
 
    (rast-t-case "Implicit Iterator - Integer"
-                #hash{( list . '(1 2 3 4 5) )}
+                #hash{ (list . (1 2 3 4 5)) }
                 "\"{{#list}}({{.}}){{/list}}\""
                 "\"(1)(2)(3)(4)(5)\""
                 (list (token 'static "\"" null)
@@ -354,7 +354,7 @@
                 "Implicit iterators should cast integers to strings and interpolate.")
 
    (rast-t-case "Implicit Iterator - Decimal"
-                #hash{( list . '(1.10 2.20 3.30 4.40 5.50) )}
+                #hash{ (list . (1.10 2.20 3.30 4.40 5.50) )}
                 "\"{{#list}}({{.}}){{/list}}\""
                 "\"(1.1)(2.2)(3.3)(4.4)(5.5)\""
                 (list (token 'static "\"" null)

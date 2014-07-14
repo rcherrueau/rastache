@@ -99,9 +99,9 @@
                 "Objects and hashes should behave like truthy values.")
 
    (rast-t-case "List"
-                #hash{( data . #hash{( list . '(#hash{( n . 1 )}
-                                                #hash{( n . 2 )}
-                                                #hash{( n . 3 )}) )} )}
+                #hash{ (data . #hash{ (list .  (#hash{ (n . 1) }
+                                                #hash{ (n . 2) }
+                                                #hash{ (n . 3) })) })}
                 "\"{{^list}}{{n}}{{/list}}\""
                 "\"\""
                 (list (token 'static "\"" null)

@@ -29,6 +29,8 @@
                    (xexpr->string string)
                    (regexp-replace-quote "&quot;")))
 
+(define period-name '|.|)
+
 (define (lookup context key) (hash-ref context key #f))
 
 (define (var-lookup context key)
@@ -62,7 +64,12 @@
      [else
       (define the-token (car the-tokens))
       (define sigil (token-sigil the-token))
-      (define content (token-content the-token))
+      (define content (let ([content (token-content the-token)])
+                        ;; If tag name is a periode ".", change it by
+                        ;; 'self key.
+                        (if (eq? content period-name)
+                            'self
+                            content)))
       (define section (token-section the-token))
 
       (case sigil
