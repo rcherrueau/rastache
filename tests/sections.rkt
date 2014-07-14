@@ -336,7 +336,7 @@
                 (list (token 'static "\"" null)
                       (token 'section 'list
                              (list (token 'static "(" null)
-                                   (token 'etag '|.| null)
+                                   (token 'etag 'self null)
                                    (token 'static ")" null)))
                       (token 'static "\"" null))
                 "Implicit iterators should directly interpolate strings.")
@@ -348,7 +348,7 @@
                 (list (token 'static "\"" null)
                       (token 'section 'list
                              (list (token 'static "(" null)
-                                   (token 'etag '|.| null)
+                                   (token 'etag 'self null)
                                    (token 'static ")" null)))
                       (token 'static "\"" null))
                 "Implicit iterators should cast integers to strings and interpolate.")
@@ -360,7 +360,7 @@
                 (list (token 'static "\"" null)
                       (token 'section 'list
                              (list (token 'static "(" null)
-                                   (token 'etag '|.| null)
+                                   (token 'etag 'self null)
                                    (token 'static ")" null)))
                       (token 'static "\"" null))
                 "Implicit iterators should cast decimals to strings and interpolate.")

@@ -29,7 +29,7 @@
                    (xexpr->string string)
                    (regexp-replace-quote "&quot;")))
 
-(define period-name '|.|)
+(define period-name 'self)
 
 (define (lookup context key) (hash-ref context key #f))
 
@@ -64,12 +64,7 @@
      [else
       (define the-token (car the-tokens))
       (define sigil (token-sigil the-token))
-      (define content (let ([content (token-content the-token)])
-                        ;; If tag name is a periode ".", change it by
-                        ;; 'self key.
-                        (if (eq? content period-name)
-                            'self
-                            content)))
+      (define content (token-content the-token))
       (define section (token-section the-token))
 
       (case sigil
@@ -111,8 +106,9 @@
                            ;; Render with the-val context
                            the-val
                            ;; Render with general context overriding
-                           ;; by the-val put at 'self position
-                           (hash-set the-ctx 'self the-val))))
+                           ;; by the-val put at `period-name'
+                           ;; position
+                           (hash-set the-ctx period-name the-val))))
             val)]
           ;; Lambda
           [(procedure? val)
@@ -136,15 +132,15 @@
             (not (and (list? val) (null? val)))
             ;; non-false value / non-unexisting key
             (not (and (boolean? val) (not val))))
-           ;; Render with general context overriding
-           ;; by the-val put at 'self position
+           ;; Render with general context overriding by the-val put at
+           ;; `period-name' position
            (_render section
                     (if (rast-context? val)
                         ;; Render with val context
                         val
-                        ;; Render with general context overriding
-                        ;; by the-val put at 'self position
-                        (hash-set the-ctx 'self val)))])
+                        ;; Render with general context overriding by
+                        ;; the-val put at `period-name' position
+                        (hash-set the-ctx period-name val)))])
          (_render (cdr the-tokens) the-ctx)]
 
         ;; Inverted Section

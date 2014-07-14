@@ -287,7 +287,8 @@
            (cond
             ;; Single periode
             [(equal? value ".")
-             (scan-ahead (token-etag "."))]
+             ;; Periode tag name is changed by 'self.
+             (scan-ahead (token-etag "self"))]
             ;; Simple Etag
             [(equal? (length periods-split) 1)
              (scan-ahead (token-etag (car periods-split)))]
@@ -313,7 +314,8 @@
            (cond
             ;; Single periode
             [(equal? value ".")
-             (scan-ahead (token-utag "."))]
+             ;; Periode tag name is changed by 'self.
+             (scan-ahead (token-etag "self"))]
             ;; Simple Etag
             [(equal? (length periods-split) 1)
              (scan-ahead (token-utag (car periods-split)))]
