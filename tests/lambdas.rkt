@@ -99,10 +99,10 @@
                 "<{{#lambda}}{{x}}{{/lambda}}>"
                 "<yes>"
                 (list (token-static "<")
-                      (token 'section 'lambda
-                             (list (token-static "")
-                                   (token-etag 'x)
-                                   (token-static "")))
+                      (token-sec 'lambda (list (token-static "")
+					       (token-etag 'x)
+					       (token-static ""))
+					       #f)
                       (token-static ">"))
                 "Lambdas used for sections should receive the raw section string.")
 
@@ -115,8 +115,7 @@
                 "<{{#lambda}}-{{/lambda}}>"
                 "<-Earth->"
                 (list (token-static "<")
-                      (token 'section 'lambda
-                             (list (token-static "-")))
+                      (token-sec 'lambda (list (token-static "-")) #f)
                       (token-static ">"))
                 "Lambdas used for sections should have their results parsed.")
 
@@ -133,8 +132,7 @@
                 "<-{{planet}} => Earth->"
                 (list (token-static "")
                       (token-static "<")
-                      (token 'section 'lambda
-                             (list (token-static "-")))
+                      (token-sec 'lambda (list (token-static "-")) #f)
                       (token-static ">"))
                 "Lambdas used for sections should parse with the current delimiters.")
 
@@ -144,11 +142,9 @@
                 "{{#lambda}}FILE{{/lambda}} != {{#lambda}}LINE{{/lambda}}"
                 "__FILE__ != __LINE__"
                 (list (token-static "")
-                      (token 'section 'lambda
-                             (list (token-static "FILE")))
+                      (token-sec 'lambda (list (token-static "FILE")) #f)
                       (token-static " != ")
-                      (token 'section 'lambda
-                             (list (token-static "LINE")))
+                      (token-sec 'lambda (list (token-static "LINE")) #f)
                       (token-static ""))
                 "Lambdas used for sections should not be cached.")
 

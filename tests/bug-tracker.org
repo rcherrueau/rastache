@@ -83,8 +83,7 @@ around it:
             ;  #{{/boolean}}↩
             ;  /"
             (list (token 'static "" null)
-                  (token 'section 'boolean
-                         (list (token 'static "#" null)))
+                  (token-sec 'boolean (list (token 'static "#" null)))
                   (token-static "\n/))
             "Standalone tags should not require a newline to precede them.")
   #+END_SRC

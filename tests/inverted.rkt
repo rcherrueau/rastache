@@ -198,12 +198,12 @@
                 "\"\" == \"\""
                 (list
                  (token-static "\"")
-                 (token 'section 'a
-                        (list
-                         (token 'section 'b
-                                (list
-                                 (token 'inverted-section 'c
-                                        (list (token-static "Not Here")))))))
+                 (token-sec 'a (list
+			        (token-sec 'b (list
+			                (token 'inverted-section 'c
+			                       (list (token-static "Not Here"))))
+					       #f))
+					       #f)
                  (token-static "\" == \"\""))
                 "Dotted names should be valid for Inverted Section tags.")
 
@@ -213,12 +213,12 @@
                 "\"Not Here\" == \"Not Here\""
                 (list
                  (token-static "\"")
-                 (token 'section 'a
-                        (list
-                         (token 'section 'b
-                                (list
-                                 (token 'inverted-section 'c
-                                        (list (token-static "Not Here")))))))
+                 (token-sec 'a (list
+			        (token-sec 'b (list
+			                (token 'inverted-section 'c
+			                       (list (token-static "Not Here"))))
+					       #f))
+					       #f)
                  (token-static "\" == \"Not Here\""))
                 "Dotted names that cannot be resolved should be considered falsey.")
 
@@ -228,12 +228,12 @@
                 "\"Not Here\" == \"Not Here\""
                 (list
                  (token-static "\"")
-                 (token 'section 'a
-                        (list
-                         (token 'section 'b
-                                (list
-                                 (token 'inverted-section 'c
-                                        (list (token-static "Not Here")))))))
+                 (token-sec 'a (list
+			        (token-sec 'b (list
+			                (token 'inverted-section 'c
+			                       (list (token-static "Not Here"))))
+					       #f))
+					       #f)
                  (token-static "\" == \"Not Here\""))
                 "Dotted names that cannot be resolved should be considered falsey.")
 
