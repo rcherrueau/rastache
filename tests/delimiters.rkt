@@ -120,24 +120,24 @@
                 (list
                  (token-static "[")
                  (token-static "\n")
-                 (token 'inverted-section 'section
-                        (list
-                         (token-static "                   ")
-                         (token-etag 'data)
-                         (token-static "")
-                         (token-static "\n")
-                         (token-static "                   |data|")
-                         (token-static "\n")))
+                 (token-inv-sec 'section (list
+					  (token-static "                   ")
+					  (token-etag 'data)
+					  (token-static "")
+					  (token-static "\n")
+					  (token-static "                   |data|")
+					  (token-static "\n"))
+					  #f)
                  (token-static "")
                  (token-static "\n")
-                 (token 'inverted-section 'section
-                        (list
-                         (token-static "                   {{data}}")
-                         (token-static "\n")
-                         (token-static "                   ")
-                         (token-etag 'data)
-                         (token-static "")
-                         (token-static "\n")))
+                 (token-inv-sec 'section (list
+					  (token-static "                   {{data}}")
+					  (token-static "\n")
+					  (token-static "                   ")
+					  (token-etag 'data)
+					  (token-static "")
+					  (token-static "\n"))
+					  #f)
                  (token-static "                 ]"))
                 "Delimiters set outside inverted sections should persist.")
 

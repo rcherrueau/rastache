@@ -153,10 +153,10 @@
                 "<{{^lambda}}{{static}}{{/lambda}}>"
                 "<>"
                 (list (token-static "<")
-                      (token 'inverted-section 'lambda
-                             (list (token-static "")
-                                   (token-etag 'static)
-                                   (token-static "")))
+                      (token-inv-sec 'lambda (list (token-static "")
+					           (token-etag 'static)
+					           (token-static ""))
+						   #f)
                       (token-static ">"))
                 "Lambdas used for inverted sections should be considered truthy.")))
 

@@ -98,9 +98,7 @@ around it:
             ;  /↩
             ;    {{/boolean}}"
             (list (token 'static "^" null)
-                  (token 'inverted-section
-                         'boolean
-                         (list (token 'static "\n/\n" null)))
+                  (token-inv-sec 'boolean (list (token 'static "\n/\n" null)) #f)
                   (token 'static "" null))
             "Standalone tags should not require a newline to follow them.")
   #+END_SRC
@@ -115,10 +113,9 @@ around it:
             ; ^{{/boolean}}↩
             ; /"
             (list (token 'static "" null)
-                  (token 'inverted-section
-                         'boolean
-                         (list (token 'static "^" null)
-                               (token-static "\n)))
+                  (token-inv-sec 'boolean (list (token 'static "^" null)
+					        (token-static "\n))
+#f)
                   (token-static "/))
             "Standalone tags should not require a newline to precede them.")
   #+END_SRC
