@@ -93,7 +93,7 @@
                       (token 'inverted-section
                              'context
                              (list (token-static "Hi ")
-                                   (token 'etag 'name null)
+                                   (token-etag 'name)
                                    (token-static ".")))
                       (token-static "\""))
                 "Objects and hashes should behave like truthy values.")
@@ -108,7 +108,7 @@
                       (token 'inverted-section
                              'list
                              (list (token-static "")
-                                   (token 'etag 'n null)
+                                   (token-etag 'n)
                                    (token-static "")))
                       (token-static "\""))
                 "Lists should behave like truthy values.")
@@ -142,7 +142,7 @@
                         (list (token-static "                 * first")
                               (token-static "\n")))
                  (token-static "                 * ")
-                 (token 'etag 'two null)
+                 (token-etag 'two)
                  (token-static "")
                  (token-static "\n")
                  (token 'inverted-section 'bool

@@ -60,7 +60,7 @@
                 "Hello, {{subject}}!"
                 "Hello, world!"
                 (list (token-static "Hello, ")
-                      (token 'etag 'subject null)
+                      (token-etag 'subject)
                       (token-static "!"))
                 "Unadorned tags should interpolate content into the template.")
 
@@ -69,7 +69,7 @@
                 "These characters should be HTML escaped: {{forbidden}}"
                 "These characters should be HTML escaped: &amp; &quot; &lt; &gt;"
                 (list (token-static "These characters should be HTML escaped: ")
-                      (token 'etag 'forbidden null)
+                      (token-etag 'forbidden)
                       (token-static ""))
                 "Basic interpolation should be HTML escaped.")
 
@@ -96,7 +96,7 @@
                 "\"{{mph}} miles an hour!\""
                 "\"88 miles an hour!\""
                 (list (token-static "\"")
-                      (token 'etag 'mph null)
+                      (token-etag 'mph)
                       (token-static " miles an hour!\""))
                 "Integers should interpolate seamlessly.")
 
@@ -123,7 +123,7 @@
                 "\"{{power}} jiggawatts!\""
                 "\"1.21 jiggawatts!\""
                 (list (token-static "\"")
-                      (token 'etag 'power null)
+                      (token-etag 'power)
                       (token-static " jiggawatts!\""))
                 "Decimals should interpolate seamlessly with proper significance.")
 
@@ -151,7 +151,7 @@
                 "I ({{cannot}}) be seen!"
                 "I () be seen!"
                 (list (token-static "I (")
-                      (token 'etag 'cannot null)
+                      (token-etag 'cannot)
                       (token-static ") be seen!"))
                 "Failed context lookups should default to empty strings.")
 
@@ -179,10 +179,10 @@
                 "\"{{person.name}}\" == \"{{#person}}{{name}}{{/person}}\""
                 "\"Joe\" == \"Joe\""
                 (list (token-static "\"")
-                      (token 'section 'person (list (token 'etag 'name null)))
+                      (token 'section 'person (list (token-etag 'name)))
                       (token-static "\" == \"")
                       (token 'section 'person (list (token-static "")
-                                                    (token 'etag 'name null)
+                                                    (token-etag 'name)
                                                     (token-static "")))
                       (token-static "\""))
                 "Dotted names should be considered a form of shorthand for sections.")
@@ -235,7 +235,7 @@
                                                 (list
                                                  (token 'section 'e
                                                         (list
-                                                         (token 'etag 'name null)))))))))))
+                                                         (token-etag 'name)))))))))))
                  (token-static "\" == \"Phil\""))
                 "Dotted names should be functional to any level of nesting.")
 
@@ -248,7 +248,7 @@
                  (token 'section 'a
                         (list
                          (token 'section 'b
-                                (list (token 'etag 'c null)))))
+                                (list (token-etag 'c)))))
                       (token-static "\" == \"\""))
                 "Any falsey value prior to the last part of the name should yield ''.")
 
@@ -264,7 +264,7 @@
                          (token 'section 'b
                                 (list
                                  (token 'section 'c
-                                        (list (token 'etag 'name null)))))))
+                                        (list (token-etag 'name)))))))
                  (token-static "\" == \"\""))
                 "Each part of a dotted name should resolve only against its parent.")
 
@@ -293,7 +293,7 @@
                                          (token 'section 'd
                                                 (list
                                                  (token 'section 'e
-                                                        (list (token 'etag 'name null)))))))))
+                                                        (list (token-etag 'name)))))))))
                          (token-static "")))
                  (token-static "\" == \"Phil\""))
                 "The first part of a dotted name should resolve as any other name.")
@@ -309,7 +309,7 @@
                         (list
                          (token-static "")
                          (token 'section 'b
-                                (list (token 'etag 'c null)))
+                                (list (token-etag 'c)))
                          (token-static "")))
                  (token-static ""))
                 "Dotted names should be resolved against former resolutions.")
@@ -320,7 +320,7 @@
                 "| {{string}} |"
                 "| --- |"
                 (list (token-static "| ")
-                      (token 'etag 'string null)
+                      (token-etag 'string)
                       (token-static " |"))
                 "Interpolation should not alter surrounding whitespace.")
 
@@ -347,7 +347,7 @@
                 "  {{string}}\n"
                 "  ---\n"
                 (list (token-static "  ")
-                      (token 'etag 'string null)
+                      (token-etag 'string)
                       (token-static "")
                       (token-static "\n"))
                 "Standalone interpolation should not alter surrounding whitespace.")
@@ -378,7 +378,7 @@
                 "|{{ string }}|"
                 "|---|"
                 (list (token-static "|")
-                      (token 'etag 'string null)
+                      (token-etag 'string)
                       (token-static "|"))
                 "Superfluous in-tag whitespace should be ignored.")
 

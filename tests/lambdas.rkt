@@ -40,7 +40,7 @@
                 "Hello, {{lambda}}!"
                 "Hello, world!"
                 (list (token-static "Hello, ")
-                      (token 'etag 'lambda null)
+                      (token-etag 'lambda)
                       (token-static "!"))
                 "A lambda's return value should be interpolated.")
 
@@ -52,7 +52,7 @@
                 "Hello, {{lambda}}!"
                 "Hello, world!"
                 (list (token-static "Hello, ")
-                      (token 'etag 'lambda null)
+                      (token-etag 'lambda)
                       (token-static "!"))
                 "A lambda's return value should be parsed.")
    #;
@@ -72,11 +72,11 @@
                 "{{lambda}} == {{{lambda}}} == {{lambda}}"
                 "1 == 2 == 3"
                 (list (token-static "")
-                      (token 'etag 'lambda null)
+                      (token-etag 'lambda)
                       (token-static " == ")
                       (token 'utag 'lambda null)
                       (token-static " == ")
-                      (token 'etag 'lambda null)
+                      (token-etag 'lambda)
                       (token-static ""))
                 "Interpolated lambdas should not be cached.")
 
@@ -85,7 +85,7 @@
                 "<{{lambda}}{{{lambda}}}"
                 "<&gt;>"
                 (list (token-static "<")
-                      (token 'etag 'lambda null)
+                      (token-etag 'lambda)
                       (token-static "")
                       (token 'utag 'lambda null)
                       (token-static ""))
@@ -101,7 +101,7 @@
                 (list (token-static "<")
                       (token 'section 'lambda
                              (list (token-static "")
-                                   (token 'etag 'x null)
+                                   (token-etag 'x)
                                    (token-static "")))
                       (token-static ">"))
                 "Lambdas used for sections should receive the raw section string.")
@@ -159,7 +159,7 @@
                 (list (token-static "<")
                       (token 'inverted-section 'lambda
                              (list (token-static "")
-                                   (token 'etag 'static  null)
+                                   (token-etag 'static)
                                    (token-static "")))
                       (token-static ">"))
                 "Lambdas used for inverted sections should be considered truthy.")))

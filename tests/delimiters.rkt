@@ -34,7 +34,7 @@
                 "(Hey!)"
                 (list (token-static "")
                       (token-static "(")
-                      (token 'etag 'text null)
+                      (token-etag 'text)
                       (token-static ")"))
                 "The equals sign (used on both sides) should permit delimiter changes.")
 
@@ -44,7 +44,7 @@
                 "(It worked!)"
                 (list (token-static "(")
                       (token-static "")
-                      (token 'etag 'text null)
+                      (token-etag 'text)
                       (token-static ")"))
                 "Characters with special meaning regexen should be valid delimiters.")
 
@@ -76,7 +76,7 @@
                  (token 'section 'section
                         (list
                          (token-static "                   ")
-                         (token 'etag 'data null)
+                         (token-etag 'data)
                          (token-static "")
                          (token-static "\n")
                          (token-static "                   |data|")
@@ -88,7 +88,7 @@
                          (token-static "                   {{data}}")
                          (token-static "\n")
                          (token-static "                   ")
-                         (token 'etag 'data null)
+                         (token-etag 'data)
                          (token-static "")
                          (token-static "\n")))
                  (token-static "                 ]"))
@@ -123,7 +123,7 @@
                  (token 'inverted-section 'section
                         (list
                          (token-static "                   ")
-                         (token 'etag 'data null)
+                         (token-etag 'data)
                          (token-static "")
                          (token-static "\n")
                          (token-static "                   |data|")
@@ -135,7 +135,7 @@
                          (token-static "                   {{data}}")
                          (token-static "\n")
                          (token-static "                   ")
-                         (token 'etag 'data null)
+                         (token-etag 'data)
                          (token-static "")
                          (token-static "\n")))
                  (token-static "                 ]"))

@@ -133,7 +133,7 @@ template:
             "  {{string}}\n"
             "  ---\n"
             (list (token 'static "  " null)
-                  (token 'etag 'string null)
+                  (token-etag 'string)
                   (token-static "\n))
             "Standalone interpolation should not alter surrounding whitespace.")
   #+END_SRC
