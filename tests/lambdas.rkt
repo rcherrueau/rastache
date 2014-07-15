@@ -63,7 +63,7 @@
                 "{{= | | =}}\nHello, (|&lambda|)!"
                 "Hello, (|planet| => world)!"
                 (list (token-static "Hello, (")
-                      (token 'utag 'lambda null)
+                      (token-utag 'lambda)
                       (token-static ")!"))
                 "A lambda's return value should parse with the default delimiters.")
 
@@ -74,7 +74,7 @@
                 (list (token-static "")
                       (token-etag 'lambda)
                       (token-static " == ")
-                      (token 'utag 'lambda null)
+                      (token-utag 'lambda)
                       (token-static " == ")
                       (token-etag 'lambda)
                       (token-static ""))
@@ -87,7 +87,7 @@
                 (list (token-static "<")
                       (token-etag 'lambda)
                       (token-static "")
-                      (token 'utag 'lambda null)
+                      (token-utag 'lambda)
                       (token-static ""))
                 "Lambda results should be appropriately escaped.")
 

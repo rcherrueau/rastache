@@ -144,7 +144,7 @@ template:
             "  {{{string}}}\n"
             "  ---\n"
             (list (token 'static "  " null)
-                  (token 'utag 'string null)
+                  (token-utag 'string)
                   (token-static "\n))
             "Standalone interpolation should not alter surrounding whitespace.")
   #+END_SRC
@@ -155,7 +155,7 @@ template:
             "  {{&string}}\n"
             "  ---\n"
             (list (token 'static "  " null)
-                  (token 'utag 'string null)
+                  (token-utag 'string)
                   (token-static "\n))
             "Standalone interpolation should not alter surrounding whitespace.")
   #+END_SRC

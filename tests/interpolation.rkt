@@ -78,7 +78,7 @@
                 "These characters should not be HTML escaped: {{{forbidden}}}"
                 "These characters should not be HTML escaped: & \" < >"
                 (list (token-static "These characters should not be HTML escaped: ")
-                      (token 'utag 'forbidden null)
+                      (token-utag 'forbidden)
                       (token-static ""))
                 "Triple mustaches should interpolate without HTML escaping.")
 
@@ -87,7 +87,7 @@
                 "These characters should not be HTML escaped: {{&forbidden}}"
                 "These characters should not be HTML escaped: & \" < >"
                 (list (token-static "These characters should not be HTML escaped: ")
-                      (token 'utag 'forbidden null)
+                      (token-utag 'forbidden)
                       (token-static ""))
                 "Ampersand should interpolate without HTML escaping.")
 
@@ -105,7 +105,7 @@
                 "\"{{{mph}}} miles an hour!\""
                 "\"88 miles an hour!\""
                 (list (token-static "\"")
-                      (token 'utag 'mph null)
+                      (token-utag 'mph)
                       (token-static " miles an hour!\""))
                 "Integers should interpolate seamlessly.")
 
@@ -114,7 +114,7 @@
                 "\"{{&mph}} miles an hour!\""
                 "\"88 miles an hour!\""
                 (list (token-static "\"")
-                      (token 'utag 'mph null)
+                      (token-utag 'mph)
                       (token-static " miles an hour!\""))
                 "Integers should interpolate seamlessly.")
 
@@ -132,7 +132,7 @@
                 "\"{{{power}}} jiggawatts!\""
                 "\"1.21 jiggawatts!\""
                 (list (token-static "\"")
-                      (token 'utag 'power null)
+                      (token-utag 'power)
                       (token-static " jiggawatts!\""))
                 "Decimals should interpolate seamlessly with proper significance.")
 
@@ -141,7 +141,7 @@
                 "\"{{&power}} jiggawatts!\""
                 "\"1.21 jiggawatts!\""
                 (list (token-static "\"")
-                      (token 'utag 'power null)
+                      (token-utag 'power)
                       (token-static " jiggawatts!\""))
                 "Decimals should interpolate seamlessly with proper significance.")
 
@@ -160,7 +160,7 @@
                 "I ({{{cannot}}}) be seen!"
                 "I () be seen!"
                 (list (token-static "I (")
-                      (token 'utag 'cannot null)
+                      (token-utag 'cannot)
                       (token-static ") be seen!"))
                 "Failed context lookups should default to empty strings.")
 
@@ -169,7 +169,7 @@
                 "I ({{&cannot}}) be seen!"
                 "I () be seen!"
                 (list (token-static "I (")
-                      (token 'utag 'cannot null)
+                      (token-utag 'cannot)
                       (token-static ") be seen!"))
                 "Failed context lookups should default to empty strings.")
 
@@ -193,10 +193,10 @@
                 "\"{{{person.name}}}\" == \"{{#person}}{{{name}}}{{/person}}\""
                 "\"Joe\" == \"Joe\""
                 (list (token-static "\"")
-                      (token 'section 'person (list (token 'utag 'name null)))
+                      (token 'section 'person (list (token-utag 'name)))
                       (token-static "\" == \"")
                       (token 'section 'person (list (token-static "")
-                                                    (token 'utag 'name null)
+                                                    (token-utag 'name)
                                                     (token-static "")))
                       (token-static "\""))
                 "Dotted names should be considered a form of shorthand for sections.")
@@ -206,10 +206,10 @@
                 "\"{{&person.name}}\" == \"{{#person}}{{&name}}{{/person}}\""
                 "\"Joe\" == \"Joe\""
                 (list (token-static "\"")
-                      (token 'section 'person (list (token 'utag 'name null)))
+                      (token 'section 'person (list (token-utag 'name)))
                       (token-static "\" == \"")
                       (token 'section 'person (list (token-static "")
-                                                    (token 'utag 'name null)
+                                                    (token-utag 'name)
                                                     (token-static "")))
                       (token-static "\""))
                 "Dotted names should be considered a form of shorthand for sections.")
@@ -329,7 +329,7 @@
                 "| {{{string}}} |"
                 "| --- |"
                 (list (token-static "| ")
-                      (token 'utag 'string null)
+                      (token-utag 'string)
                       (token-static " |"))
                 "Interpolation should not alter surrounding whitespace.")
 
@@ -338,7 +338,7 @@
                 "| {{&string}} |"
                 "| --- |"
                 (list (token-static "| ")
-                      (token 'utag 'string null)
+                      (token-utag 'string)
                       (token-static " |"))
                 "Interpolation should not alter surrounding whitespace.")
 
@@ -357,7 +357,7 @@
                 "  {{{string}}}\n"
                 "  ---\n"
                 (list (token-static "  ")
-                      (token 'utag 'string null)
+                      (token-utag 'string)
                       (token-static "")
                       (token-static "\n"))
                 "Standalone interpolation should not alter surrounding whitespace.")
@@ -367,7 +367,7 @@
                 "  {{&string}}\n"
                 "  ---\n"
                 (list (token-static "  ")
-                      (token 'utag 'string null)
+                      (token-utag 'string)
                       (token-static "")
                       (token-static "\n"))
                 "Standalone interpolation should not alter surrounding whitespace.")
@@ -387,7 +387,7 @@
                 "|{{{ string }}}|"
                 "|---|"
                 (list (token-static "|")
-                      (token 'utag 'string null)
+                      (token-utag 'string)
                       (token-static "|"))
                 "Superfluous in-tag whitespace should be ignored.")
 
@@ -396,7 +396,7 @@
                 "|{{& string }}|"
                 "|---|"
                 (list (token-static "|")
-                      (token 'utag 'string null)
+                      (token-utag 'string)
                       (token-static "|"))
                 "Superfluous in-tag whitespace should be ignored.")))
 
