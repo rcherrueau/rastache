@@ -100,9 +100,9 @@
                 "<yes>"
                 (list (token-static "<")
                       (token-sec 'lambda (list (token-static "")
-					       (token-etag 'x)
-					       (token-static ""))
-					       #f)
+                                               (token-etag 'x)
+                                               (token-static ""))
+                                 #f)
                       (token-static ">"))
                 "Lambdas used for sections should receive the raw section string.")
 
@@ -154,9 +154,9 @@
                 "<>"
                 (list (token-static "<")
                       (token-inv-sec 'lambda (list (token-static "")
-					           (token-etag 'static)
-					           (token-static ""))
-						   #f)
+                                                   (token-etag 'static)
+                                                   (token-static ""))
+                                     #f)
                       (token-static ">"))
                 "Lambdas used for inverted sections should be considered truthy.")))
 

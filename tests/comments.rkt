@@ -74,10 +74,10 @@
                 #hash()
                 "|\r\n{{! Standalone Comment }}\r\n|"
                 "|\r\n|"
-                ; Template should be considered as:
-                ; "|↩
-                ;  {{! Standalone Comment }}
-                ;  |"
+                                        ; Template should be considered as:
+                                        ; "|↩
+                                        ;  {{! Standalone Comment }}
+                                        ;  |"
                 (list (token-static "|\r")
                       (token-static "\n")
                       (token-static "|"))
@@ -87,9 +87,9 @@
                 #hash()
                 "  {{! I'm Still Standalone }}\n!"
                 "!"
-                ; Template should be considered as:
-                ; "  {{! Standalone Comment }}
-                ;  !"
+                                        ; Template should be considered as:
+                                        ; "  {{! Standalone Comment }}
+                                        ;  !"
                 (list (token-static "!"))
                 "Standalone tags should not require a newline to precede them.")
 
@@ -97,9 +97,9 @@
                 #hash()
                 "!\n  {{! I'm Still Standalone }}"
                 "!\n"
-                ; Template should be considered as:
-                ; "!↩
-                ;    {{! Standalone Comment }}"
+                                        ; Template should be considered as:
+                                        ; "!↩
+                                        ;    {{! Standalone Comment }}"
                 (list (token-static "!")
                       (token-static "\n"))
                 "Standalone tags should not require a newline to follow them.")

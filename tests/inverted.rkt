@@ -87,9 +87,8 @@
                 "\"\""
                 (list (token-static "\"")
                       (token-inv-sec 'context (list (token-static "Hi ")
-					            (token-etag 'name)
-					            (token-static "."))
-						    #f)
+                                                    (token-etag 'name)
+                                                    (token-static ".")) #f)
                       (token-static "\""))
                 "Objects and hashes should behave like truthy values.")
 
@@ -101,9 +100,8 @@
                 "\"\""
                 (list (token-static "\"")
                       (token-inv-sec 'list (list (token-static "")
-					         (token-etag 'n)
-					         (token-static ""))
-						 #f)
+                                                 (token-etag 'n)
+                                                 (token-static "")) #f)
                       (token-static "\""))
                 "Lists should behave like truthy values.")
 
@@ -131,15 +129,13 @@
 "
                 (list
                  (token-inv-sec 'bool (list (token-static "                 * first")
-				            (token-static "\n"))
-					    #f)
+                                            (token-static "\n")) #f)
                  (token-static "                 * ")
                  (token-etag 'two)
                  (token-static "")
                  (token-static "\n")
                  (token-inv-sec 'bool (list (token-static "                 * third")
-				            (token-static "\n"))
-					    #f))
+                                            (token-static "\n")) #f))
                 "Multiple inverted sections per template should be permitted.")
 
    (rast-t-case "Nested (Falsey)"
@@ -148,9 +144,8 @@
                 "| A B C D E |"
                 (list (token-static "| A ")
                       (token-inv-sec 'bool (list (token-static "B ")
-					         (token-inv-sec 'bool (list (token-static "C")) #f)
-					         (token-static " D"))
-						 #f)
+                                                 (token-inv-sec 'bool (list (token-static "C")) #f)
+                                                 (token-static " D")) #f)
                       (token-static " E |"))
                 "Nested falsey sections should have their contents rendered.")
 
@@ -160,9 +155,8 @@
                 "| A  E |"
                 (list (token-static "| A ")
                       (token-inv-sec 'bool (list (token-static "B ")
-					         (token-inv-sec 'bool (list (token-static "C")) #f)
-					         (token-static " D"))
-						 #f)
+                                                 (token-inv-sec 'bool (list (token-static "C")) #f)
+                                                 (token-static " D")) #f)
                       (token-static " E |"))
                 "Nested truthy sections should be omitted.")
 
@@ -183,10 +177,10 @@
                 (list
                  (token-static "\"")
                  (token-sec 'a (list
-			        (token-sec 'b (list
-			                (token-inv-sec 'c (list (token-static "Not Here")) #f))
-					       #f))
-					       #f)
+                                (token-sec 'b (list
+                                        (token-inv-sec 'c (list (token-static "Not Here")) #f))
+                                           #f))
+                            #f)
                  (token-static "\" == \"\""))
                 "Dotted names should be valid for Inverted Section tags.")
 
@@ -197,10 +191,10 @@
                 (list
                  (token-static "\"")
                  (token-sec 'a (list
-			        (token-sec 'b (list
-			                (token-inv-sec 'c (list (token-static "Not Here")) #f))
-					       #f))
-					       #f)
+                                (token-sec 'b (list
+                                        (token-inv-sec 'c (list (token-static "Not Here")) #f))
+                                           #f))
+                            #f)
                  (token-static "\" == \"Not Here\""))
                 "Dotted names that cannot be resolved should be considered falsey.")
 
@@ -211,10 +205,10 @@
                 (list
                  (token-static "\"")
                  (token-sec 'a (list
-			        (token-sec 'b (list
-			                (token-inv-sec 'c (list (token-static "Not Here")) #f))
-					       #f))
-					       #f)
+                                (token-sec 'b (list
+                                        (token-inv-sec 'c (list (token-static "Not Here")) #f))
+                                           #f))
+                            #f)
                  (token-static "\" == \"Not Here\""))
                 "Dotted names that cannot be resolved should be considered falsey.")
 
@@ -235,10 +229,9 @@
                 " |  \n  | \n"
                 (list (token-static " | ")
                       (token-inv-sec 'boolean (list (token-static " ")
-					            (token-static "")
-					            (token-static "\n")
-					            (token-static " "))
-						    #f)
+                                                    (token-static "")
+                                                    (token-static "\n")
+                                                    (token-static " ")) #f)
                       (token-static " | ")
                       (token-static "\n"))
                 "Inverted should not alter internal whitespace.")
@@ -271,8 +264,7 @@
                  (token-static "| This Is")
                  (token-static "\n")
                  (token-inv-sec 'boolean (list (token-static "                 |")
-					       (token-static "\n"))
-					       #f)
+                                               (token-static "\n")) #f)
                  (token-static "                 | A Line"))
                 "Standalone lines should be removed from the template.")
 
@@ -290,8 +282,7 @@
                  (token-static "| This Is")
                  (token-static "\n")
                  (token-inv-sec 'boolean (list (token-static "                 |")
-					       (token-static "\n"))
-					       #f)
+                                               (token-static "\n")) #f)
                  (token-static "                 | A Line"))
                 "Standalone indented lines should be removed from the template.")
 
@@ -334,10 +325,9 @@
                 ;    {{/boolean}}"
                 (list (token-static "^")
                       (token-inv-sec 'boolean (list (token-static "")
-					            (token-static "\n")
-					            (token-static "/")
-					            (token-static "\n"))
-						    #f))
+                                                    (token-static "\n")
+                                                    (token-static "/")
+                                                    (token-static "\n")) #f))
                 "Standalone tags should not require a newline to follow them.")
 
    ;; Whitespace Insensitivity
