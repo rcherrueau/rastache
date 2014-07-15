@@ -32,20 +32,20 @@
                 #hash{(text . "Hey!")}
                 "{{=<% %>=}}(<%text%>)"
                 "(Hey!)"
-                (list (token 'static "" null)
-                      (token 'static "(" null)
+                (list (token-static "")
+                      (token-static "(")
                       (token 'etag 'text null)
-                      (token 'static ")" null))
+                      (token-static ")"))
                 "The equals sign (used on both sides) should permit delimiter changes.")
 
    (rast-t-case "Special Characters"
                 #hash{(text . "It worked!")}
                 "({{=[ ]=}}[text])"
                 "(It worked!)"
-                (list (token 'static "(" null)
-                      (token 'static "" null)
+                (list (token-static "(")
+                      (token-static "")
                       (token 'etag 'text null)
-                      (token 'static ")" null))
+                      (token-static ")"))
                 "Characters with special meaning regexen should be valid delimiters.")
 
    (rast-t-case "Sections"
@@ -71,27 +71,27 @@
                    I got interpolated.
                  ]"
                 (list
-                 (token 'static "[" null)
-                 (token 'static "\n" null)
+                 (token-static "[")
+                 (token-static "\n")
                  (token 'section 'section
                         (list
-                         (token 'static "                   " null)
+                         (token-static "                   ")
                          (token 'etag 'data null)
-                         (token 'static "" null)
-                         (token 'static "\n" null)
-                         (token 'static "                   |data|" null)
-                         (token 'static "\n" null)))
-                 (token 'static "" null)
-                 (token 'static "\n" null)
+                         (token-static "")
+                         (token-static "\n")
+                         (token-static "                   |data|")
+                         (token-static "\n")))
+                 (token-static "")
+                 (token-static "\n")
                  (token 'section 'section
                         (list
-                         (token 'static "                   {{data}}" null)
-                         (token 'static "\n" null)
-                         (token 'static "                   " null)
+                         (token-static "                   {{data}}")
+                         (token-static "\n")
+                         (token-static "                   ")
                          (token 'etag 'data null)
-                         (token 'static "" null)
-                         (token 'static "\n" null)))
-                 (token 'static "                 ]" null))
+                         (token-static "")
+                         (token-static "\n")))
+                 (token-static "                 ]"))
                 "Delimiters set outside sections should persist.")
 
 
@@ -118,27 +118,27 @@
                    I got interpolated.
                  ]"
                 (list
-                 (token 'static "[" null)
-                 (token 'static "\n" null)
+                 (token-static "[")
+                 (token-static "\n")
                  (token 'inverted-section 'section
                         (list
-                         (token 'static "                   " null)
+                         (token-static "                   ")
                          (token 'etag 'data null)
-                         (token 'static "" null)
-                         (token 'static "\n" null)
-                         (token 'static "                   |data|" null)
-                         (token 'static "\n" null)))
-                 (token 'static "" null)
-                 (token 'static "\n" null)
+                         (token-static "")
+                         (token-static "\n")
+                         (token-static "                   |data|")
+                         (token-static "\n")))
+                 (token-static "")
+                 (token-static "\n")
                  (token 'inverted-section 'section
                         (list
-                         (token 'static "                   {{data}}" null)
-                         (token 'static "\n" null)
-                         (token 'static "                   " null)
+                         (token-static "                   {{data}}")
+                         (token-static "\n")
+                         (token-static "                   ")
                          (token 'etag 'data null)
-                         (token 'static "" null)
-                         (token 'static "\n" null)))
-                 (token 'static "                 ]" null))
+                         (token-static "")
+                         (token-static "\n")))
+                 (token-static "                 ]"))
                 "Delimiters set outside inverted sections should persist.")
 
    ;; TODO partials
@@ -148,17 +148,17 @@
                 #hash()
                 "| {{=@ @=}} |"
                 "|  |"
-                (list (token 'static "| " null)
-                      (token 'static " |" null))
+                (list (token-static "| ")
+                      (token-static " |"))
                 "Surrounding whitespace should be left untouched.")
 
    (rast-t-case "Outlying Whitespace (Inline)"
                 #hash()
                 " | {{=@ @=}}\n"
                 " | \n"
-                (list (token 'static " | " null)
-                      (token 'static "" null)
-                      (token 'static "\n" null))
+                (list (token-static " | ")
+                      (token-static "")
+                      (token-static "\n"))
                 "Whitespace should be left untouched.")
 
    (rast-t-case "Standalone Tag"
@@ -168,9 +168,9 @@
                  End."
                 "Begin.
                  End."
-               (list (token 'static "Begin." null)
-                     (token 'static "\n" null)
-                     (token 'static "                 End." null))
+               (list (token-static "Begin.")
+                     (token-static "\n")
+                     (token-static "                 End."))
                "Standalone lines should be removed from the template.")
 
    (rast-t-case "Indented Standalone Tag"
@@ -180,9 +180,9 @@
                  End."
                 "Begin.
                  End."
-                (list (token 'static "Begin." null)
-                      (token 'static "\n" null)
-                      (token 'static "                 End." null))
+                (list (token-static "Begin.")
+                      (token-static "\n")
+                      (token-static "                 End."))
                 "Indented standalone lines should be removed from the template.")
 
    (rast-t-case "Standalone Line Endings"
@@ -193,9 +193,9 @@
                 ; "|↩
                 ;  {{=@ @=}}
                 ;  |"
-                (list (token 'static "|\r" null)
-                      (token 'static "\n" null)
-                      (token 'static "|" null))
+                (list (token-static "|\r")
+                      (token-static "\n")
+                      (token-static "|"))
                 "'\r\n' should be considered a newline for standalone tags.")
 
    (rast-t-case "Standalone Without Previous Line"
@@ -205,15 +205,15 @@
                 ; Template should be considered as:
                 ; "  {{=@ @=}}
                 ;  ="
-                (list (token 'static "=" null))
+                (list (token-static "="))
                 "Standalone tags should not require a newline to precede them.")
 
    (rast-t-case "Standalone Without Newline"
                 #hash()
                 "=\n  {{=@ @=}}"
                 "=\n"
-                (list (token 'static "=" null)
-                      (token 'static "\n" null))
+                (list (token-static "=")
+                      (token-static "\n"))
                 "Standalone tags should not require a newline to follow them.")
 
    ;; Whitespace Insensitivity
@@ -221,8 +221,8 @@
                 #hash()
                 "|{{= @   @ =}}|"
                 "||"
-                (list (token 'static "|" null)
-                      (token 'static "|" null))
+                (list (token-static "|")
+                      (token-static "|"))
                 "Superfluous in-tag whitespace should be ignored.")))
 
 (run-tests delimiters-tests)

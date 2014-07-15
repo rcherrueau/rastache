@@ -16,7 +16,7 @@ Standalone tag should be removed from the template:
            "Begin.
             End."
            (list (token 'static "Begin.\n" null)
-                 (token 'static "                 End."  null))
+                 (token-static "                 End))
            "All standalone comment lines should be removed.")
   #+END_SRC
 - [[file:comments.rkt::58]]
@@ -29,7 +29,7 @@ Standalone tag should be removed from the template:
               "Begin.
                End."
               (list (token 'static "Begin.\n" null)
-                    (token 'static "                 End."  null))
+                    (token-static "                 End))
               "All standalone comment lines should be removed.")
   #+END_SRC
 - [[file:comments.rkt::102]]
@@ -44,7 +44,7 @@ Standalone tag should be removed from the template:
               "Begin.
                End."
               (list (token 'static "Begin.\n" null)
-                    (token 'static "                 End."  null))
+                    (token-static "                 End))
               "All standalone comment lines should be removed.")
   #+END_SRC
 
@@ -56,8 +56,8 @@ around it:
             #hash()
             "  12 {{! 34 }}\n"
             "  12 \n"
-            (list (token 'static "  12 " null)
-                  (token 'static "\n" null))
+            (list (token-static "  12)
+                  (token-static "\n))
             "Inline comments should not strip whitespace")
   #+END_SRC
 - [[file:sections.rkt::492]]
@@ -85,7 +85,7 @@ around it:
             (list (token 'static "" null)
                   (token 'section 'boolean
                          (list (token 'static "#" null)))
-                  (token 'static "\n/" null))
+                  (token-static "\n/))
             "Standalone tags should not require a newline to precede them.")
   #+END_SRC
 - [[file:inverted.rkt::335]]
@@ -119,8 +119,8 @@ around it:
                   (token 'inverted-section
                          'boolean
                          (list (token 'static "^" null)
-                               (token 'static "\n" null)))
-                  (token 'static "/" null))
+                               (token-static "\n)))
+                  (token-static "/))
             "Standalone tags should not require a newline to precede them.")
   #+END_SRC
 
@@ -134,7 +134,7 @@ template:
             "  ---\n"
             (list (token 'static "  " null)
                   (token 'etag 'string null)
-                  (token 'static "\n" null))
+                  (token-static "\n))
             "Standalone interpolation should not alter surrounding whitespace.")
   #+END_SRC
 - [[file:interpolation.rkt::318]]
@@ -145,7 +145,7 @@ template:
             "  ---\n"
             (list (token 'static "  " null)
                   (token 'utag 'string null)
-                  (token 'static "\n" null))
+                  (token-static "\n))
             "Standalone interpolation should not alter surrounding whitespace.")
   #+END_SRC
 - [[file:interpolation.rkt::327]]
@@ -156,7 +156,7 @@ template:
             "  ---\n"
             (list (token 'static "  " null)
                   (token 'utag 'string null)
-                  (token 'static "\n" null))
+                  (token-static "\n))
             "Standalone interpolation should not alter surrounding whitespace.")
   #+END_SRC
 

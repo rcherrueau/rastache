@@ -67,35 +67,35 @@
                 #hash{( boolean . #f )}
                 "\"{{^boolean}}This should be rendered.{{/boolean}}\""
                 "\"This should be rendered.\""
-                (list (token 'static "\"" null)
+                (list (token-static "\"")
                       (token 'inverted-section
                              'boolean
-                             (list (token 'static "This should be rendered." null)))
-                      (token 'static "\"" null))
+                             (list (token-static "This should be rendered.")))
+                      (token-static "\""))
                 "Falsey sections should have their contents rendered.")
 
    (rast-t-case "Truthy"
                 #hash{( boolean . #t )}
                 "\"{{^boolean}}This should not be rendered.{{/boolean}}\""
                 "\"\""
-                (list (token 'static "\"" null)
+                (list (token-static "\"")
                       (token 'inverted-section
                              'boolean
-                             (list (token 'static "This should not be rendered." null)))
-                      (token 'static "\"" null))
+                             (list (token-static "This should not be rendered.")))
+                      (token-static "\""))
                 "Truthy sections should have their contents omitted.")
 
    (rast-t-case "Context"
                 #hash{( context . #hash{( name . "Joe" )} )}
                 "\"{{^context}}Hi {{name}}.{{/context}}\""
                 "\"\""
-                (list (token 'static "\"" null)
+                (list (token-static "\"")
                       (token 'inverted-section
                              'context
-                             (list (token 'static "Hi " null)
+                             (list (token-static "Hi ")
                                    (token 'etag 'name null)
-                                   (token 'static "." null)))
-                      (token 'static "\"" null))
+                                   (token-static ".")))
+                      (token-static "\""))
                 "Objects and hashes should behave like truthy values.")
 
    (rast-t-case "List"
@@ -104,24 +104,24 @@
                                                 #hash{ (n . 3) })) })}
                 "\"{{^list}}{{n}}{{/list}}\""
                 "\"\""
-                (list (token 'static "\"" null)
+                (list (token-static "\"")
                       (token 'inverted-section
                              'list
-                             (list (token 'static "" null)
+                             (list (token-static "")
                                    (token 'etag 'n null)
-                                   (token 'static "" null)))
-                      (token 'static "\"" null))
+                                   (token-static "")))
+                      (token-static "\""))
                 "Lists should behave like truthy values.")
 
    (rast-t-case "Empty List"
                 #hash{( list . () )}
                 "\"{{^list}}Yay lists!{{/list}}\""
                 "\"Yay lists!\""
-                (list (token 'static "\"" null)
+                (list (token-static "\"")
                       (token 'inverted-section
                              'list
-                             (list (token 'static "Yay lists!" null)))
-                      (token 'static "\"" null))
+                             (list (token-static "Yay lists!")))
+                      (token-static "\""))
                 "Empty lists should behave like falsey values.")
 
    (rast-t-case "Doubled"
@@ -139,56 +139,56 @@
 "
                 (list
                  (token 'inverted-section 'bool
-                        (list (token 'static "                 * first" null)
-                              (token 'static "\n" null)))
-                 (token 'static "                 * " null)
+                        (list (token-static "                 * first")
+                              (token-static "\n")))
+                 (token-static "                 * ")
                  (token 'etag 'two null)
-                 (token 'static "" null)
-                 (token 'static "\n" null)
+                 (token-static "")
+                 (token-static "\n")
                  (token 'inverted-section 'bool
-                        (list (token 'static "                 * third" null)
-                              (token 'static "\n" null))))
+                        (list (token-static "                 * third")
+                              (token-static "\n"))))
                 "Multiple inverted sections per template should be permitted.")
 
    (rast-t-case "Nested (Falsey)"
                 #hash{( bool . #f )}
                 "| A {{^bool}}B {{^bool}}C{{/bool}} D{{/bool}} E |"
                 "| A B C D E |"
-                (list (token 'static "| A " null)
+                (list (token-static "| A ")
                       (token 'inverted-section
                              'bool
-                             (list (token 'static "B " null)
+                             (list (token-static "B ")
                                    (token 'inverted-section
                                           'bool
-                                          (list (token 'static "C" null)))
-                                   (token 'static " D" null)))
-                      (token 'static " E |" null))
+                                          (list (token-static "C")))
+                                   (token-static " D")))
+                      (token-static " E |"))
                 "Nested falsey sections should have their contents rendered.")
 
    (rast-t-case "Nested (Truthy)"
                 #hash{( bool . #t )}
                 "| A {{^bool}}B {{^bool}}C{{/bool}} D{{/bool}} E |"
                 "| A  E |"
-                (list (token 'static "| A " null)
+                (list (token-static "| A ")
                       (token 'inverted-section
                              'bool
-                             (list (token 'static "B " null)
+                             (list (token-static "B ")
                                    (token 'inverted-section
                                           'bool
-                                          (list (token 'static "C" null)))
-                                   (token 'static " D" null)))
-                      (token 'static " E |" null))
+                                          (list (token-static "C")))
+                                   (token-static " D")))
+                      (token-static " E |"))
                 "Nested truthy sections should be omitted.")
 
    (rast-t-case "Context Misses"
                 #hash()
                 "[{{^missing}}Cannot find key 'missing'!{{/missing}}]"
                 "[Cannot find key 'missing'!]"
-                (list (token 'static "[" null)
+                (list (token-static "[")
                       (token 'inverted-section
                              'missing
-                             (list (token 'static "Cannot find key 'missing'!" null)))
-                      (token 'static "]" null))
+                             (list (token-static "Cannot find key 'missing'!")))
+                      (token-static "]"))
                 "Failed context lookups should be considered falsey.")
 
    ;; Dotted Names
@@ -197,14 +197,14 @@
                 "\"{{^a.b.c}}Not Here{{/a.b.c}}\" == \"\""
                 "\"\" == \"\""
                 (list
-                 (token 'static "\"" null)
+                 (token-static "\"")
                  (token 'section 'a
                         (list
                          (token 'section 'b
                                 (list
                                  (token 'inverted-section 'c
-                                        (list (token 'static "Not Here" null)))))))
-                 (token 'static "\" == \"\"" null))
+                                        (list (token-static "Not Here")))))))
+                 (token-static "\" == \"\""))
                 "Dotted names should be valid for Inverted Section tags.")
 
    (rast-t-case "Dotted Names - Falsey"
@@ -212,14 +212,14 @@
                 "\"{{^a.b.c}}Not Here{{/a.b.c}}\" == \"Not Here\""
                 "\"Not Here\" == \"Not Here\""
                 (list
-                 (token 'static "\"" null)
+                 (token-static "\"")
                  (token 'section 'a
                         (list
                          (token 'section 'b
                                 (list
                                  (token 'inverted-section 'c
-                                        (list (token 'static "Not Here" null)))))))
-                 (token 'static "\" == \"Not Here\"" null))
+                                        (list (token-static "Not Here")))))))
+                 (token-static "\" == \"Not Here\""))
                 "Dotted names that cannot be resolved should be considered falsey.")
 
    (rast-t-case "Dotted Names - Broken Chains"
@@ -227,14 +227,14 @@
                 "\"{{^a.b.c}}Not Here{{/a.b.c}}\" == \"Not Here\""
                 "\"Not Here\" == \"Not Here\""
                 (list
-                 (token 'static "\"" null)
+                 (token-static "\"")
                  (token 'section 'a
                         (list
                          (token 'section 'b
                                 (list
                                  (token 'inverted-section 'c
-                                        (list (token 'static "Not Here" null)))))))
-                 (token 'static "\" == \"Not Here\"" null))
+                                        (list (token-static "Not Here")))))))
+                 (token-static "\" == \"Not Here\""))
                 "Dotted names that cannot be resolved should be considered falsey.")
 
    ;; Whitespace Sensitivity
@@ -242,42 +242,42 @@
                 #hash{( boolean . #f )}
                 " | {{^boolean}}\t|\t{{/boolean}} | \n"
                 " | \t|\t | \n"
-                (list (token 'static " | " null)
+                (list (token-static " | ")
                       (token 'inverted-section
                              'boolean
-                             (list (token 'static "\t|\t" null)))
-                      (token 'static " | " null)
-                      (token 'static "\n" null))
+                             (list (token-static "\t|\t")))
+                      (token-static " | ")
+                      (token-static "\n"))
                 "Inverted sections should not alter surrounding whitespace.")
 
    (rast-t-case "Internal Whitespace"
                 #hash{( boolean . #f )}
                 " | {{^boolean}} {{! Important Whitespace }}\n {{/boolean}} | \n"
                 " |  \n  | \n"
-                (list (token 'static " | " null)
+                (list (token-static " | ")
                       (token 'inverted-section 'boolean
-                             (list (token 'static " " null)
-                                   (token 'static "" null)
-                                   (token 'static "\n" null)
-                                   (token 'static " " null)))
-                      (token 'static " | " null)
-                      (token 'static "\n" null))
+                             (list (token-static " ")
+                                   (token-static "")
+                                   (token-static "\n")
+                                   (token-static " ")))
+                      (token-static " | ")
+                      (token-static "\n"))
                 "Inverted should not alter internal whitespace.")
 
    (rast-t-case "Indented Inline Sections"
                 #hash{( boolean . #f )}
                 " {{^boolean}}NO{{/boolean}}\n {{^boolean}}WAY{{/boolean}}\n"
                 " NO\n WAY\n"
-                (list (token 'static " " null)
+                (list (token-static " ")
                       (token 'inverted-section 'boolean
-                             (list (token 'static "NO" null)))
-                      (token 'static "" null)
-                      (token 'static "\n" null)
-                      (token 'static " " null)
+                             (list (token-static "NO")))
+                      (token-static "")
+                      (token-static "\n")
+                      (token-static " ")
                       (token 'inverted-section 'boolean
-                             (list (token 'static "WAY" null)))
-                      (token 'static "" null)
-                      (token 'static "\n" null))
+                             (list (token-static "WAY")))
+                      (token-static "")
+                      (token-static "\n"))
                 "Single-line sections should not alter surrounding whitespace.")
 
    (rast-t-case "Standalone Lines"
@@ -291,12 +291,12 @@
                  |
                  | A Line"
                 (list
-                 (token 'static "| This Is" null)
-                 (token 'static "\n" null)
+                 (token-static "| This Is")
+                 (token-static "\n")
                  (token 'inverted-section 'boolean
-                        (list (token 'static "                 |" null)
-                              (token 'static "\n" null)))
-                 (token 'static "                 | A Line" null))
+                        (list (token-static "                 |")
+                              (token-static "\n")))
+                 (token-static "                 | A Line"))
                 "Standalone lines should be removed from the template.")
 
    (rast-t-case "Standalone Indented Lines"
@@ -310,12 +310,12 @@
                  |
                  | A Line"
                 (list
-                 (token 'static "| This Is" null)
-                 (token 'static "\n" null)
+                 (token-static "| This Is")
+                 (token-static "\n")
                  (token 'inverted-section 'boolean
-                        (list (token 'static "                 |" null)
-                              (token 'static "\n" null)))
-                 (token 'static "                 | A Line" null))
+                        (list (token-static "                 |")
+                              (token-static "\n")))
+                 (token-static "                 | A Line"))
                 "Standalone indented lines should be removed from the template.")
 
    (rast-t-case "Standalone Line Endings"
@@ -327,10 +327,10 @@
                 ;  {{^boolean}}
                 ;  {{/boolean}}
                 ;  |"
-                (list (token 'static "|\r" null)
-                      (token 'static "\n" null)
+                (list (token-static "|\r")
+                      (token-static "\n")
                       (token 'inverted-section 'boolean (list))
-                      (token 'static "|" null))
+                      (token-static "|"))
                 "'\r\n' should be considered a newline for standalone tags.")
 
    (rast-t-case "Standalone Without Previous Line"
@@ -342,10 +342,10 @@
                 ; ^{{/boolean}}↩
                 ; /"
                 (list (token 'inverted-section 'boolean
-                             (list (token 'static "^" null)))
-                      (token 'static "" null)
-                      (token 'static "\n" null)
-                      (token 'static "/" null))
+                             (list (token-static "^")))
+                      (token-static "")
+                      (token-static "\n")
+                      (token-static "/"))
                 "Standalone tags should not require a newline to precede them.")
 
    (rast-t-case "Standalone Without Newline"
@@ -356,12 +356,12 @@
                 ; "^{{^boolean}}↩
                 ;  /↩
                 ;    {{/boolean}}"
-                (list (token 'static "^" null)
+                (list (token-static "^")
                       (token 'inverted-section 'boolean
-                             (list (token 'static "" null)
-                                   (token 'static "\n" null)
-                                   (token 'static "/" null)
-                                   (token 'static "\n" null))))
+                             (list (token-static "")
+                                   (token-static "\n")
+                                   (token-static "/")
+                                   (token-static "\n"))))
                 "Standalone tags should not require a newline to follow them.")
 
    ;; Whitespace Insensitivity
@@ -369,11 +369,11 @@
                 #hash{( boolean . #f )}
                 "|{{^ boolean }}={{/ boolean }}|"
                 "|=|"
-                (list (token 'static "|" null)
+                (list (token-static "|")
                       (token 'inverted-section
                              'boolean
-                             (list (token 'static "=" null)))
-                      (token 'static "|" null))
+                             (list (token-static "=")))
+                      (token-static "|"))
                 "Superfluous in-tag whitespace should be ignored.")))
 
 (run-tests inverted-tests)

@@ -31,8 +31,8 @@
                 #hash()
                 "12345{{! Comment Block! }}67890"
                 "1234567890"
-                (list (token 'static "12345" null)
-                      (token 'static "67890" null))
+                (list (token-static "12345")
+                      (token-static "67890"))
                 "Comment blocks should be removed from the template.")
 
    (rast-t-case "Multiline"
@@ -42,8 +42,8 @@
                    multi-line comment...
                  }}67890"
                 "1234567890"
-                (list (token 'static "12345" null)
-                      (token 'static "67890" null))
+                (list (token-static "12345")
+                      (token-static "67890"))
                 "Multiline comments should be permitted.")
 
    (rast-t-case "Standalone"
@@ -53,9 +53,9 @@
                  End."
                 "Begin.
                  End."
-                (list (token 'static "Begin." null)
-                      (token 'static "\n" null)
-                      (token 'static "                 End."  null))
+                (list (token-static "Begin.")
+                      (token-static "\n")
+                      (token-static "                 End."))
                 "All standalone comment lines should be removed.")
 
    (rast-t-case "Indented Standalone"
@@ -65,9 +65,9 @@
                  End."
                 "Begin.
                  End."
-                (list (token 'static "Begin." null)
-                      (token 'static "\n" null)
-                      (token 'static "                 End."  null))
+                (list (token-static "Begin.")
+                      (token-static "\n")
+                      (token-static "                 End."))
                 "All standalone comment lines should be removed.")
 
    (rast-t-case "Standalone Line Endings"
@@ -78,9 +78,9 @@
                 ; "|↩
                 ;  {{! Standalone Comment }}
                 ;  |"
-                (list (token 'static "|\r" null)
-                      (token 'static "\n" null)
-                      (token 'static "|" null))
+                (list (token-static "|\r")
+                      (token-static "\n")
+                      (token-static "|"))
                 "'\r\n' should be considered a newline for standalone tags.")
 
    (rast-t-case "Standalone Without Previous Line"
@@ -90,7 +90,7 @@
                 ; Template should be considered as:
                 ; "  {{! Standalone Comment }}
                 ;  !"
-                (list (token 'static "!" null))
+                (list (token-static "!"))
                 "Standalone tags should not require a newline to precede them.")
 
    (rast-t-case "Standalone Without Newline"
@@ -100,8 +100,8 @@
                 ; Template should be considered as:
                 ; "!↩
                 ;    {{! Standalone Comment }}"
-                (list (token 'static "!" null)
-                      (token 'static "\n" null))
+                (list (token-static "!")
+                      (token-static "\n"))
                 "Standalone tags should not require a newline to follow them.")
 
    (rast-t-case "Multiline Standalone"
@@ -113,9 +113,9 @@
                  End."
                 "Begin.
                  End."
-                (list (token 'static "Begin." null)
-                      (token 'static "\n" null)
-                      (token 'static "                 End."  null))
+                (list (token-static "Begin.")
+                      (token-static "\n")
+                      (token-static "                 End."))
                 "All standalone comment lines should be removed.")
 
    (rast-t-case "Indented Multiline Standalone"
@@ -127,26 +127,26 @@
                  End."
                 "Begin.
                  End."
-                (list (token 'static "Begin." null)
-                      (token 'static "\n" null)
-                      (token 'static "                 End."  null))
+                (list (token-static "Begin.")
+                      (token-static "\n")
+                      (token-static "                 End."))
                 "All standalone comment lines should be removed.")
 
    (rast-t-case "Indented Inline"
                 #hash()
                 "  12 {{! 34 }}\n"
                 "  12 \n"
-                (list (token 'static "  12 " null)
-                      (token 'static "" null)
-                      (token 'static "\n" null))
+                (list (token-static "  12 ")
+                      (token-static "")
+                      (token-static "\n"))
                 "Inline comments should not strip whitespace")
 
    (rast-t-case "Surrounding Whitespace"
                 #hash()
                 "12345 {{! Comment Block! }} 67890"
                 "12345  67890"
-                (list (token 'static "12345 " null)
-                      (token 'static " 67890" null))
+                (list (token-static "12345 ")
+                      (token-static " 67890"))
                 "Comment removal should preserve surrounding whitespace.")))
 
 (run-tests comment-tests)
