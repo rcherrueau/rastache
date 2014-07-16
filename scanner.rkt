@@ -175,9 +175,10 @@
        [else
         (_read-line (string-append acc (string c)))]))))
 
-;; Reads the stream until recognizing the close tag and returns the
-;; reading content. Mustache element could be on multiple line. The
-;; method reads mustache element on multiple line.
+;; Reads the stream line by line until recognizing the line that
+;; contains close tag and returns the reading content. Mustache
+;; element could be on multiple line. The method reads mustache
+;; element on multiple line.
 ;; read-multiline: in string ctag pregexp -> (values line ctag-pos)
 (define (read-multiline in starter ctag standalone-pattern)
   (let _read-multiline ([acc (port->string (line-content starter))])
@@ -192,7 +193,7 @@
      ;; End of `in' without mustache closing tag
      ;; => Error!
      [(line-eof? new-line)
-      (error "Error while reading a multi-ligne tag")]
+      (error "Error while reading a multi-line tag")]
      ;; Mustache closing tag at the end of `new-line'
      ;; => Returns concatenation of full-line and new-line
      [ctag-pos
