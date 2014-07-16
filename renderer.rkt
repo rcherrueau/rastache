@@ -139,7 +139,7 @@
          (_render (cdr the-tokens) the-ctx)]
 
         ;; Inverted Section
-        [(token-inv-sec key section _)
+        [(token-inv-sec key inv-section #f)
          (define val (lookup the-ctx key))
          ;; In contrast with section, we call the inverted section if
          ;; tha value is false or the list is empty.
@@ -148,7 +148,41 @@
                 (and (list? val) (null? val))
                 ;; false value / un-existing key
                 (and (boolean? val) (not val)))
-           (_render section the-ctx))
+           (_render inv-section the-ctx))
+         (_render (cdr the-tokens) the-ctx)]
+
+        ;; Inverted Section with Dotted Names
+        [(token-inv-sec key inv-section #t)
+         ;; If val is evaluated to false, go to the last inverted
+         ;; section of this dotted name and renders `inv-section'.
+         ;; Else go deeper and test again.
+         (define val (lookup the-ctx key))
+         (if (or
+              ;; empty list
+              (and (list? val) (null? val))
+              ;; false value / un-existing key
+              (and (boolean? val) (not val)))
+
+             ;; False value
+             (let render-inv-sec ([t (car inv-section)])
+               (match t
+                 ;; Not the last inverted section of this dotted name
+                 ;; => Go deeper
+                 [(token-inv-sec k is #t)
+                  (render-inv-sec (car is))]
+                 ;; Last inverted section of this dotted name
+                 ;; => render section
+                 [(token-inv-sec k is #f)
+                  (_render is the-ctx)]))
+
+             ;; True value:
+             ;; Render with context seting to val
+             (_render inv-section
+                    (if (rast-context? val)
+                        ;; Render with val context
+                        val
+                        ;; Render with context setting to val
+                        `#hash{( self . ,val )})))
          (_render (cdr the-tokens) the-ctx)]
 
         ;; Partial
