@@ -16,7 +16,7 @@
 ; followed by an End Section tag with the same content within the same
 ; section.
 ;
-; This tag's content names the data to replace the tag. Name
+; This tag's content names the data to replace the tag. Name
 ; resolution is as follows:
 ;
 ; 1) Split the name on periods; the first part is the name to resolve,
@@ -95,7 +95,7 @@
                                                 (token-static ".")) #f)
                       (token-static "\""))
                 "Objects and hashes should be pushed onto the context stack.")
-   ;#;
+
    (rast-t-case "Deeply Nested Contexts"
                 #hash{ (a . #hash{ (one   . 1) })
                        (b . #hash{ (two   . 2) })

@@ -89,7 +89,7 @@
          (_render (cdr the-tokens) the-ctx)]
 
         ;; Section
-        [(token-sec key section _)
+        [(token-sec key section dotted?)
          (define val (lookup the-ctx key))
          (cond
           ;; Section key is a Non-empty list
@@ -97,13 +97,21 @@
            (for-each
             (λ (the-val)
                (_render section
-                        (if (rast-context? the-val)
-                            ;; Render with the-val context
-                            the-val
-                            ;; Render with general context overriding
-                            ;; by the-val put at `period-name'
-                            ;; position
-                            (hash-set the-ctx period-name the-val))))
+                        (cond
+                         ;; `the-val is rastache context and this is a
+                         ;; dotted name. Render with `the-val' context
+                         [(and dotted? (rast-context? the-val)) the-val]
+                         ;; `the-val' is rastache context but this is
+                         ;; not a dotted name section. Render with
+                         ;; general context overriding by `the-val'
+                         ;; content
+                         [(rast-context? the-val)
+                          (foldl (λ (kv ctx) (hash-set ctx (car kv) (cdr kv)))
+                                 the-ctx (hash->list the-val))]
+                         ;; `the-val' is not a rastache context.Render
+                         ;; with general context overriding by `the-val'
+                         ;; put at `period-name' position
+                         [else (hash-set the-ctx period-name the-val)])))
             val)]
           ;; Section key is a Lambda
           [(procedure? val)
@@ -130,12 +138,20 @@
            ;; Render with general context overriding by the-val put at
            ;; `period-name' position
            (_render section
-                    (if (rast-context? val)
-                        ;; Render with val context
-                        val
-                        ;; Render with general context overriding by
-                        ;; the-val put at `period-name' position
-                        (hash-set the-ctx period-name val)))])
+                        (cond
+                         ;; `val is rastache context and this is a
+                         ;; dotted name. Render with `val' context
+                         [(and dotted? (rast-context? val)) val]
+                         ;; `val' is rastache context but this is not
+                         ;; a dotted name section. Render with general
+                         ;; context overriding by `val' content
+                         [(rast-context? val)
+                          (foldl (λ (kv ctx) (hash-set ctx (car kv) (cdr kv)))
+                                 the-ctx (hash->list val))]
+                         ;; `val' is not a rastache context.Render
+                         ;; with general context overriding by `val'
+                         ;; put at `period-name' position
+                         [else (hash-set the-ctx period-name val)]))])
          (_render (cdr the-tokens) the-ctx)]
 
         ;; Inverted Section
@@ -163,7 +179,8 @@
               ;; false value / un-existing key
               (and (boolean? val) (not val)))
 
-             ;; False value
+             ;; False value:
+             ;; Render the deepest inv-section
              (let render-inv-sec ([t (car inv-section)])
                (match t
                  ;; Not the last inverted section of this dotted name
@@ -171,7 +188,7 @@
                  [(token-inv-sec k is #t)
                   (render-inv-sec (car is))]
                  ;; Last inverted section of this dotted name
-                 ;; => render section
+                 ;; => Render section
                  [(token-inv-sec k is #f)
                   (_render is the-ctx)]))
 
