@@ -73,22 +73,20 @@
                 (list
                  (token-static "[")
                  (token-static "\n")
-                 (token-sec 'section (list
-                                      (token-static "                   ")
-                                      (token-etag 'data)
-                                      (token-static "")
-                                      (token-static "\n")
-                                      (token-static "                   |data|")
-                                      (token-static "\n")) #f)
+                 (token-sec 'section `(,(token-static "                   ")
+                                       ,(token-etag 'data)
+                                       ,(token-static "")
+                                       ,(token-static "\n")
+                                       ,(token-static "                   |data|")
+                                       ,(token-static "\n")) #f)
                  (token-static "")
                  (token-static "\n")
-                 (token-sec 'section (list
-                                      (token-static "                   {{data}}")
-                                      (token-static "\n")
-                                      (token-static "                   ")
-                                      (token-etag 'data)
-                                      (token-static "")
-                                      (token-static "\n")) #f)
+                 (token-sec 'section `(,(token-static "                   {{data}}")
+                                       ,(token-static "\n")
+                                       ,(token-static "                   ")
+                                       ,(token-etag 'data)
+                                       ,(token-static "")
+                                       ,(token-static "\n")) #f)
                  (token-static "                 ]"))
                 "Delimiters set outside sections should persist.")
 
@@ -118,26 +116,24 @@
                 (list
                  (token-static "[")
                  (token-static "\n")
-                 (token-inv-sec 'section (list
-                                          (token-static "                   ")
-                                          (token-etag 'data)
-                                          (token-static "")
-                                          (token-static "\n")
-                                          (token-static "                   |data|")
-                                          (token-static "\n")) #f)
+                 (token-inv-sec 'section `(,(token-static "                   ")
+                                           ,(token-etag 'data)
+                                           ,(token-static "")
+                                           ,(token-static "\n")
+                                           ,(token-static "                   |data|")
+                                           ,(token-static "\n")) #f)
                  (token-static "")
                  (token-static "\n")
-                 (token-inv-sec 'section (list
-                                          (token-static "                   {{data}}")
-                                          (token-static "\n")
-                                          (token-static "                   ")
-                                          (token-etag 'data)
-                                          (token-static "")
-                                          (token-static "\n")) #f)
+                 (token-inv-sec 'section `(,(token-static "                   {{data}}")
+                                           ,(token-static "\n")
+                                           ,(token-static "                   ")
+                                           ,(token-etag 'data)
+                                           ,(token-static "")
+                                           ,(token-static "\n")) #f)
                  (token-static "                 ]"))
                 "Delimiters set outside inverted sections should persist.")
 
-   ;; TODO partials
+   ;; TODO: partials
 
    ;; Whitespace Sensitivity
    (rast-t-case "Surrounding Whitespace"

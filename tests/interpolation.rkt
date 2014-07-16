@@ -179,7 +179,7 @@
                 "\"{{person.name}}\" == \"{{#person}}{{name}}{{/person}}\""
                 "\"Joe\" == \"Joe\""
                 (list (token-static "\"")
-                      (token-sec 'person (list (token-etag 'name)) #f)
+                      (token-sec 'person (list (token-etag 'name)) #t)
                       (token-static "\" == \"")
                       (token-sec 'person (list (token-static "")
                                                (token-etag 'name)
@@ -193,7 +193,7 @@
                 "\"{{{person.name}}}\" == \"{{#person}}{{{name}}}{{/person}}\""
                 "\"Joe\" == \"Joe\""
                 (list (token-static "\"")
-                      (token-sec 'person (list (token-utag 'name)) #f)
+                      (token-sec 'person (list (token-utag 'name)) #t)
                       (token-static "\" == \"")
                       (token-sec 'person (list (token-static "")
                                                (token-utag 'name)
@@ -206,7 +206,7 @@
                 "\"{{&person.name}}\" == \"{{#person}}{{&name}}{{/person}}\""
                 "\"Joe\" == \"Joe\""
                 (list (token-static "\"")
-                      (token-sec 'person (list (token-utag 'name)) #f)
+                      (token-sec 'person (list (token-utag 'name)) #t)
                       (token-static "\" == \"")
                       (token-sec 'person (list (token-static "")
                                                (token-utag 'name)
@@ -216,25 +216,26 @@
 
    (rast-t-case "Dotted Names - Arbitrary Depth"
                 #hash{(a .
-                         #hash{(b .
-                                  #hash{(c .
-                                           #hash{(d .
-                                                    #hash{(e .
-                                                             #hash{(name . "Phil")})})})})})}
+                  #hash{(b .
+                    #hash{(c .
+                      #hash{(d .
+                        #hash{(e .
+                          #hash{(name . "Phil")})})})})})}
                 "\"{{a.b.c.d.e.name}}\" == \"Phil\""
                 "\"Phil\" == \"Phil\""
                 (list
                  (token-static "\"")
                  (token-sec
-                  'a (list (token-sec
-                            'b (list (token-sec
-                                      'c (list (token-sec
-                                                'd (list (token-sec
-                                                          'e (list (token-etag 'name)) #f))
-                                                #f))
-                                      #f))
-                            #f))
-                  #f)
+                  'a `(,(token-sec
+                         'b `(,(token-sec
+                                'c `(,(token-sec
+                                       'd `(,(token-sec
+                                              'e `(,(token-etag 'name))
+                                              #t))
+                                       #t))
+                                #t))
+                         #t))
+                  #t)
                  (token-static "\" == \"Phil\""))
                 "Dotted names should be functional to any level of nesting.")
 
@@ -244,9 +245,7 @@
                 "\"\" == \"\""
                 (list
                  (token-static "\"")
-                 (token-sec 'a (list
-                                (token-sec 'b (list (token-etag 'c)) #f))
-                            #f)
+                 (token-sec 'a `(,(token-sec 'b `(,(token-etag 'c)) #t)) #t)
                  (token-static "\" == \"\""))
                 "Any falsey value prior to the last part of the name should yield ''.")
 
@@ -257,40 +256,35 @@
                 "\"\" == \"\""
                 (list
                  (token-static "\"")
-                 (token-sec 'a (list
-                                (token-sec 'b (list
-                                               (token-sec 'c (list (token-etag 'name)) #f))
-                                           #f))
-                            #f)
+                 (token-sec
+                  'a `(,(token-sec
+                         'b `(,(token-sec
+                                'c `(,(token-etag 'name)) #t)) #t)) #t)
                  (token-static "\" == \"\""))
                 "Each part of a dotted name should resolve only against its parent.")
 
-
    (rast-t-case "Dotted Names - Initial Resolution"
                 #hash{( a . #hash{( b .
-                                      #hash{( c .
-                                                #hash{( d .
-                                                          #hash{( e .
-                                                                    #hash{( name . "Phil" )} )})})})})
+                              #hash{( c .
+                                #hash{( d .
+                                  #hash{( e .
+                                    #hash{( name . "Phil" )} )})})})})
                       ( b . #hash{( c .
-                                      #hash{( d .
-                                                #hash{( e .
-                                                          #hash{( name . "Wrong")} )})})}) }
+                              #hash{( d .
+                                #hash{( e .
+                                  #hash{( name . "Wrong")} )})})}) }
                 "\"{{#a}}{{b.c.d.e.name}}{{/a}}\" == \"Phil\""
                 "\"Phil\" == \"Phil\""
                 (list
                  (token-static "\"")
-                 (token-sec 'a (list
-                                (token-static "")
-                                (token-sec 'b (list
-                                               (token-sec 'c (list
-                                                              (token-sec 'd (list
-                                                                             (token-sec 'e (list (token-etag 'name)) #f))
-                                                                         #f))
-                                                          #f))
-                                           #f)
-                                (token-static ""))
-                            #f)
+                 (token-sec
+                  'a `(,(token-static "")
+                       ,(token-sec
+                         'b `(,(token-sec
+                                'c `(,(token-sec
+                                       'd `(,(token-sec
+                                              'e `(,(token-etag 'name)) #t)) #t)) #t)) #t)
+                       ,(token-static "")) #f)
                  (token-static "\" == \"Phil\""))
                 "The first part of a dotted name should resolve as any other name.")
 
@@ -301,10 +295,9 @@
                 ""
                 (list
                  (token-static "")
-                 (token-sec 'a (list
-                                (token-static "")
-                                (token-sec 'b (list (token-etag 'c)) #f)
-                                (token-static ""))
+                 (token-sec 'a `(,(token-static "")
+                                 ,(token-sec 'b `(,(token-etag 'c)) #t)
+                                 ,(token-static ""))
                             #f)
                  (token-static ""))
                 "Dotted names should be resolved against former resolutions.")

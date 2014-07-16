@@ -13,75 +13,100 @@
 ; Parse mustache template and generate a list of tokens. The list of
 ; tokens describes how to render the template.
 (provide (struct-out token)
+         (struct-out token-static)
+         (struct-out token-etag)
+         (struct-out token-utag)
+         (struct-out token-sec)
+         (struct-out token-inv-sec)
+         (struct-out token-partial)
          tokenize
          mustachize)
 
 ; ______________________________________________________________________________
 ; import and implementation
-(require racket/port
+(require racket/match
+         racket/port
          racket/string)
 
 ;; Token is a meta-variable for mustache template syntactic
 ;; categories. Mustache defines 6 syntatic categories, i.e: 'static,
-;; 'etag, 'utag, 'section, 'inverted-section and 'partial. A token
-;; instance stores the syntatic category in the `sigil' attribute. For
-;; each category the instance contains different informations.
-;;
-;; 'static for static content. `content' contains static text.
-;; `section' is always empty.
-;;
-;; 'etag for variable. `content' contains a key usable with the
-;; mustache context. This key is HTML escaped. `section' is always
-;; empty.
-;;
-;; 'utag for unescaped HTML variable. `content' contains a key usable
-;; with the mustache context. This key is unescaped HTML. `section' is
-;; always empty.
-;;
-;; 'section for section. `content' contains the section name.
-;; `section' contains all tokens of this section.
-;;
-;; 'inverted-section for inverted section. `content' contains the
-;; section name. `section' contains all tokens of this section.
-;;
-;; 'partial for partials. `content' contains the name of the mustache
-;; template to include. `section' is always empty.
+;; 'etag, 'utag, 'section, 'inverted-section and 'partial.
 ;;
 ;; see http://mustache.github.io/mustache.5.html for the meaning of
 ;; each category.
-(struct token (sigil content section)
+(struct token ()
         #:methods gen:custom-write
         [(define write-proc
-           (lambda (token port mode)
+           (λ (token port mode)
              (let _token-print ([the-token token]
                                 [depth 0])
-               (define sigil (token-sigil the-token))
-               (define content (token-content the-token))
-               (define section (token-section the-token))
+               (match the-token
+                 ;; Static
+                 [(token-static content)
+                  (write-string (format "~a(token-static ~s null)~n"
+                                        (make-string depth #\space)
+                                        content) port)]
+                 ;; Etag
+                 [(token-etag key)
+                  (write-string (format "~a(token-etag '~s null)~n"
+                                        (make-string depth #\space)
+                                        key) port)]
+                 ;; Utag
+                 [(token-utag key)
+                  (write-string (format "~a(token-utag '~s null)~n"
+                                        (make-string depth #\space)
+                                        key) port)]
+                 ;; Section
+                 [(token-sec key section dotted?)
+                  (write-string (format "~a(token-sec '~s (list~n"
+                                        (make-string depth #\space)
+                                        key) port)
+                  (for-each (λ (t) (_token-print t (+ depth 2))) section)
+                  (write-string (format "~a ) ~a)~n"
+                                        (make-string (+ depth 2) #\space)
+                                        dotted?) port)]
+                 ;; Inverted Section
+                 [(token-inv-sec key section dotted?)
+                  (write-string (format "~a(token-inv-sec '~s (list~n"
+                                        (make-string depth #\space)
+                                        key) port)
+                  (for-each (λ (t) (_token-print t (+ depth 2))) section)
+                  (write-string (format "~a ) ~a)~n"
+                                        (make-string (+ depth 2) #\space)
+                                        dotted?) port)]
+                 ;; Partial
+                 [(token-partial template)
+                  (write-string (format "~a(token-partial ~s null)~n"
+                                        (make-string depth #\space)
+                                        template) port)]
+                 ;; Unknown Token
+                 [other
+                  (write-string (format "~a(token ~a)~n"
+                                        (make-string depth #\space)
+                                        other) port)]))))])
 
-               (cond
-                [(or (eq? sigil 'section) (eq? sigil 'inverted-section))
-                 (write-string
-                  (format "~a(token '~s '~s (list~n"
-                          (make-string depth #\space)
-                          sigil
-                          content) port)
-                 (for-each (lambda (t)
-                             (_token-print t (+ depth 2)))
-                           section)
-                 (write-string
-                  (format "~a ))~n"
-                          (make-string (+ depth 2) #\space)) port)]
-                [(or (eq? sigil 'static) (eq? sigil 'partial))
-                 (write-string (format "~a(token '~s ~s null)~n"
-                                       (make-string depth #\space)
-                                       sigil
-                                       content) port)]
-                [else
-                 (write-string (format "~a(token '~s '~s null)~n"
-                                       (make-string depth #\space)
-                                       sigil
-                                       content) port)]))))])
+;; Static token for static content. `content' contains static text.
+(struct token-static token (content))
+
+;; Etag token for variable. `key' contains a key usable with the
+;; mustache context.
+(struct token-etag token (key))
+
+;; Utag token for unescaped HTML variable. `key' contains a key usable
+;; with the mustache context.
+(struct token-utag token (key))
+
+;; Section token for section. `key' contains the section name.
+;; `section' contains all tokens of this section.
+(struct token-sec token (key section dotted?))
+
+;; Inverted Section token for inverted section. `key' contains the
+;; section name. `section' contains all tokens of this section.
+(struct token-inv-sec token (key section dotted?))
+
+;; Partial token for partials. `template' contains the name of the
+;; mustache template to include.
+(struct token-partial token (template))
 
 ;; Internal representation of a line in a mustache template. A line
 ;; gets two properties in addition to the content. `linefeed?' is true
@@ -89,34 +114,10 @@
 ;; is standalone.
 (struct line (content linefeed? standalone?))
 
-;; Returns #t is line is `eof', #f otherwise.
+;; Returns #t if line is `eof', #f otherwise.
 (define (line-eof?  line)
   (and (line? line)
        (eof-object? (line-content line))))
-
-;; Token constructor for static token.
-(define (token-static content)
-  (token 'static content null))
-
-;; Token constructor for etag token.
-(define (token-etag content)
-  (token 'etag (string->symbol content) null))
-
-;; Token constructor for utag token.
-(define (token-utag content)
-  (token 'utag (string->symbol (string-trim content)) null))
-
-;; Token constructor for section token.
-(define (token-sec content [section null])
-  (token 'section (string->symbol (string-trim content)) section))
-
-;; Token constructor for inverted section token.
-(define (token-inv-sec content [section null])
-  (token 'inverted-section (string->symbol (string-trim content)) section))
-
-;; Token constructor for partial token.
-(define (token-partial content)
-  (token 'partial content null))
 
 ;; Make the pattern that recognizes standalone line. Variables
 ;; `otag-quoted' and `ctag-quoted' should be patterns that match
@@ -140,7 +141,7 @@
     "^"
     "\\s*" ; Skip any whitespace
     "(#|\\^|/|=|!|<|>|&|\\{)?" ; Check for a tag type and capture it
-    "\\s*" ; Skip any whitespace
+    "\\s*" ; Skip any whitespacep
     "(.+)" ; Capture the text inside of the tag
     "\\s*" ; Skip any whitespace
     "\\}?" ; Skip balancing '}' if it exists
@@ -235,6 +236,8 @@
 (define (read-close-tag ctag-quoted port)
   (void (regexp-match ctag-quoted port)))
 
+(define period-name 'self)
+
 ;; Construct the list of tokens for a specific template. The
 ;; `template' has to be an input port that reads bytes from a UTF-8
 ;; stream.`open-tag' and `close-tag' are mustache keywords
@@ -285,21 +288,22 @@
                                           (append tokens (list the-token))
                                           otag ctag standalone-pattern))])
            (cond
-            ;; Single periode
+            ;; Single period
             [(equal? value ".")
-             ;; Periode tag name is changed by 'self.
-             (scan-ahead (token-etag "self"))]
+             ;; Period tag name is changed by `period-name'
+             (scan-ahead (token-etag period-name))]
             ;; Simple Etag
             [(equal? (length periods-split) 1)
-             (scan-ahead (token-etag (car periods-split)))]
+             (scan-ahead (token-etag (string->symbol (car periods-split))))]
             ;; Dotted names should be considered a form of shorthand
             ;; for sections
             [else
              (scan-ahead
               (let make-token ([tags periods-split])
                 (if (> (length tags) 1)
-                    (token-sec (car tags) (list (make-token (cdr tags))))
-                    (token-etag (car tags)))))]))]
+                    (token-sec (string->symbol (car tags))
+                               (list (make-token (cdr tags))) #t)
+                    (token-etag (string->symbol (car tags))))))]))]
 
         ;; Unescaped HTML
         [("{" "&")
@@ -312,21 +316,22 @@
                                           (append tokens (list the-token))
                                           otag ctag standalone-pattern))])
            (cond
-            ;; Single periode
+            ;; Single period
             [(equal? value ".")
-             ;; Periode tag name is changed by 'self.
-             (scan-ahead (token-etag "self"))]
-            ;; Simple Etag
+             ;; Period tag name is changed by `period-name.
+             (scan-ahead (token-utag period-name))]
+            ;; Simple Utag
             [(equal? (length periods-split) 1)
-             (scan-ahead (token-utag (car periods-split)))]
+             (scan-ahead (token-utag (string->symbol (car periods-split))))]
             ;; Dotted names should be considered a form of shorthand
             ;; for sections
             [else
              (scan-ahead
               (let make-token ([tags periods-split])
                 (if (> (length tags) 1)
-                    (token-sec (car tags) (list (make-token (cdr tags))))
-                    (token-utag (car tags)))))]))]
+                    (token-sec (string->symbol (car tags))
+                               (list (make-token (cdr tags))) #t)
+                    (token-utag (string->symbol (car tags))))))]))]
 
         ;; Section
         [("#")
@@ -344,14 +349,17 @@
            (cond
             ;; Simple section name
             [(equal? (length periods-split) 1)
-             (scan-ahead (token-sec (car periods-split) nested-tokens))]
+             (scan-ahead (token-sec (string->symbol (car periods-split))
+                                    nested-tokens #f))]
             ;; Section name with periods
             [else
              (scan-ahead
               (let make-token ([tags periods-split])
                 (if (> (length tags) 1)
-                    (token-sec (car tags) (list (make-token (cdr tags))))
-                    (token-sec (car tags) nested-tokens))))]))]
+                    (token-sec (string->symbol (car tags))
+                               (list (make-token (cdr tags))) #t)
+                    (token-sec (string->symbol (car tags))
+                               nested-tokens #f))))]))]
 
         ;; Inverted Section
         [("^")
@@ -369,14 +377,17 @@
            (cond
             ;; Simple section name
             [(equal? (length periods-split) 1)
-             (scan-ahead (token-inv-sec (car periods-split) nested-tokens))]
+             (scan-ahead (token-inv-sec (string->symbol (car periods-split))
+                                        nested-tokens #f))]
             ;; Section name with periods
             [else
              (scan-ahead
               (let make-token ([tags periods-split])
                 (if (> (length tags) 1)
-                    (token-sec (car tags) (list (make-token (cdr tags))))
-                    (token-inv-sec (car tags) nested-tokens))))]))]
+                    (token-inv-sec (string->symbol (car tags))
+                                   (list (make-token (cdr tags))) #t)
+                    (token-inv-sec (string->symbol (car tags))
+                                   nested-tokens #f))))]))]
 
         ;; End of (Inverted) Section
         [("/") (values tokens new-line)]
@@ -459,47 +470,37 @@
    [(null? tokens) ""]
    [else
     (define token (car tokens))
-    (define sigil (token-sigil token))
-    (define content (token-content token))
-    (define section (token-section token))
-
-    (case sigil
-      ;; Static content
-      ['static
-       (string-append content
+    (match token
+      ;; Static
+      [(token-static content)
+       (string-append content (mustachize (cdr tokens)))]
+      ;; Etag
+      [(token-etag key)
+       (string-append "{{" (symbol->string key) "}}"
                       (mustachize (cdr tokens)))]
-
-      ;; Variable
-      ['etag
-       (string-append "{{" (symbol->string content) "}}"
+      ;; Utag
+      [(token-utag key)
+       (string-append "{{&" (symbol->string key) "}}"
                       (mustachize (cdr tokens)))]
-
-      ;; Unescaped variable
-      ['utag
-       (string-append "{{&" (symbol->string content) "}}"
-                      (mustachize (cdr tokens)))]
-
       ;; Section
-      ['section
-       (let ([sec-name (symbol->string content)])
+      [(token-sec key section _)
+       (let ([sec-name (symbol->string key)])
          (string-append "{{#" sec-name "}}"
                         (mustachize section)
                         "{{/" sec-name "}}"
                         (mustachize (cdr tokens))))]
-
       ;; Inverted Section
-      ['inverted-section
-       (let ([sec-name (symbol->string content)])
+      [(token-inv-sec key section _)
+       (let ([sec-name (symbol->string key)])
          (string-append "{{^" sec-name "}}"
                         (mustachize section)
                         "{{/" sec-name "}}"
                         (mustachize (cdr tokens))))]
-
-      ;; Parial
-      ['partial
-       (string-append "{{> " (string->symbol content) "}}"
+      ;; Partial
+      [(token-partial template)
+       (string-append "{{> " (string->symbol template) "}}"
                       (mustachize (cdr tokens)))]
-
       ;; If this is a unknow token, proceed without processing this
       ;; token
-      [else (mustachize (cdr tokens))])]))
+      [_
+       (mustachize (cdr tokens))])]))

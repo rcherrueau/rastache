@@ -68,7 +68,8 @@
                 "\"{{^boolean}}This should be rendered.{{/boolean}}\""
                 "\"This should be rendered.\""
                 (list (token-static "\"")
-                      (token-inv-sec 'boolean (list (token-static "This should be rendered.")) #f)
+                      (token-inv-sec
+                       'boolean `(,(token-static "This should be rendered.")) #f)
                       (token-static "\""))
                 "Falsey sections should have their contents rendered.")
 
@@ -77,7 +78,8 @@
                 "\"{{^boolean}}This should not be rendered.{{/boolean}}\""
                 "\"\""
                 (list (token-static "\"")
-                      (token-inv-sec 'boolean (list (token-static "This should not be rendered.")) #f)
+                      (token-inv-sec
+                       'boolean `(,(token-static "This should not be rendered.")) #f)
                       (token-static "\""))
                 "Truthy sections should have their contents omitted.")
 
@@ -86,9 +88,9 @@
                 "\"{{^context}}Hi {{name}}.{{/context}}\""
                 "\"\""
                 (list (token-static "\"")
-                      (token-inv-sec 'context (list (token-static "Hi ")
-                                                    (token-etag 'name)
-                                                    (token-static ".")) #f)
+                      (token-inv-sec 'context `(,(token-static "Hi ")
+                                                ,(token-etag 'name)
+                                                ,(token-static ".")) #f)
                       (token-static "\""))
                 "Objects and hashes should behave like truthy values.")
 
@@ -99,9 +101,9 @@
                 "\"{{^list}}{{n}}{{/list}}\""
                 "\"\""
                 (list (token-static "\"")
-                      (token-inv-sec 'list (list (token-static "")
-                                                 (token-etag 'n)
-                                                 (token-static "")) #f)
+                      (token-inv-sec 'list `(,(token-static "")
+                                             ,(token-etag 'n)
+                                             ,(token-static "")) #f)
                       (token-static "\""))
                 "Lists should behave like truthy values.")
 
@@ -110,7 +112,7 @@
                 "\"{{^list}}Yay lists!{{/list}}\""
                 "\"Yay lists!\""
                 (list (token-static "\"")
-                      (token-inv-sec 'list (list (token-static "Yay lists!")) #f)
+                      (token-inv-sec 'list `(,(token-static "Yay lists!")) #f)
                       (token-static "\""))
                 "Empty lists should behave like falsey values.")
 
@@ -127,15 +129,16 @@
                  * second
                  * third
 "
-                (list
-                 (token-inv-sec 'bool (list (token-static "                 * first")
-                                            (token-static "\n")) #f)
-                 (token-static "                 * ")
-                 (token-etag 'two)
-                 (token-static "")
-                 (token-static "\n")
-                 (token-inv-sec 'bool (list (token-static "                 * third")
-                                            (token-static "\n")) #f))
+                (list (token-inv-sec 'bool
+                                     `(,(token-static "                 * first")
+                                       ,(token-static "\n")) #f)
+                      (token-static "                 * ")
+                      (token-etag 'two)
+                      (token-static "")
+                      (token-static "\n")
+                      (token-inv-sec 'bool
+                                     `(,(token-static "                 * third")
+                                       ,(token-static "\n")) #f))
                 "Multiple inverted sections per template should be permitted.")
 
    (rast-t-case "Nested (Falsey)"
@@ -143,9 +146,11 @@
                 "| A {{^bool}}B {{^bool}}C{{/bool}} D{{/bool}} E |"
                 "| A B C D E |"
                 (list (token-static "| A ")
-                      (token-inv-sec 'bool (list (token-static "B ")
-                                                 (token-inv-sec 'bool (list (token-static "C")) #f)
-                                                 (token-static " D")) #f)
+                      (token-inv-sec
+                       'bool `(,(token-static "B ")
+                               ,(token-inv-sec
+                                 'bool `(,(token-static "C")) #f)
+                               ,(token-static " D")) #f)
                       (token-static " E |"))
                 "Nested falsey sections should have their contents rendered.")
 
@@ -154,9 +159,11 @@
                 "| A {{^bool}}B {{^bool}}C{{/bool}} D{{/bool}} E |"
                 "| A  E |"
                 (list (token-static "| A ")
-                      (token-inv-sec 'bool (list (token-static "B ")
-                                                 (token-inv-sec 'bool (list (token-static "C")) #f)
-                                                 (token-static " D")) #f)
+                      (token-inv-sec
+                       'bool `(,(token-static "B ")
+                               ,(token-inv-sec
+                                 'bool `(,(token-static "C")) #f)
+                               ,(token-static " D")) #f)
                       (token-static " E |"))
                 "Nested truthy sections should be omitted.")
 
@@ -165,7 +172,8 @@
                 "[{{^missing}}Cannot find key 'missing'!{{/missing}}]"
                 "[Cannot find key 'missing'!]"
                 (list (token-static "[")
-                      (token-inv-sec 'missing (list (token-static "Cannot find key 'missing'!")) #f)
+                      (token-inv-sec
+                       'missing `(,(token-static "Cannot find key 'missing'!")) #f)
                       (token-static "]"))
                 "Failed context lookups should be considered falsey.")
 
@@ -176,11 +184,10 @@
                 "\"\" == \"\""
                 (list
                  (token-static "\"")
-                 (token-sec 'a (list
-                                (token-sec 'b (list
-                                        (token-inv-sec 'c (list (token-static "Not Here")) #f))
-                                           #f))
-                            #f)
+                 (token-inv-sec
+                  'a `(,(token-inv-sec
+                      'b `(,(token-inv-sec
+                             'c `(,(token-static "Not Here")) #f)) #t)) #t)
                  (token-static "\" == \"\""))
                 "Dotted names should be valid for Inverted Section tags.")
 
@@ -190,11 +197,10 @@
                 "\"Not Here\" == \"Not Here\""
                 (list
                  (token-static "\"")
-                 (token-sec 'a (list
-                                (token-sec 'b (list
-                                        (token-inv-sec 'c (list (token-static "Not Here")) #f))
-                                           #f))
-                            #f)
+                 (token-inv-sec
+                  'a `(,(token-inv-sec
+                         'b `(,(token-inv-sec
+                                'c `(,(token-static "Not Here")) #f)) #t)) #t)
                  (token-static "\" == \"Not Here\""))
                 "Dotted names that cannot be resolved should be considered falsey.")
 
@@ -204,11 +210,10 @@
                 "\"Not Here\" == \"Not Here\""
                 (list
                  (token-static "\"")
-                 (token-sec 'a (list
-                                (token-sec 'b (list
-                                        (token-inv-sec 'c (list (token-static "Not Here")) #f))
-                                           #f))
-                            #f)
+                 (token-inv-sec
+                  'a `(,(token-inv-sec
+                         'b `(,(token-inv-sec
+                                'c `(,(token-static "Not Here")) #f)) #t)) #t)
                  (token-static "\" == \"Not Here\""))
                 "Dotted names that cannot be resolved should be considered falsey.")
 
@@ -218,7 +223,7 @@
                 " | {{^boolean}}\t|\t{{/boolean}} | \n"
                 " | \t|\t | \n"
                 (list (token-static " | ")
-                      (token-inv-sec 'boolean (list (token-static "\t|\t")) #f)
+                      (token-inv-sec 'boolean `(,(token-static "\t|\t")) #f)
                       (token-static " | ")
                       (token-static "\n"))
                 "Inverted sections should not alter surrounding whitespace.")
@@ -228,10 +233,10 @@
                 " | {{^boolean}} {{! Important Whitespace }}\n {{/boolean}} | \n"
                 " |  \n  | \n"
                 (list (token-static " | ")
-                      (token-inv-sec 'boolean (list (token-static " ")
-                                                    (token-static "")
-                                                    (token-static "\n")
-                                                    (token-static " ")) #f)
+                      (token-inv-sec 'boolean `(,(token-static " ")
+                                                ,(token-static "")
+                                                ,(token-static "\n")
+                                                ,(token-static " ")) #f)
                       (token-static " | ")
                       (token-static "\n"))
                 "Inverted should not alter internal whitespace.")
@@ -241,11 +246,11 @@
                 " {{^boolean}}NO{{/boolean}}\n {{^boolean}}WAY{{/boolean}}\n"
                 " NO\n WAY\n"
                 (list (token-static " ")
-                      (token-inv-sec 'boolean (list (token-static "NO")) #f)
+                      (token-inv-sec 'boolean `(,(token-static "NO")) #f)
                       (token-static "")
                       (token-static "\n")
                       (token-static " ")
-                      (token-inv-sec 'boolean (list (token-static "WAY")) #f)
+                      (token-inv-sec 'boolean `(,(token-static "WAY")) #f)
                       (token-static "")
                       (token-static "\n"))
                 "Single-line sections should not alter surrounding whitespace.")
@@ -263,8 +268,8 @@
                 (list
                  (token-static "| This Is")
                  (token-static "\n")
-                 (token-inv-sec 'boolean (list (token-static "                 |")
-                                               (token-static "\n")) #f)
+                 (token-inv-sec 'boolean `(,(token-static "                 |")
+                                           ,(token-static "\n")) #f)
                  (token-static "                 | A Line"))
                 "Standalone lines should be removed from the template.")
 
@@ -281,8 +286,8 @@
                 (list
                  (token-static "| This Is")
                  (token-static "\n")
-                 (token-inv-sec 'boolean (list (token-static "                 |")
-                                               (token-static "\n")) #f)
+                 (token-inv-sec 'boolean `(,(token-static "                 |")
+                                           ,(token-static "\n")) #f)
                  (token-static "                 | A Line"))
                 "Standalone indented lines should be removed from the template.")
 
@@ -297,7 +302,7 @@
                 ;  |"
                 (list (token-static "|\r")
                       (token-static "\n")
-                      (token-inv-sec 'boolean (list) #f)
+                      (token-inv-sec 'boolean '() #f)
                       (token-static "|"))
                 "'\r\n' should be considered a newline for standalone tags.")
 
@@ -309,7 +314,7 @@
                 ; "  {{^boolean}}
                 ; ^{{/boolean}}↩
                 ; /"
-                (list (token-inv-sec 'boolean (list (token-static "^")) #f)
+                (list (token-inv-sec 'boolean `(,(token-static "^")) #f)
                       (token-static "")
                       (token-static "\n")
                       (token-static "/"))
@@ -324,10 +329,10 @@
                 ;  /↩
                 ;    {{/boolean}}"
                 (list (token-static "^")
-                      (token-inv-sec 'boolean (list (token-static "")
-                                                    (token-static "\n")
-                                                    (token-static "/")
-                                                    (token-static "\n")) #f))
+                      (token-inv-sec 'boolean `(,(token-static "")
+                                                ,(token-static "\n")
+                                                ,(token-static "/")
+                                                ,(token-static "\n")) #f))
                 "Standalone tags should not require a newline to follow them.")
 
    ;; Whitespace Insensitivity
@@ -336,7 +341,7 @@
                 "|{{^ boolean }}={{/ boolean }}|"
                 "|=|"
                 (list (token-static "|")
-                      (token-inv-sec 'boolean (list (token-static "=")) #f)
+                      (token-inv-sec 'boolean `(,(token-static "=")) #f)
                       (token-static "|"))
                 "Superfluous in-tag whitespace should be ignored.")))
 

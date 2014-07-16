@@ -28,13 +28,13 @@
          "../scanner.rkt"
          "rastache-test-case.rkt")
 
-; global variable for "Interpolation - Multiple Calls" test
+;; Global variable for "Interpolation - Multiple Calls" test
 (define g 0)
 
 (define lambdas-tests
   (test-suite
    "Lambdas tests"
-
+   #:before (λ () (set! g 0))
    (rast-t-case "Interpolation"
                 `#hash{( lambda . ,(λ _ "world") )}
                 "Hello, {{lambda}}!"

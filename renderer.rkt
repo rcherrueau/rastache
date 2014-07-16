@@ -10,13 +10,12 @@
 
 ; Mustache template renderer.
 ;
-
 (provide render)
 
 ; ______________________________________________________________________________
 ; import and implementation
-
-(require xml
+(require racket/match
+         xml
          "context.rkt"
          "scanner.rkt")
 
@@ -63,19 +62,15 @@
      ;; Process token
      [else
       (define the-token (car the-tokens))
-      (define sigil (token-sigil the-token))
-      (define content (token-content the-token))
-      (define section (token-section the-token))
-
-      (case sigil
-        ;; Static content
-        ['static
+      (match the-token
+        ;; Static
+        [(token-static content)
          (display content stream)
          (_render (cdr the-tokens) the-ctx)]
 
-        ;; Variable
-        ['etag
-         (define val (var-lookup the-ctx content))
+        ;; Etag
+        [(token-etag key)
+         (define val (var-lookup the-ctx key))
          (display (cond
                    [(null? val) ""]
                    [(and (boolean? val) (not val)) ""]
@@ -83,9 +78,9 @@
                    [else (htmlescape-string val)]) stream)
          (_render (cdr the-tokens) the-ctx)]
 
-        ;; Unescaped variable
-        ['utag
-         (define val (var-lookup the-ctx content))
+        ;; Utag
+        [(token-utag key)
+         (define val (var-lookup the-ctx key))
          (display (cond
                    [(null? val) ""]
                    [(and (boolean? val) (not val)) ""]
@@ -94,23 +89,23 @@
          (_render (cdr the-tokens) the-ctx)]
 
         ;; Section
-        ['section
-         (define val (lookup the-ctx content))
+        [(token-sec key section _)
+         (define val (lookup the-ctx key))
          (cond
-          ;; Non-empty list
+          ;; Section key is a Non-empty list
           [(and (list? val) (not (null? val)))
            (for-each
             (λ (the-val)
-              (_render section
-                       (if (rast-context? the-val)
-                           ;; Render with the-val context
-                           the-val
-                           ;; Render with general context overriding
-                           ;; by the-val put at `period-name'
-                           ;; position
-                           (hash-set the-ctx period-name the-val))))
+               (_render section
+                        (if (rast-context? the-val)
+                            ;; Render with the-val context
+                            the-val
+                            ;; Render with general context overriding
+                            ;; by the-val put at `period-name'
+                            ;; position
+                            (hash-set the-ctx period-name the-val))))
             val)]
-          ;; Lambda
+          ;; Section key is a Lambda
           [(procedure? val)
            (unless (eq? 2 (procedure-arity val))
              (error "Error: The lambda should have two arguments"))
@@ -144,11 +139,10 @@
          (_render (cdr the-tokens) the-ctx)]
 
         ;; Inverted Section
-        ['inverted-section
-         (define val (lookup the-ctx content))
+        [(token-inv-sec key section _)
+         (define val (lookup the-ctx key))
          ;; In contrast with section, we call the inverted section if
          ;; tha value is false or the list is empty.
-         ;; See https://github.com/janl/mustache.js/issues/186
          (when (or
                 ;; empty list
                 (and (list? val) (null? val))
@@ -157,10 +151,11 @@
            (_render section the-ctx))
          (_render (cdr the-tokens) the-ctx)]
 
-        ;; ; TODO Parial
-        ;; ['partial ]
+        ;; Partial
+        [(token-partial template)
+         ;; TODO: implements me!
+         (_render (cdr the-tokens) the-ctx)]
 
-        ;; If this is a unknow token, proceed without processing this
-        ;; token
-        [else
-         (_render (cdr the-tokens) the-ctx)])])))
+        ;; If this is a unknow token: Error!
+        [other
+         (error (format "Unknow token type~a~n" other))])])))
