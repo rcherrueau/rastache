@@ -31,7 +31,8 @@
                 #hash()
                 "12345{{! Comment Block! }}67890"
                 "1234567890"
-                (list (token-static "12345")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "12345")
                       (token-static "67890"))
                 "Comment blocks should be removed from the template.")
 
@@ -42,7 +43,8 @@
                    multi-line comment...
                  }}67890"
                 "1234567890"
-                (list (token-static "12345")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "12345")
                       (token-static "67890"))
                 "Multiline comments should be permitted.")
 
@@ -53,7 +55,8 @@
                  End."
                 "Begin.
                  End."
-                (list (token-static "Begin.")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "Begin.")
                       (token-static "\n")
                       (token-static "                 End."))
                 "All standalone comment lines should be removed.")
@@ -65,7 +68,8 @@
                  End."
                 "Begin.
                  End."
-                (list (token-static "Begin.")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "Begin.")
                       (token-static "\n")
                       (token-static "                 End."))
                 "All standalone comment lines should be removed.")
@@ -78,7 +82,8 @@
                 ; "|↩
                 ;  {{! Standalone Comment }}
                 ;  |"
-                (list (token-static "|\r")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "|\r")
                       (token-static "\n")
                       (token-static "|"))
                 "'\r\n' should be considered a newline for standalone tags.")
@@ -90,7 +95,8 @@
                 ; Template should be considered as:
                 ; "  {{! Standalone Comment }}
                 ;  !"
-                (list (token-static "!"))
+                (list (token-delimiter "{{" "}}")
+                      (token-static "!"))
                 "Standalone tags should not require a newline to precede them.")
 
    (rast-t-case "Standalone Without Newline"
@@ -100,7 +106,8 @@
                 ; Template should be considered as:
                 ; "!↩
                 ;    {{! Standalone Comment }}"
-                (list (token-static "!")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "!")
                       (token-static "\n"))
                 "Standalone tags should not require a newline to follow them.")
 
@@ -113,7 +120,8 @@
                  End."
                 "Begin.
                  End."
-                (list (token-static "Begin.")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "Begin.")
                       (token-static "\n")
                       (token-static "                 End."))
                 "All standalone comment lines should be removed.")
@@ -127,7 +135,8 @@
                  End."
                 "Begin.
                  End."
-                (list (token-static "Begin.")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "Begin.")
                       (token-static "\n")
                       (token-static "                 End."))
                 "All standalone comment lines should be removed.")
@@ -136,7 +145,8 @@
                 #hash()
                 "  12 {{! 34 }}\n"
                 "  12 \n"
-                (list (token-static "  12 ")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "  12 ")
                       (token-static "")
                       (token-static "\n"))
                 "Inline comments should not strip whitespace")
@@ -145,7 +155,8 @@
                 #hash()
                 "12345 {{! Comment Block! }} 67890"
                 "12345  67890"
-                (list (token-static "12345 ")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "12345 ")
                       (token-static " 67890"))
                 "Comment removal should preserve surrounding whitespace.")))
 

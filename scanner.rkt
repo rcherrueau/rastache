@@ -19,6 +19,7 @@
          (struct-out token-sec)
          (struct-out token-inv-sec)
          (struct-out token-partial)
+         (struct-out token-delimiter)
          tokenize
          mustachize)
 
@@ -76,9 +77,19 @@
                                         dotted?) port)]
                  ;; Partial
                  [(token-partial template)
-                  (write-string (format "~a(token-partial ~s null)~n"
+                  (write-string (format "~a(token-partial ~s)~n"
                                         (make-string depth #\space)
                                         template) port)]
+
+                 ;; Delimiter
+                 [(token-delimiter otag ctag)
+                  ;#;
+                  ;; Don't print it for retro compatibility purpose
+                  (write-string (format "~a(token-delimiter ~s ~s)~n"
+                                        (make-string depth #\space)
+                                        otag ctag) port)
+                  (write-string "" port)]
+
                  ;; Unknown Token
                  [other
                   (write-string (format "~a(token ~a)~n"
@@ -107,6 +118,10 @@
 ;; Partial token for partials. `template' contains the name of the
 ;; mustache template to include.
 (struct token-partial token (template))
+
+;; Delimiter token for delimiters. `otag' contains mustache opening
+;; tag. `ctaf contains mustache closing tag.
+(struct token-delimiter token (otag ctag))
 
 ;; Internal representation of a line in a mustache template. A line
 ;; gets two properties in addition to the content. `linefeed?' is true
@@ -253,7 +268,7 @@
   ;; be patterns that matche exactly the original open-tag and
   ;; close-tag.
   ;; scan: (listof tokens) string string pregexp -> (listof tokens)
-  (let scan ([tokens (list)]
+  (let scan ([tokens (list (token-delimiter open-tag close-tag))]
              [otag otag-quoted]
              [ctag ctag-quoted]
              [standalone-pattern pattern])
@@ -408,18 +423,21 @@
          (define ll (string-split value))
          (when (< (length ll) 2) (error "Bad delimeter syntax"))
 
-         (define new-otag (regexp-quote (car ll)))
-         (define new-ctag (regexp-quote
-                           (if (= (length ll) 2)
-                               (substring (cadr ll) 0
-                                          (sub1 (string-length (cadr ll))))
-                               ;; Superfluous in-tag whitespace should be ignored:
-                               ;; {{= @   @ =}}
-                               (cadr ll))))
+         (define new-otag (car ll))
+         (define new-ctag (if (= (length ll) 2)
+                              (substring (cadr ll) 0
+                                         (sub1 (string-length (cadr ll))))
+                              ;; Superfluous in-tag whitespace should be ignored:
+                              ;; {{= @   @ =}}
+                              (cadr ll)))
+         (define the-token (token-delimiter new-otag new-ctag))
+         (define new-otag-quoted (regexp-quote new-otag))
+         (define new-ctag-quoted (regexp-quote new-ctag))
          (define new-standalone-pattern
-           (make-standalone-pattern new-otag new-ctag))
+           (make-standalone-pattern new-otag-quoted new-ctag-quoted))
 
-         (scan-static new-line tokens new-otag new-ctag
+         (scan-static new-line (append tokens (list the-token))
+                      new-otag-quoted new-ctag-quoted
                       new-standalone-pattern)]))
 
     (define (scan-static line tokens otag ctag standalone-pattern)
@@ -464,9 +482,7 @@
      [else
       (scan-static line tokens otag ctag standalone-pattern)])))
 
-;; FIXME: Delimiters set outside sections or inverted-section should
-;; persists! See delimiters.rkt tests.
-(define (mustachize tokens)
+(define (mustachize tokens [otag "{{"] [ctag "}}"])
   (cond
    [(null? tokens) ""]
    [else
@@ -474,34 +490,38 @@
     (match token
       ;; Static
       [(token-static content)
-       (string-append content (mustachize (cdr tokens)))]
+       (string-append content (mustachize (cdr tokens) otag ctag))]
       ;; Etag
       [(token-etag key)
-       (string-append "{{" (symbol->string key) "}}"
-                      (mustachize (cdr tokens)))]
+       (string-append otag (symbol->string key) ctag
+                      (mustachize (cdr tokens) otag ctag))]
       ;; Utag
       [(token-utag key)
-       (string-append "{{&" (symbol->string key) "}}"
-                      (mustachize (cdr tokens)))]
+       (string-append otag "&" (symbol->string key) ctag
+                      (mustachize (cdr tokens) otag ctag))]
       ;; Section
       [(token-sec key section _)
        (let ([sec-name (symbol->string key)])
-         (string-append "{{#" sec-name "}}"
-                        (mustachize section)
-                        "{{/" sec-name "}}"
-                        (mustachize (cdr tokens))))]
+         (string-append otag "#" sec-name ctag
+                        (mustachize section otag ctag)
+                        otag "/" sec-name ctag
+                        (mustachize (cdr tokens) otag ctag)))]
       ;; Inverted Section
       [(token-inv-sec key section _)
        (let ([sec-name (symbol->string key)])
-         (string-append "{{^" sec-name "}}"
-                        (mustachize section)
-                        "{{/" sec-name "}}"
-                        (mustachize (cdr tokens))))]
+         (string-append otag "^" sec-name ctag
+                        (mustachize section otag ctag)
+                        otag "/" sec-name ctag
+                        (mustachize (cdr tokens) otag ctag)))]
       ;; Partial
       [(token-partial template)
-       (string-append "{{> " (string->symbol template) "}}"
-                      (mustachize (cdr tokens)))]
-      ;; If this is a unknow token, proceed without processing this
+       (string-append otag "> " template ctag
+                      (mustachize (cdr tokens) otag ctag))]
+      ;; Delimiter
+      [(token-delimiter o c)
+       (string-append otag "=" o " " c "=" ctag
+                      (mustachize (cdr tokens) o c))]
+      ;; if this is a unknow token, proceed without processing this
       ;; token
       [_
        (mustachize (cdr tokens))])]))

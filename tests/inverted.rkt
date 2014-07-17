@@ -67,7 +67,8 @@
                 #hash{( boolean . #f )}
                 "\"{{^boolean}}This should be rendered.{{/boolean}}\""
                 "\"This should be rendered.\""
-                (list (token-static "\"")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "\"")
                       (token-inv-sec
                        'boolean `(,(token-static "This should be rendered.")) #f)
                       (token-static "\""))
@@ -77,7 +78,8 @@
                 #hash{( boolean . #t )}
                 "\"{{^boolean}}This should not be rendered.{{/boolean}}\""
                 "\"\""
-                (list (token-static "\"")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "\"")
                       (token-inv-sec
                        'boolean `(,(token-static "This should not be rendered.")) #f)
                       (token-static "\""))
@@ -87,7 +89,8 @@
                 #hash{( context . #hash{( name . "Joe" )} )}
                 "\"{{^context}}Hi {{name}}.{{/context}}\""
                 "\"\""
-                (list (token-static "\"")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "\"")
                       (token-inv-sec 'context `(,(token-static "Hi ")
                                                 ,(token-etag 'name)
                                                 ,(token-static ".")) #f)
@@ -100,7 +103,8 @@
                                                 #hash{ (n . 3) })) })}
                 "\"{{^list}}{{n}}{{/list}}\""
                 "\"\""
-                (list (token-static "\"")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "\"")
                       (token-inv-sec 'list `(,(token-static "")
                                              ,(token-etag 'n)
                                              ,(token-static "")) #f)
@@ -111,7 +115,8 @@
                 #hash{( list . () )}
                 "\"{{^list}}Yay lists!{{/list}}\""
                 "\"Yay lists!\""
-                (list (token-static "\"")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "\"")
                       (token-inv-sec 'list `(,(token-static "Yay lists!")) #f)
                       (token-static "\""))
                 "Empty lists should behave like falsey values.")
@@ -129,7 +134,8 @@
                  * second
                  * third
 "
-                (list (token-inv-sec 'bool
+                (list (token-delimiter "{{" "}}")
+                      (token-inv-sec 'bool
                                      `(,(token-static "                 * first")
                                        ,(token-static "\n")) #f)
                       (token-static "                 * ")
@@ -145,7 +151,8 @@
                 #hash{( bool . #f )}
                 "| A {{^bool}}B {{^bool}}C{{/bool}} D{{/bool}} E |"
                 "| A B C D E |"
-                (list (token-static "| A ")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "| A ")
                       (token-inv-sec
                        'bool `(,(token-static "B ")
                                ,(token-inv-sec
@@ -158,7 +165,8 @@
                 #hash{( bool . #t )}
                 "| A {{^bool}}B {{^bool}}C{{/bool}} D{{/bool}} E |"
                 "| A  E |"
-                (list (token-static "| A ")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "| A ")
                       (token-inv-sec
                        'bool `(,(token-static "B ")
                                ,(token-inv-sec
@@ -171,7 +179,8 @@
                 #hash()
                 "[{{^missing}}Cannot find key 'missing'!{{/missing}}]"
                 "[Cannot find key 'missing'!]"
-                (list (token-static "[")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "[")
                       (token-inv-sec
                        'missing `(,(token-static "Cannot find key 'missing'!")) #f)
                       (token-static "]"))
@@ -183,6 +192,7 @@
                 "\"{{^a.b.c}}Not Here{{/a.b.c}}\" == \"\""
                 "\"\" == \"\""
                 (list
+                 (token-delimiter "{{" "}}")
                  (token-static "\"")
                  (token-inv-sec
                   'a `(,(token-inv-sec
@@ -196,6 +206,7 @@
                 "\"{{^a.b.c}}Not Here{{/a.b.c}}\" == \"Not Here\""
                 "\"Not Here\" == \"Not Here\""
                 (list
+                 (token-delimiter "{{" "}}")
                  (token-static "\"")
                  (token-inv-sec
                   'a `(,(token-inv-sec
@@ -209,6 +220,7 @@
                 "\"{{^a.b.c}}Not Here{{/a.b.c}}\" == \"Not Here\""
                 "\"Not Here\" == \"Not Here\""
                 (list
+                 (token-delimiter "{{" "}}")
                  (token-static "\"")
                  (token-inv-sec
                   'a `(,(token-inv-sec
@@ -222,7 +234,8 @@
                 #hash{( boolean . #f )}
                 " | {{^boolean}}\t|\t{{/boolean}} | \n"
                 " | \t|\t | \n"
-                (list (token-static " | ")
+                (list (token-delimiter "{{" "}}")
+                      (token-static " | ")
                       (token-inv-sec 'boolean `(,(token-static "\t|\t")) #f)
                       (token-static " | ")
                       (token-static "\n"))
@@ -232,7 +245,8 @@
                 #hash{( boolean . #f )}
                 " | {{^boolean}} {{! Important Whitespace }}\n {{/boolean}} | \n"
                 " |  \n  | \n"
-                (list (token-static " | ")
+                (list (token-delimiter "{{" "}}")
+                      (token-static " | ")
                       (token-inv-sec 'boolean `(,(token-static " ")
                                                 ,(token-static "")
                                                 ,(token-static "\n")
@@ -245,7 +259,8 @@
                 #hash{( boolean . #f )}
                 " {{^boolean}}NO{{/boolean}}\n {{^boolean}}WAY{{/boolean}}\n"
                 " NO\n WAY\n"
-                (list (token-static " ")
+                (list (token-delimiter "{{" "}}")
+                      (token-static " ")
                       (token-inv-sec 'boolean `(,(token-static "NO")) #f)
                       (token-static "")
                       (token-static "\n")
@@ -266,6 +281,7 @@
                  |
                  | A Line"
                 (list
+                 (token-delimiter "{{" "}}")
                  (token-static "| This Is")
                  (token-static "\n")
                  (token-inv-sec 'boolean `(,(token-static "                 |")
@@ -284,6 +300,7 @@
                  |
                  | A Line"
                 (list
+                 (token-delimiter "{{" "}}")
                  (token-static "| This Is")
                  (token-static "\n")
                  (token-inv-sec 'boolean `(,(token-static "                 |")
@@ -300,7 +317,8 @@
                 ;  {{^boolean}}
                 ;  {{/boolean}}
                 ;  |"
-                (list (token-static "|\r")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "|\r")
                       (token-static "\n")
                       (token-inv-sec 'boolean '() #f)
                       (token-static "|"))
@@ -314,7 +332,8 @@
                 ; "  {{^boolean}}
                 ; ^{{/boolean}}↩
                 ; /"
-                (list (token-inv-sec 'boolean `(,(token-static "^")) #f)
+                (list (token-delimiter "{{" "}}")
+                      (token-inv-sec 'boolean `(,(token-static "^")) #f)
                       (token-static "")
                       (token-static "\n")
                       (token-static "/"))
@@ -328,7 +347,8 @@
                 ; "^{{^boolean}}↩
                 ;  /↩
                 ;    {{/boolean}}"
-                (list (token-static "^")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "^")
                       (token-inv-sec 'boolean `(,(token-static "")
                                                 ,(token-static "\n")
                                                 ,(token-static "/")
@@ -340,7 +360,8 @@
                 #hash{( boolean . #f )}
                 "|{{^ boolean }}={{/ boolean }}|"
                 "|=|"
-                (list (token-static "|")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "|")
                       (token-inv-sec 'boolean `(,(token-static "=")) #f)
                       (token-static "|"))
                 "Superfluous in-tag whitespace should be ignored.")))

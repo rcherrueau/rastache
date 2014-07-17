@@ -32,7 +32,9 @@
                 #hash{(text . "Hey!")}
                 "{{=<% %>=}}(<%text%>)"
                 "(Hey!)"
-                (list (token-static "")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "")
+                      (token-delimiter "<%" "%>")
                       (token-static "(")
                       (token-etag 'text)
                       (token-static ")"))
@@ -42,7 +44,9 @@
                 #hash{(text . "It worked!")}
                 "({{=[ ]=}}[text])"
                 "(It worked!)"
-                (list (token-static "(")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "(")
+                      (token-delimiter "[" "]")
                       (token-static "")
                       (token-etag 'text)
                       (token-static ")"))
@@ -71,6 +75,7 @@
                    I got interpolated.
                  ]"
                 (list
+                 (token-delimiter "{{" "}}")
                  (token-static "[")
                  (token-static "\n")
                  (token-sec 'section `(,(token-static "                   ")
@@ -81,6 +86,7 @@
                                        ,(token-static "\n")) #f)
                  (token-static "")
                  (token-static "\n")
+                 (token-delimiter "|" "|")
                  (token-sec 'section `(,(token-static "                   {{data}}")
                                        ,(token-static "\n")
                                        ,(token-static "                   ")
@@ -89,7 +95,6 @@
                                        ,(token-static "\n")) #f)
                  (token-static "                 ]"))
                 "Delimiters set outside sections should persist.")
-
 
    (rast-t-case "Inverted Sections"
                 #hash{(section . #f)
@@ -114,6 +119,7 @@
                    I got interpolated.
                  ]"
                 (list
+                 (token-delimiter "{{" "}}")
                  (token-static "[")
                  (token-static "\n")
                  (token-inv-sec 'section `(,(token-static "                   ")
@@ -124,6 +130,7 @@
                                            ,(token-static "\n")) #f)
                  (token-static "")
                  (token-static "\n")
+                 (token-delimiter "|" "|")
                  (token-inv-sec 'section `(,(token-static "                   {{data}}")
                                            ,(token-static "\n")
                                            ,(token-static "                   ")
@@ -140,7 +147,9 @@
                 #hash()
                 "| {{=@ @=}} |"
                 "|  |"
-                (list (token-static "| ")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "| ")
+                      (token-delimiter "@" "@")
                       (token-static " |"))
                 "Surrounding whitespace should be left untouched.")
 
@@ -148,7 +157,9 @@
                 #hash()
                 " | {{=@ @=}}\n"
                 " | \n"
-                (list (token-static " | ")
+                (list (token-delimiter "{{" "}}")
+                      (token-static " | ")
+                      (token-delimiter "@" "@")
                       (token-static "")
                       (token-static "\n"))
                 "Whitespace should be left untouched.")
@@ -160,8 +171,10 @@
                  End."
                 "Begin.
                  End."
-                (list (token-static "Begin.")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "Begin.")
                       (token-static "\n")
+                      (token-delimiter "@" "@")
                       (token-static "                 End."))
                 "Standalone lines should be removed from the template.")
 
@@ -172,8 +185,10 @@
                  End."
                 "Begin.
                  End."
-                (list (token-static "Begin.")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "Begin.")
                       (token-static "\n")
+                      (token-delimiter "@" "@")
                       (token-static "                 End."))
                 "Indented standalone lines should be removed from the template.")
 
@@ -185,8 +200,10 @@
                 ; "|↩
                 ;  {{=@ @=}}
                 ;  |"
-                (list (token-static "|\r")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "|\r")
                       (token-static "\n")
+                      (token-delimiter "@" "@")
                       (token-static "|"))
                 "'\r\n' should be considered a newline for standalone tags.")
 
@@ -197,15 +214,19 @@
                 ; Template should be considered as:
                 ; "  {{=@ @=}}
                 ;  ="
-                (list (token-static "="))
+                (list (token-delimiter "{{" "}}")
+                      (token-delimiter "@" "@")
+                      (token-static "="))
                 "Standalone tags should not require a newline to precede them.")
 
    (rast-t-case "Standalone Without Newline"
                 #hash()
                 "=\n  {{=@ @=}}"
                 "=\n"
-                (list (token-static "=")
-                      (token-static "\n"))
+                (list (token-delimiter "{{" "}}")
+                      (token-static "=")
+                      (token-static "\n")
+                      (token-delimiter "@" "@"))
                 "Standalone tags should not require a newline to follow them.")
 
    ;; Whitespace Insensitivity
@@ -213,7 +234,9 @@
                 #hash()
                 "|{{= @   @ =}}|"
                 "||"
-                (list (token-static "|")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "|")
+                      (token-delimiter "@" "@")
                       (token-static "|"))
                 "Superfluous in-tag whitespace should be ignored.")))
 

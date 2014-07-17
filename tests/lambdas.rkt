@@ -39,7 +39,8 @@
                 `#hash{( lambda . ,(λ _ "world") )}
                 "Hello, {{lambda}}!"
                 "Hello, world!"
-                (list (token-static "Hello, ")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "Hello, ")
                       (token-etag 'lambda)
                       (token-static "!"))
                 "A lambda's return value should be interpolated.")
@@ -71,7 +72,8 @@
                 `#hash{( lambda . ,(λ _ (set! g (add1 g)) g) )}
                 "{{lambda}} == {{{lambda}}} == {{lambda}}"
                 "1 == 2 == 3"
-                (list (token-static "")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "")
                       (token-etag 'lambda)
                       (token-static " == ")
                       (token-utag 'lambda)
@@ -84,7 +86,8 @@
                 `#hash{( lambda . ,(λ _ ">") )}
                 "<{{lambda}}{{{lambda}}}"
                 "<&gt;>"
-                (list (token-static "<")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "<")
                       (token-etag 'lambda)
                       (token-static "")
                       (token-utag 'lambda)
@@ -98,7 +101,8 @@
                                           "yes" "no")) )}
                 "<{{#lambda}}{{x}}{{/lambda}}>"
                 "<yes>"
-                (list (token-static "<")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "<")
                       (token-sec 'lambda (list (token-static "")
                                                (token-etag 'x)
                                                (token-static ""))
@@ -114,13 +118,12 @@
                                                              text)))) }
                 "<{{#lambda}}-{{/lambda}}>"
                 "<-Earth->"
-                (list (token-static "<")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "<")
                       (token-sec 'lambda (list (token-static "-")) #f)
                       (token-static ">"))
                 "Lambdas used for sections should have their results parsed.")
 
-   ;; FIXME: mustachize has to take into account the update of
-   ;; mustahce delimiters
    (rast-t-case "Section - Alternate Delimiters"
                 `#hash{ (planet . "Earth")
                         (lambda . ,(λ (text render)
@@ -130,7 +133,9 @@
                                                       text)))) }
                 "{{= | | =}}<|#lambda|-|/lambda|>"
                 "<-{{planet}} => Earth->"
-                (list (token-static "")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "")
+                      (token-delimiter "|" "|")
                       (token-static "<")
                       (token-sec 'lambda (list (token-static "-")) #f)
                       (token-static ">"))
@@ -141,7 +146,8 @@
                                      (render (string-append "__" text "__")))) }
                 "{{#lambda}}FILE{{/lambda}} != {{#lambda}}LINE{{/lambda}}"
                 "__FILE__ != __LINE__"
-                (list (token-static "")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "")
                       (token-sec 'lambda (list (token-static "FILE")) #f)
                       (token-static " != ")
                       (token-sec 'lambda (list (token-static "LINE")) #f)
@@ -152,7 +158,8 @@
                 `#hash{( lambda . ,(λ (text) #f) )}
                 "<{{^lambda}}{{static}}{{/lambda}}>"
                 "<>"
-                (list (token-static "<")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "<")
                       (token-inv-sec 'lambda (list (token-static "")
                                                    (token-etag 'static)
                                                    (token-static ""))

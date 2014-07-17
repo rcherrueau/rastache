@@ -52,14 +52,16 @@
                 #hash()
                 "Hello from {Mustache}!"
                 "Hello from {Mustache}!"
-                (list (token-static "Hello from {Mustache}!"))
+                (list (token-delimiter "{{" "}}")
+                      (token-static "Hello from {Mustache}!"))
                 "Mustache-free templates should render as-is.")
 
    (rast-t-case "Basic Interpolation"
                 #hash{(subject . "world")}
                 "Hello, {{subject}}!"
                 "Hello, world!"
-                (list (token-static "Hello, ")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "Hello, ")
                       (token-etag 'subject)
                       (token-static "!"))
                 "Unadorned tags should interpolate content into the template.")
@@ -68,7 +70,8 @@
                 #hash{(forbidden . "& \" < >")}
                 "These characters should be HTML escaped: {{forbidden}}"
                 "These characters should be HTML escaped: &amp; &quot; &lt; &gt;"
-                (list (token-static "These characters should be HTML escaped: ")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "These characters should be HTML escaped: ")
                       (token-etag 'forbidden)
                       (token-static ""))
                 "Basic interpolation should be HTML escaped.")
@@ -77,7 +80,8 @@
                 #hash{(forbidden . "& \" < >")}
                 "These characters should not be HTML escaped: {{{forbidden}}}"
                 "These characters should not be HTML escaped: & \" < >"
-                (list (token-static "These characters should not be HTML escaped: ")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "These characters should not be HTML escaped: ")
                       (token-utag 'forbidden)
                       (token-static ""))
                 "Triple mustaches should interpolate without HTML escaping.")
@@ -86,7 +90,8 @@
                 #hash{(forbidden . "& \" < >")}
                 "These characters should not be HTML escaped: {{&forbidden}}"
                 "These characters should not be HTML escaped: & \" < >"
-                (list (token-static "These characters should not be HTML escaped: ")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "These characters should not be HTML escaped: ")
                       (token-utag 'forbidden)
                       (token-static ""))
                 "Ampersand should interpolate without HTML escaping.")
@@ -95,7 +100,8 @@
                 #hash{(mph . 88)}
                 "\"{{mph}} miles an hour!\""
                 "\"88 miles an hour!\""
-                (list (token-static "\"")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "\"")
                       (token-etag 'mph)
                       (token-static " miles an hour!\""))
                 "Integers should interpolate seamlessly.")
@@ -104,7 +110,8 @@
                 #hash{(mph . 88)}
                 "\"{{{mph}}} miles an hour!\""
                 "\"88 miles an hour!\""
-                (list (token-static "\"")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "\"")
                       (token-utag 'mph)
                       (token-static " miles an hour!\""))
                 "Integers should interpolate seamlessly.")
@@ -113,7 +120,8 @@
                 #hash{(mph . 88)}
                 "\"{{&mph}} miles an hour!\""
                 "\"88 miles an hour!\""
-                (list (token-static "\"")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "\"")
                       (token-utag 'mph)
                       (token-static " miles an hour!\""))
                 "Integers should interpolate seamlessly.")
@@ -122,7 +130,8 @@
                 #hash{(power . 1.210)}
                 "\"{{power}} jiggawatts!\""
                 "\"1.21 jiggawatts!\""
-                (list (token-static "\"")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "\"")
                       (token-etag 'power)
                       (token-static " jiggawatts!\""))
                 "Decimals should interpolate seamlessly with proper significance.")
@@ -131,7 +140,8 @@
                 #hash{(power . 1.210)}
                 "\"{{{power}}} jiggawatts!\""
                 "\"1.21 jiggawatts!\""
-                (list (token-static "\"")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "\"")
                       (token-utag 'power)
                       (token-static " jiggawatts!\""))
                 "Decimals should interpolate seamlessly with proper significance.")
@@ -140,7 +150,8 @@
                 #hash{(power . 1.210)}
                 "\"{{&power}} jiggawatts!\""
                 "\"1.21 jiggawatts!\""
-                (list (token-static "\"")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "\"")
                       (token-utag 'power)
                       (token-static " jiggawatts!\""))
                 "Decimals should interpolate seamlessly with proper significance.")
@@ -150,7 +161,8 @@
                 #hash()
                 "I ({{cannot}}) be seen!"
                 "I () be seen!"
-                (list (token-static "I (")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "I (")
                       (token-etag 'cannot)
                       (token-static ") be seen!"))
                 "Failed context lookups should default to empty strings.")
@@ -159,7 +171,8 @@
                 #hash()
                 "I ({{{cannot}}}) be seen!"
                 "I () be seen!"
-                (list (token-static "I (")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "I (")
                       (token-utag 'cannot)
                       (token-static ") be seen!"))
                 "Failed context lookups should default to empty strings.")
@@ -168,7 +181,8 @@
                 #hash()
                 "I ({{&cannot}}) be seen!"
                 "I () be seen!"
-                (list (token-static "I (")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "I (")
                       (token-utag 'cannot)
                       (token-static ") be seen!"))
                 "Failed context lookups should default to empty strings.")
@@ -178,7 +192,8 @@
                 #hash{(person . #hash{(name . "Joe")})}
                 "\"{{person.name}}\" == \"{{#person}}{{name}}{{/person}}\""
                 "\"Joe\" == \"Joe\""
-                (list (token-static "\"")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "\"")
                       (token-sec 'person (list (token-etag 'name)) #t)
                       (token-static "\" == \"")
                       (token-sec 'person (list (token-static "")
@@ -187,12 +202,12 @@
                       (token-static "\""))
                 "Dotted names should be considered a form of shorthand for sections.")
 
-
    (rast-t-case "Dotted Names - Triple Mustache Interpolation"
                 #hash{(person . #hash{(name . "Joe")})}
                 "\"{{{person.name}}}\" == \"{{#person}}{{{name}}}{{/person}}\""
                 "\"Joe\" == \"Joe\""
-                (list (token-static "\"")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "\"")
                       (token-sec 'person (list (token-utag 'name)) #t)
                       (token-static "\" == \"")
                       (token-sec 'person (list (token-static "")
@@ -205,7 +220,8 @@
                 #hash{(person . #hash{(name . "Joe")})}
                 "\"{{&person.name}}\" == \"{{#person}}{{&name}}{{/person}}\""
                 "\"Joe\" == \"Joe\""
-                (list (token-static "\"")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "\"")
                       (token-sec 'person (list (token-utag 'name)) #t)
                       (token-static "\" == \"")
                       (token-sec 'person (list (token-static "")
@@ -224,6 +240,7 @@
                 "\"{{a.b.c.d.e.name}}\" == \"Phil\""
                 "\"Phil\" == \"Phil\""
                 (list
+                 (token-delimiter "{{" "}}")
                  (token-static "\"")
                  (token-sec
                   'a `(,(token-sec
@@ -244,6 +261,7 @@
                 "\"{{a.b.c}}\" == \"\""
                 "\"\" == \"\""
                 (list
+                 (token-delimiter "{{" "}}")
                  (token-static "\"")
                  (token-sec 'a `(,(token-sec 'b `(,(token-etag 'c)) #t)) #t)
                  (token-static "\" == \"\""))
@@ -255,6 +273,7 @@
                 "\"{{a.b.c.name}}\" == \"\""
                 "\"\" == \"\""
                 (list
+                 (token-delimiter "{{" "}}")
                  (token-static "\"")
                  (token-sec
                   'a `(,(token-sec
@@ -276,6 +295,7 @@
                 "\"{{#a}}{{b.c.d.e.name}}{{/a}}\" == \"Phil\""
                 "\"Phil\" == \"Phil\""
                 (list
+                 (token-delimiter "{{" "}}")
                  (token-static "\"")
                  (token-sec
                   'a `(,(token-static "")
@@ -294,6 +314,7 @@
                 "{{#a}}{{b.c}}{{/a}}"
                 ""
                 (list
+                 (token-delimiter "{{" "}}")
                  (token-static "")
                  (token-sec 'a `(,(token-static "")
                                  ,(token-sec 'b `(,(token-etag 'c)) #t)
@@ -307,7 +328,8 @@
                 #hash{(string . "---")}
                 "| {{string}} |"
                 "| --- |"
-                (list (token-static "| ")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "| ")
                       (token-etag 'string)
                       (token-static " |"))
                 "Interpolation should not alter surrounding whitespace.")
@@ -316,7 +338,8 @@
                 #hash{(string . "---")}
                 "| {{{string}}} |"
                 "| --- |"
-                (list (token-static "| ")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "| ")
                       (token-utag 'string)
                       (token-static " |"))
                 "Interpolation should not alter surrounding whitespace.")
@@ -325,7 +348,8 @@
                 #hash{(string . "---")}
                 "| {{&string}} |"
                 "| --- |"
-                (list (token-static "| ")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "| ")
                       (token-utag 'string)
                       (token-static " |"))
                 "Interpolation should not alter surrounding whitespace.")
@@ -334,7 +358,8 @@
                 #hash{(string . "---")}
                 "  {{string}}\n"
                 "  ---\n"
-                (list (token-static "  ")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "  ")
                       (token-etag 'string)
                       (token-static "")
                       (token-static "\n"))
@@ -344,7 +369,8 @@
                 #hash{(string . "---")}
                 "  {{{string}}}\n"
                 "  ---\n"
-                (list (token-static "  ")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "  ")
                       (token-utag 'string)
                       (token-static "")
                       (token-static "\n"))
@@ -354,7 +380,8 @@
                 #hash{(string . "---")}
                 "  {{&string}}\n"
                 "  ---\n"
-                (list (token-static "  ")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "  ")
                       (token-utag 'string)
                       (token-static "")
                       (token-static "\n"))
@@ -365,7 +392,8 @@
                 #hash{(string . "---")}
                 "|{{ string }}|"
                 "|---|"
-                (list (token-static "|")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "|")
                       (token-etag 'string)
                       (token-static "|"))
                 "Superfluous in-tag whitespace should be ignored.")
@@ -374,7 +402,8 @@
                 #hash{(string . "---")}
                 "|{{{ string }}}|"
                 "|---|"
-                (list (token-static "|")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "|")
                       (token-utag 'string)
                       (token-static "|"))
                 "Superfluous in-tag whitespace should be ignored.")
@@ -383,7 +412,8 @@
                 #hash{(string . "---")}
                 "|{{& string }}|"
                 "|---|"
-                (list (token-static "|")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "|")
                       (token-utag 'string)
                       (token-static "|"))
                 "Superfluous in-tag whitespace should be ignored.")))

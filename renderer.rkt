@@ -53,9 +53,11 @@
 
 ;; Render a mustache tokens thanks to the rendering context.
 ;; render: (list token) rast-context port-out -> void
-(define (render tokens context stream)
+(define (render tokens context stream [open-tag "{{"] [close-tag "}}"])
   (let _render ([the-tokens tokens]
-                [the-ctx context])
+                [the-ctx context]
+                [the-otag open-tag]
+                [the-ctag close-tag])
     (cond
      ;; No more tokens
      [(null? the-tokens)]
@@ -66,7 +68,7 @@
         ;; Static
         [(token-static content)
          (display content stream)
-         (_render (cdr the-tokens) the-ctx)]
+         (_render (cdr the-tokens) the-ctx the-otag the-ctag)]
 
         ;; Etag
         [(token-etag key)
@@ -76,7 +78,7 @@
                    [(and (boolean? val) (not val)) ""]
                    [(number? val) (number->string val)]
                    [else (htmlescape-string val)]) stream)
-         (_render (cdr the-tokens) the-ctx)]
+         (_render (cdr the-tokens) the-ctx the-otag the-ctag)]
 
         ;; Utag
         [(token-utag key)
@@ -86,7 +88,7 @@
                    [(and (boolean? val) (not val)) ""]
                    [(number? val) (number->string val)]
                    [else val]) stream)
-         (_render (cdr the-tokens) the-ctx)]
+         (_render (cdr the-tokens) the-ctx the-otag the-ctag)]
 
         ;; Section
         [(token-sec key section dotted?)
@@ -111,7 +113,9 @@
                          ;; `the-val' is not a rastache context.Render
                          ;; with general context overriding by `the-val'
                          ;; put at `period-name' position
-                         [else (hash-set the-ctx period-name the-val)])))
+                         [else (hash-set the-ctx period-name the-val)])
+                        the-otag
+                        the-ctag))
             val)]
           ;; Section key is a Lambda
           [(procedure? val)
@@ -119,13 +123,12 @@
              (error "Error: The lambda should have two arguments"))
 
            (display
-            ;; FIXME: mustachize has to take into account the update
-            ;; of mustahce delimiters
-            (val (mustachize section)
+            (val (mustachize section the-otag the-ctag)
                  (λ (txt)
                     (let ([o (open-output-string)])
-                      (render (tokenize (open-input-string txt))
-                              the-ctx o)
+                      (render (tokenize (open-input-string txt)
+                                        the-otag the-ctag)
+                              the-ctx o the-otag the-ctag)
                       (get-output-string o))))
             stream)]
           ;; Non-false value (i.e non-false value, non-empty list,
@@ -138,21 +141,23 @@
            ;; Render with general context overriding by the-val put at
            ;; `period-name' position
            (_render section
-                        (cond
-                         ;; `val is rastache context and this is a
-                         ;; dotted name. Render with `val' context
-                         [(and dotted? (rast-context? val)) val]
-                         ;; `val' is rastache context but this is not
-                         ;; a dotted name section. Render with general
-                         ;; context overriding by `val' content
-                         [(rast-context? val)
-                          (foldl (λ (kv ctx) (hash-set ctx (car kv) (cdr kv)))
-                                 the-ctx (hash->list val))]
-                         ;; `val' is not a rastache context.Render
-                         ;; with general context overriding by `val'
-                         ;; put at `period-name' position
-                         [else (hash-set the-ctx period-name val)]))])
-         (_render (cdr the-tokens) the-ctx)]
+                    (cond
+                     ;; `val is rastache context and this is a
+                     ;; dotted name. Render with `val' context
+                     [(and dotted? (rast-context? val)) val]
+                     ;; `val' is rastache context but this is not
+                     ;; a dotted name section. Render with general
+                     ;; context overriding by `val' content
+                     [(rast-context? val)
+                      (foldl (λ (kv ctx) (hash-set ctx (car kv) (cdr kv)))
+                             the-ctx (hash->list val))]
+                     ;; `val' is not a rastache context.Render
+                     ;; with general context overriding by `val'
+                     ;; put at `period-name' position
+                     [else (hash-set the-ctx period-name val)])
+                    the-otag
+                    the-ctag)])
+         (_render (cdr the-tokens) the-ctx the-otag the-ctag)]
 
         ;; Inverted Section
         [(token-inv-sec key inv-section #f)
@@ -164,8 +169,8 @@
                 (and (list? val) (null? val))
                 ;; false value / un-existing key
                 (and (boolean? val) (not val)))
-           (_render inv-section the-ctx))
-         (_render (cdr the-tokens) the-ctx)]
+           (_render inv-section the-ctx the-otag the-ctag))
+         (_render (cdr the-tokens) the-ctx the-otag the-ctag)]
 
         ;; Inverted Section with Dotted Names
         [(token-inv-sec key inv-section #t)
@@ -190,23 +195,28 @@
                  ;; Last inverted section of this dotted name
                  ;; => Render section
                  [(token-inv-sec k is #f)
-                  (_render is the-ctx)]))
+                  (_render is the-ctx the-otag the-ctag)]))
 
              ;; True value:
              ;; Render with context seting to val
              (_render inv-section
-                    (if (rast-context? val)
-                        ;; Render with val context
-                        val
-                        ;; Render with context setting to val
-                        `#hash{( self . ,val )})))
-         (_render (cdr the-tokens) the-ctx)]
+                      (if (rast-context? val)
+                          ;; Render with val context
+                          val
+                          ;; Render with context setting to val
+                          `#hash{( self . ,val )}) the-otag the-ctag))
+         (_render (cdr the-tokens) the-ctx the-otag the-ctag)]
 
         ;; Partial
         [(token-partial template)
          ;; TODO: implements me!
-         (_render (cdr the-tokens) the-ctx)]
+         (_render (cdr the-tokens) the-ctx the-otag the-ctag)]
+
+        ;; Delimiter
+        [(token-delimiter otag ctag)
+         (_render (cdr the-tokens) the-ctx otag ctag)]
 
         ;; If this is a unknow token: Error!
         [other
-         (error (format "Unknow token type~a~n" other))])])))
+         (error (format "Unknown token type ~a while rendering~n"
+                        other))])])))
