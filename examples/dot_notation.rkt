@@ -1,27 +1,25 @@
 #lang racket/base
 
-(require "../scanner.rkt")
+(require "../rastache.rkt"
+         "../context.rkt")
 
-(provide (all-defined-out))
+(define template
+#<<HERESTRING
+Hello {{person.name}}
+You have just won ${{price.value}}!
+{{#person.in_ca}}
+Well, ${{ states.ca.taxed_value }}, after taxes.
+{{/person.in_ca}}
+HERESTRING
+)
 
-(define dot_notation-name "dot_notation")
-
-(define dot_notation-template
-  (string-append dot_notation-name ".html"))
-
-(define dot_notation-res
-  (string-append dot_notation-name ".txt"))
-
-(define dot_notation-ctx
-`#hash{
-  (person . #hash{(name . "Chris") (in_ca . #t)})
-  (price  . #hash{(value . 10000)})
-  (states . #hash{(ca .
-              #hash{(taxed_value . ,(λ (self)
-                                       (let ([val
-                                              (rast-ref* self 'price 'value)])
-                                         (- val (* val 0.4)))))})})})
-
-(define  dot_notation-mock-tokens
-  (list
-))
+(rastache-compile/render (open-input-string template)
+                         `#hash{(person . #hash{(name . "Chris") (in_ca . #t)})
+                                (price  . #hash{(value . 10000)})
+                                (states . #hash{(ca .
+                                                    #hash{(taxed_value .
+                                                            ,(λ (self)
+                                                                (let ([val
+                                                                       (rast-ref* self 'price 'value)])
+                                                                  (- val (* val 0.4)))))})})}
+                         (current-output-port))

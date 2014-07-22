@@ -1,55 +1,20 @@
 #lang racket/base
 
-(require "../scanner.rkt"
+(require "../rastache.rkt"
          "../context.rkt")
 
-(provide (all-defined-out))
+(define template
+#<<HERESTRING
+<h1>{{header}}</h1>{{#list}}<ul>{{#item}}{{#current}}<li><strong>{{name}}</strong></li>{{/current}}{{#link}}<li><a href="{{url}}">{{name}}</a></li>{{/link}}{{/item}}</ul>{{/list}}{{#empty}}<p>The list is empty.</p>{{/empty}}
+HERESTRING
+)
 
-(define complex-name "complex")
-
-(define complex-template
-  (string-append complex-name ".html"))
-
-(define complex-res
-  (string-append complex-name ".txt"))
-
-(define complex-ctx
-  `#hash{(header . ,(λ _ "Colors"))
-         (item . [#hash{(name . "red") (current . #t) (url . "#Red")}
-                  #hash{(name . "green") (current . #f) (url . "#Green")}
-                  #hash{(name . "blue") (current . #f) (url . "#Blue")}])
-         (link . ,(λ (self) (not (eq? (rast-ref self 'current) #t))))
-         (list . ,(λ (self) (not (eq? (length (rast-ref self 'item)) 0))))
-         (empty . ,(λ (self) (eq? (length (rast-ref self 'item)) 0)))})
-
-(define  complex-mock-tokens
-  (list
-   (token 'static "<h1>" null)
-   (token 'etag 'header null)
-   (token 'static "</h1>" null)
-   (token 'section 'list
-     (list
-      (token 'static "<ul>" null)
-      (token 'section 'item
-        (list
-         (token 'static "" null)
-         (token 'section 'current
-           (list
-            (token 'static "<li><strong>" null)
-            (token 'etag 'name null)
-            (token 'static "</strong></li>" null)))
-         (token 'static "" null)
-         (token 'section 'link
-           (list
-            (token 'static "<li><a href=\"" null)
-            (token 'etag 'url null)
-            (token 'static "\">" null)
-            (token 'etag 'name null)
-            (token 'static "</a></li>" null)))
-         (token 'static "" null)))
-      (token 'static "</ul>" null)))
-   (token 'static "" null)
-   (token 'section 'empty
-     (list
-      (token 'static "<p>The list is empty.</p>" null)))
-   (token 'static "\n" null)))
+(rastache-compile/render (open-input-string template)
+                         `#hash{(header . ,(λ _ "Colors"))
+                                (item . [#hash{(name . "red") (current . #t) (url . "#Red")}
+                                         #hash{(name . "green") (current . #f) (url . "#Green")}
+                                         #hash{(name . "blue") (current . #f) (url . "#Blue")}])
+                                (link . ,(λ (self) (not (eq? (rast-ref self 'current) #t))))
+                                (list . ,(λ (self) (not (eq? (length (rast-ref self 'item)) 0))))
+                                (empty . ,(λ (self) (eq? (length (rast-ref self 'item)) 0)))}
+                         (current-output-port))

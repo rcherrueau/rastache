@@ -1,23 +1,13 @@
 #lang racket/base
 
-(require "../scanner.rkt")
+(require "../rastache.rkt")
 
-(provide (all-defined-out))
+(define template
+#<<HERESTRING
+<h1>{{title}}{{! just something interesting... or not... }}</h1>
+HERESTRING
+)
 
-(define comments-name "comments")
-
-(define comments-template
-  (string-append comments-name ".html"))
-
-(define comments-res
-  (string-append comments-name ".txt"))
-
-(define comments-ctx
-  `#hash{(title . ,(λ _ "A Comedy of Errors"))})
-
-(define  comments-mock-tokens
-  (list
-   (token 'static "<h1>" null)
-   (token 'etag 'title null)
-   (token 'static "" null)
-   (token 'static "</h1>\n" null)))
+(rastache-compile/render (open-input-string template)
+                         `#hash{(title . ,(λ _ "A Comedy of Errors"))}
+                         (current-output-port))

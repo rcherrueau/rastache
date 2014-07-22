@@ -1,22 +1,15 @@
 #lang racket/base
 
-(require "../scanner.rkt")
+(require "../rastache.rkt")
 
-(provide (all-defined-out))
+(define template
+#<<HERESTRING
+<b>
+{{foo}}
+</b>
+HERESTRING
+)
 
-(define carriage_return-name "carriage_return")
-
-(define carriage_return-template
-  (string-append carriage_return-name ".html"))
-
-(define carriage_return-res
-  (string-append carriage_return-name ".txt"))
-
-(define carriage_return-ctx
-  #hash{(foo . "Hello World")})
-
-(define  carriage_return-mock-tokens
-  (list
-   (token 'static "<b>\r\n" null)
-   (token 'etag 'foo null)
-   (token 'static "\r\n</b>\n" null)))
+(rastache-compile/render (open-input-string template)
+                         #hash{(foo . "Hello World")}
+                         (current-output-port))

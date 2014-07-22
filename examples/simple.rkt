@@ -1,38 +1,25 @@
 #lang racket/base
 
-(require "../scanner.rkt"
+(require "../rastache.rkt"
          "../context.rkt")
 
-(provide (all-defined-out))
+(define template
+#<<HERESTRING
+Hello {{name}}
+You have just won ${{value}}!
+{{#in_ca}}
+Well, ${{ taxed_value }}, after taxes.
+{{/in_ca}}
+Love, {{owner}}
+HERESTRING
+)
 
-(define simple-name "simple")
-
-(define simple-template
-  (string-append simple-name ".html"))
-
-(define simple-res
-  (string-append simple-name ".txt"))
-
-(define simple-ctx
-  `#hash{(name . "Chris")
-         (value . 10000)
-         (taxed_value . ,(λ (self)
-                            (let ([val (rast-ref self 'value)])
-                              (inexact->exact (- val (* val 0.4))))))
-         (in_ca . #t)
-         (owner . ,null)})
-
-(define  simple-mock-tokens
-  (list
-   (token 'static "Hello " null)
-   (token 'etag 'name null)
-   (token 'static "\nYou have just won $" null)
-   (token 'etag 'value null)
-   (token 'static "!\n" null)
-   (token 'section 'in_ca (list
-                           (token 'static "\nWell, $" null)
-                           (token 'etag 'taxed_value null)
-                           (token 'static ", after taxes.\n" null)))
-   (token 'static "\nLove, " null)
-   (token 'etag 'owner null)
-   (token 'static "\n" null)))
+(rastache-compile/render (open-input-string template)
+                         `#hash{(name . "Chris")
+                                (value . 10000)
+                                (taxed_value . ,(λ (self)
+                                                   (let ([val (rast-ref self 'value)])
+                                                     (inexact->exact (- val (* val 0.4))))))
+                                (in_ca . #t)
+                                (owner . ,null)}
+                         (current-output-port))

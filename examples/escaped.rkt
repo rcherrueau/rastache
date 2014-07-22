@@ -1,22 +1,13 @@
 #lang racket/base
+(require "../rastache.rkt"
+         "../context.rkt")
 
-(require "../scanner.rkt")
+(define template
+#<<HERESTRING
+<h1>{{title}}</h1>
+HERESTRING
+)
 
-(provide (all-defined-out))
-
-(define escaped-name "escaped")
-
-(define escaped-template
-  (string-append escaped-name ".html"))
-
-(define escaped-res
-  (string-append escaped-name ".txt"))
-
-(define escaped-ctx
-  `#hash{(title . ,(λ _ "Bear > Shark"))})
-
-(define  escaped-mock-tokens
-  (list
-   (token 'static "<h1>" null)
-   (token 'etag 'title null)
-   (token 'static "</h1>" null)))
+(rastache-compile/render (open-input-string template)
+                         `#hash{(title . ,(λ _ "Bear > Shark"))}
+                         (current-output-port))
