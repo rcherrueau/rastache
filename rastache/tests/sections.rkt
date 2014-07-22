@@ -58,7 +58,7 @@
 
 (require rackunit
          rackunit/text-ui
-         "../scanner.rkt"
+         "../commons.rkt"
          "rastache-test-case.rkt")
 
 (define sections-tests

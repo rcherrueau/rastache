@@ -2,6 +2,7 @@
 
 (require rackunit
          racket/format
+         "../commons.rkt"
          "../scanner.rkt"
          "../renderer.rkt"
          "../rastache.rkt"

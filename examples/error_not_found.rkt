@@ -1,7 +1,6 @@
 #lang racket/base
 
-(require "../rastache.rkt"
-         "../context.rkt")
+(require "../rastache/rastache.rkt")
 
 (rastache-compile/render (open-input-string "{{foo}}")
                          #hash{(bar . 2)}

@@ -8,42 +8,40 @@
 ;   \/_/ \/__/\/_/\/___/   \/__/\/__/\/_/\/____/ \/_/\/_/\/____/
 ; Mustache template engine for Racket
 
-(provide (all-defined-out))
+(provide rast-ref
+         rast-ref*
+         (all-defined-out))
 
 ; ______________________________________________________________________________
 ; import and implementation
 
-(require "scanner.rkt"
-         "context.rkt"
+(require "commons.rkt"
+         "scanner.rkt"
          "renderer.rkt")
 
-(define (rastache-compile template [open-tag "{{"] [close-tag "}}"])
-  (tokenize template open-tag close-tag))
+(define (rastache-compile template)
+  (tokenize template))
 
-(define (rastache-compile/open-file
-         mustache-file [open-tag "{{"] [close-tag "}}"])
+(define (rastache-compile/open-file mustache-file)
   (define template (open-input-file mustache-file))
-  (define tokens (rastache-compile template open-tag close-tag))
+  (define tokens (rastache-compile template))
 
   (when (not (port-closed? template))
     (close-input-port template))
 
   tokens)
 
-(define (rastache-compile/open-string
-         mustache-string [open-tag "{{"] [close-tag "}}"])
+(define (rastache-compile/open-string mustache-string)
   (define template (open-input-string mustache-string))
-  (define tokens (rastache-compile template open-tag close-tag))
+  (define tokens (rastache-compile template))
 
   (when (not (port-closed? template))
     (close-input-port template))
 
   tokens)
 
-(define (rastache-render tokens context stream [open-tag "{{"] [close-tag "}}"])
-  (render tokens context stream open-tag close-tag))
+(define (rastache-render tokens context stream)
+  (render tokens context stream))
 
-(define (rastache-compile/render
-         template context stream [open-tag "{{"] [close-tag "}}"])
-  (render (tokenize template open-tag close-tag)
-          context stream open-tag close-tag))
+(define (rastache-compile/render template context stream)
+  (render (tokenize template) context stream))

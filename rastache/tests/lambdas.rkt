@@ -25,7 +25,7 @@
 
 (require rackunit
          rackunit/text-ui
-         "../scanner.rkt"
+         "../commons.rkt"
          "rastache-test-case.rkt")
 
 ;; Global variable for "Interpolation - Multiple Calls" test

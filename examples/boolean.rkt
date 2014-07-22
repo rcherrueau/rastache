@@ -1,6 +1,6 @@
 #lang racket/base
 
-(require "../rastache.rkt")
+(require "../rastache/rastache.rkt")
 
 (define template
 #<<HERESTRING

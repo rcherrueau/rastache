@@ -1,3 +1,3 @@
-[submodule "tests/spec"]
-	path = tests/spec
-	url = git@github.com:mustache/spec.git
+[submodule "rastache/tests/spec"]
+	path = rastache/tests/spec
+	url = https://github.com/mustache/spec.git

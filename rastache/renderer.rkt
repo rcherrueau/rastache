@@ -13,10 +13,10 @@
 (provide render)
 ; ______________________________________________________________________________
 ; import and implementation
-(require racket/match
-         xml
-         "context.rkt"
-         "scanner.rkt")
+(require "commons.rkt"
+         "scanner.rkt"
+         racket/match
+         xml)
 
 ;; Returns `#t' if the value is a rastache context, `#f' otherwise.
 (define rast-context? hash?)
@@ -26,8 +26,6 @@
   (regexp-replace* #rx"\""
                    (xexpr->string string)
                    (regexp-replace-quote "&quot;")))
-
-(define period-name 'self)
 
 (define (lookup context key) (hash-ref context key #f))
 
@@ -126,6 +124,8 @@
             val)]
           ;; Section key is a Lambda
           [(procedure? val)
+           ;; FIXME: 0, 1 arg application result should be treated as
+           ;; a non-empty list case or non-flase-value case.
            (cond
             ;; 0 or arity-at-least arg
             [(or (eq? (procedure-arity val) 0)

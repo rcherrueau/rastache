@@ -12,116 +12,15 @@
 ;
 ; Parse mustache template and generate a list of tokens. The list of
 ; tokens describes how to render the template.
-(provide (struct-out token)
-         (struct-out token-static)
-         (struct-out token-etag)
-         (struct-out token-utag)
-         (struct-out token-sec)
-         (struct-out token-inv-sec)
-         (struct-out token-partial)
-         (struct-out token-delimiter)
-         tokenize
+(provide tokenize
          mustachize)
 
 ; ______________________________________________________________________________
 ; import and implementation
-(require racket/match
+(require "commons.rkt"
+         racket/match
          racket/port
          racket/string)
-
-;; Token is a meta-variable for mustache template syntactic
-;; categories. Mustache defines 6 syntatic categories, i.e: 'static,
-;; 'etag, 'utag, 'section, 'inverted-section and 'partial.
-;;
-;; see http://mustache.github.io/mustache.5.html for the meaning of
-;; each category.
-(struct token ()
-        #:methods gen:custom-write
-        [(define write-proc
-           (λ (token port mode)
-             (let _token-print ([the-token token]
-                                [depth 0])
-               (match the-token
-                 ;; Static
-                 [(token-static content)
-                  (write-string (format "~a(token-static ~s null)~n"
-                                        (make-string depth #\space)
-                                        content) port)]
-                 ;; Etag
-                 [(token-etag key)
-                  (write-string (format "~a(token-etag '~s null)~n"
-                                        (make-string depth #\space)
-                                        key) port)]
-                 ;; Utag
-                 [(token-utag key)
-                  (write-string (format "~a(token-utag '~s null)~n"
-                                        (make-string depth #\space)
-                                        key) port)]
-                 ;; Section
-                 [(token-sec key section dotted?)
-                  (write-string (format "~a(token-sec '~s (list~n"
-                                        (make-string depth #\space)
-                                        key) port)
-                  (for-each (λ (t) (_token-print t (+ depth 2))) section)
-                  (write-string (format "~a ) ~a)~n"
-                                        (make-string (+ depth 2) #\space)
-                                        dotted?) port)]
-                 ;; Inverted Section
-                 [(token-inv-sec key section dotted?)
-                  (write-string (format "~a(token-inv-sec '~s (list~n"
-                                        (make-string depth #\space)
-                                        key) port)
-                  (for-each (λ (t) (_token-print t (+ depth 2))) section)
-                  (write-string (format "~a ) ~a)~n"
-                                        (make-string (+ depth 2) #\space)
-                                        dotted?) port)]
-                 ;; Partial
-                 [(token-partial template)
-                  (write-string (format "~a(token-partial ~s)~n"
-                                        (make-string depth #\space)
-                                        template) port)]
-
-                 ;; Delimiter
-                 [(token-delimiter otag ctag)
-                  ;#;
-                  ;; Don't print it for retro compatibility purpose
-                  (write-string (format "~a(token-delimiter ~s ~s)~n"
-                                        (make-string depth #\space)
-                                        otag ctag) port)
-                  (write-string "" port)]
-
-                 ;; Unknown Token
-                 [other
-                  (write-string (format "~a(token ~a)~n"
-                                        (make-string depth #\space)
-                                        other) port)]))))])
-
-;; Static token for static content. `content' contains static text.
-(struct token-static token (content))
-
-;; Etag token for variable. `key' contains a key usable with the
-;; mustache context.
-(struct token-etag token (key))
-
-;; Utag token for unescaped HTML variable. `key' contains a key usable
-;; with the mustache context.
-(struct token-utag token (key))
-
-;; Section token for section. `key' contains the section name.
-;; `section' contains all tokens of this section.
-(struct token-sec token (key section dotted?))
-
-;; Inverted Section token for inverted section. `key' contains the
-;; section name. `section' contains all tokens of this section.
-(struct token-inv-sec token (key section dotted?))
-
-;; Partial token for partials. `template' contains the name of the
-;; mustache template to include.
-(struct token-partial token (template))
-
-;; Delimiter token for delimiters. `otag' contains mustache opening
-;; tag. `ctaf contains mustache closing tag.
-(struct token-delimiter token (otag ctag))
 
 ;; Internal representation of a line in a mustache template. A line
 ;; gets two properties in addition to the content. `linefeed?' is true
@@ -251,8 +150,6 @@
 ;; tag.
 (define (read-close-tag ctag-quoted port)
   (void (regexp-match ctag-quoted port)))
-
-(define period-name 'self)
 
 ;; Construct the list of tokens for a specific template. The
 ;; `template' has to be an input port that reads bytes from a UTF-8
