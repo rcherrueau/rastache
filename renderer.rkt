@@ -11,7 +11,6 @@
 ; Mustache template renderer.
 ;
 (provide render)
-
 ; ______________________________________________________________________________
 ; import and implementation
 (require racket/match
@@ -42,12 +41,20 @@
        [(or (eq? (procedure-arity var) 0)
             (arity-at-least? (procedure-arity var)))
         (var)]
-       ;; 1 arg
+       ;; 1 arg: give context
        [(eq? (procedure-arity var) 1)
         (var context)]
+       ;; 2 args: give context and render function
+       [(eq? (procedure-arity var) 2)
+        (var context
+             (λ (txt)
+                (let ([o (open-output-string)])
+                  (render (tokenize (open-input-string txt))
+                          context o)
+                  (get-output-string o))))]
        [else
         (error
-         "Error: The lambda should have zero or one argument")])]
+         "Error: The lambda should have zero, one or two argument(s)")])]
      ;; Else var is a val: return it
      [else var])))
 
@@ -119,18 +126,29 @@
             val)]
           ;; Section key is a Lambda
           [(procedure? val)
-           (unless (eq? 2 (procedure-arity val))
-             (error "Error: The lambda should have two arguments"))
+           (cond
+            ;; 0 or arity-at-least arg
+            [(or (eq? (procedure-arity val) 0)
+                 (arity-at-least? (procedure-arity val)))
+             (val)]
+            ;; 1 arg: give context
+            [(eq? (procedure-arity val) 1)
+             (val the-ctx)]
+            ;; 2 args: give text and render function
+            [(eq? (procedure-arity val) 2)
+             (display
+              (val (mustachize section the-otag the-ctag)
+                   (λ (txt)
+                      (let ([o (open-output-string)])
+                        (render (tokenize (open-input-string txt)
+                                          the-otag the-ctag)
+                                the-ctx o the-otag the-ctag)
+                        (get-output-string o))))
+              stream)]
+            [else
+             (error
+              "Error: The lambda should have zero, one or two argument(s)")])]
 
-           (display
-            (val (mustachize section the-otag the-ctag)
-                 (λ (txt)
-                    (let ([o (open-output-string)])
-                      (render (tokenize (open-input-string txt)
-                                        the-otag the-ctag)
-                              the-ctx o the-otag the-ctag)
-                      (get-output-string o))))
-            stream)]
           ;; Non-false value (i.e non-false value, non-empty list,
           ;; non-unexisting key)
           [(and

@@ -45,25 +45,25 @@
                       (token-static "!"))
                 "A lambda's return value should be interpolated.")
 
-   #;
-   ;; Interpolation expansion is not implemented by mustache.js
    (rast-t-case "Interpolation - Expansion"
                 `#hash{( planet . "world" )
-                       ( lambda . ,(λ _ "{{planet}}") )}
+                       ( lambda . ,(λ (_ render) (render "{{planet}}")) )}
                 "Hello, {{lambda}}!"
                 "Hello, world!"
-                (list (token-static "Hello, ")
+                (list (token-delimiter "{{" "}}")
+                      (token-static "Hello, ")
                       (token-etag 'lambda)
                       (token-static "!"))
                 "A lambda's return value should be parsed.")
-   #;
-   ;; Interpolation expansion is not implemented by mustache.js
+
    (rast-t-case "Interpolation - Alternate Delimiters"
                 `#hash{( planet . "world" )
-                       ( lambda . ,(λ _ "|planet| => {{planet}}") )}
+                       ( lambda . ,(λ (_ render) (render "|planet| => {{planet}}")) )}
                 "{{= | | =}}\nHello, (|&lambda|)!"
                 "Hello, (|planet| => world)!"
-                (list (token-static "Hello, (")
+                (list (token-delimiter "{{" "}}")
+                      (token-delimiter "|" "|")
+                      (token-static "Hello, (")
                       (token-utag 'lambda)
                       (token-static ")!"))
                 "A lambda's return value should parse with the default delimiters.")

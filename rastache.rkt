@@ -40,9 +40,10 @@
 
   tokens)
 
-(define (rastache-render tokens context stream)
-  (render tokens context stream))
+(define (rastache-render tokens context stream [open-tag "{{"] [close-tag "}}"])
+  (render tokens context stream open-tag close-tag))
 
 (define (rastache-compile/render
          template context stream [open-tag "{{"] [close-tag "}}"])
-  (render (tokenize template open-tag close-tag) context stream))
+  (render (tokenize template open-tag close-tag)
+          context stream open-tag close-tag))

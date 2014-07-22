@@ -19,11 +19,21 @@
 ; '#hash((k1 . "v1") (k2 . "v2") (k3 . test))
 ;
 
-(provide rast-ref)
+(provide rast-ref
+         rast-ref*)
 
 ; ______________________________________________________________________________
 ; import and implementation
 
-(require racket/base)
+(require racket/base
+         racket/match)
 
 (define rast-ref hash-ref)
+
+(define (rast-ref* ctx . keys)
+  (let _rast-ref* [(ks (reverse keys))]
+    (match ks
+      [(list k)
+       (hash-ref ctx k #f)]
+      [(list k ks ...)
+       (hash-ref (_rast-ref* ks) k #f)])))
