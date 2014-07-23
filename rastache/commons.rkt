@@ -108,11 +108,11 @@
 ;; Symbol in rastach-context behind period tag name.
 (define period-name 'self)
 
-;; ;; Mustache open keyword identifier
-;; (define open-tag (make-parameter "{{"))
+;; Mustache open keyword identifier
+(define open-tag (make-parameter "{{"))
 
-;; ;; Mustache close keyword identifier
-;; (define close-tag (make-parameter "}}"))
+;; Mustache close keyword identifier
+(define close-tag (make-parameter "}}"))
 
 ; Use #hash expression and quasiquoting to create the context.
 ; http://docs.racket-lang.org/guide/hash-tables.html
@@ -125,7 +125,7 @@
 ;; Returns the value for a `key' in a rastache context.
 (define rast-ref hash-ref)
 
-;; Return the value for a period key (i.e.: key1.key2.key3) in a
+;; Returns the value for a period key (i.e.: key1.key2.key3) in a
 ;; rastache context. If no value is found `#f' is returned.
 (define (rast-ref* ctx . keys)
   (let _rast-ref* [(ks (reverse keys))]

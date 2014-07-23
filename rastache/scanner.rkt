@@ -156,37 +156,57 @@
 ;; stream.`open-tag' and `close-tag' are mustache keywords
 ;; identifiers.
 ;; tokenize: input-port string string -> (listof token)
-(define (tokenize template [open-tag "{{"] [close-tag "}}"])
-  (define otag-quoted (regexp-quote open-tag))
-  (define ctag-quoted (regexp-quote close-tag))
-  (define pattern (make-standalone-pattern otag-quoted ctag-quoted))
+(define (tokenize template)
+  ; __________________________________________________________________
+  ; tokenize parameters
 
-  ;; Scans the text and instanciate tokens. `otag' and `ctag' should
-  ;; be patterns that matche exactly the original open-tag and
-  ;; close-tag.
-  ;; scan: (listof tokens) string string pregexp -> (listof tokens)
-  (let scan ([tokens (list (token-delimiter open-tag close-tag))]
-             [otag otag-quoted]
-             [ctag ctag-quoted]
-             [standalone-pattern pattern])
+  ;; Pattern that matche exactly the original open-tag.
+  (define otag-quoted (make-parameter
+                       (regexp-quote (open-tag))))
+  ;; Pattern that matche exactly the original close-tag.
+  (define ctag-quoted (make-parameter
+                       (regexp-quote (close-tag))))
+  ;; Pattern that recognizes standalone line.
+  (define standalone-pattern (make-parameter
+                              (make-standalone-pattern (otag-quoted)
+                                                       (ctag-quoted))))
 
-    (define (scan-tag line tokens otag ctag standalone-pattern)
+  ; __________________________________________________________________
+  ; tokenize implementation
+
+  ;; Parses the text and instanciate tokens.
+  ;; parse: (listof tokens) string string pregexp -> (listof tokens)
+  (let parse ([tokens (list (token-delimiter (open-tag)
+                                             (close-tag)))])
+
+    ;; A util function which continue the parsing after parsing
+    ;; current tag.
+    (define (parse-ahead line tokens new-token)
+      (parse-static line (append tokens (list new-token))))
+
+    ;; Parse a tag
+    (define (parse-tag line tokens)
       ;; Consume the mustache opening tag
-      (read-open-tag otag (line-content line))
+      (read-open-tag (otag-quoted) (line-content line))
 
       ;; Search for mustache closing tag
-      (define ctag-pos (close-tag-position ctag (line-content line)))
+      (define ctag-pos (close-tag-position (ctag-quoted)
+                                           (line-content line)))
       (define-values (new-line new-ctag-pos)
-        (if (not ctag-pos)
-            (read-multiline template line ctag standalone-pattern)
-            (values line ctag-pos)))
+        (cond
+         [(not ctag-pos) (read-multiline template
+                                         line
+                                         (ctag-quoted)
+                                         (standalone-pattern))]
+         [else (values line ctag-pos)]))
 
       ;; Consume content of mustache tag
       (define content-length (car new-ctag-pos))
-      (define content (read-string content-length (line-content new-line)))
+      (define content (read-string content-length
+                                   (line-content new-line)))
 
       ;; Consume the mustache closing tag
-      (read-close-tag ctag (line-content new-line))
+      (read-close-tag (ctag-quoted) (line-content new-line))
 
       (define l (regexp-match state-pattern content))
       (define sigil (cadr l))
@@ -195,130 +215,145 @@
       (case sigil
         ;; Etag
         [(#f)
-         (let ([periods-split (regexp-split #rx"\\." (string-trim value))]
-               [scan-ahead (lambda (the-token)
-                             (scan-static new-line
-                                          (append tokens (list the-token))
-                                          otag ctag standalone-pattern))])
-           (cond
-            ;; Single period
-            [(equal? value ".")
-             ;; Period tag name is changed by `period-name'
-             (scan-ahead (token-etag period-name))]
-            ;; Simple Etag
-            [(equal? (length periods-split) 1)
-             (scan-ahead (token-etag (string->symbol (car periods-split))))]
-            ;; Dotted names should be considered a form of shorthand
-            ;; for sections
-            [else
-             (scan-ahead
-              (let make-token ([tags periods-split])
-                (if (> (length tags) 1)
-                    (token-sec (string->symbol (car tags))
-                               (list (make-token (cdr tags))) #t)
-                    (token-etag (string->symbol (car tags))))))]))]
+         (define periods-split
+           (regexp-split #rx"\\." (string-trim value)))
+         (cond
+          ;; Single period
+          [(equal? value ".")
+           ;; Period tag name is changed by `period-name'
+           (parse-ahead new-line tokens (token-etag period-name))]
+          ;; Simple Etag
+          [(equal? (length periods-split) 1)
+           (define key (string->symbol (car periods-split)))
+           (parse-ahead new-line tokens (token-etag key))]
+          ;; Dotted names should be considered a form of shorthand
+          ;; for sections
+          [else
+           (define the-token
+             (let make-token ([tags periods-split])
+               (cond
+                [(> (length tags) 1)
+                 (define key (string->symbol (car tags)))
+                 (token-sec key
+                            (list (make-token (cdr tags)))
+                            #t)]
+                [else
+                 (define key (string->symbol (car tags)))
+                 (token-etag key)])))
+           (parse-ahead new-line tokens the-token)])]
 
         ;; Unescaped HTML
         [("{" "&")
          ;; if unescaped starting with "{", then consumes the closing "}"
          (when (equal? sigil "{")
            (read-string (string-length "}") (line-content new-line)))
-         (let ([periods-split (regexp-split #rx"\\." (string-trim value))]
-               [scan-ahead (lambda (the-token)
-                             (scan-static new-line
-                                          (append tokens (list the-token))
-                                          otag ctag standalone-pattern))])
-           (cond
-            ;; Single period
-            [(equal? value ".")
-             ;; Period tag name is changed by `period-name.
-             (scan-ahead (token-utag period-name))]
-            ;; Simple Utag
-            [(equal? (length periods-split) 1)
-             (scan-ahead (token-utag (string->symbol (car periods-split))))]
-            ;; Dotted names should be considered a form of shorthand
-            ;; for sections
-            [else
-             (scan-ahead
-              (let make-token ([tags periods-split])
-                (if (> (length tags) 1)
-                    (token-sec (string->symbol (car tags))
-                               (list (make-token (cdr tags))) #t)
-                    (token-utag (string->symbol (car tags))))))]))]
+
+         (define periods-split
+           (regexp-split #rx"\\." (string-trim value)))
+         (cond
+          ;; Single period
+          [(equal? value ".")
+           ;; Period tag name is changed by `period-name.
+           (parse-ahead new-line tokens (token-utag period-name))]
+          ;; Simple Utag
+          [(equal? (length periods-split) 1)
+           (define key (string->symbol (car periods-split)))
+           (parse-ahead new-line tokens (token-utag key))]
+          ;; Dotted names should be considered a form of shorthand
+          ;; for sections
+          [else
+           (parse-ahead
+            new-line
+            tokens
+            (let make-token ([tags periods-split])
+              (cond
+               [(> (length tags) 1)
+                (token-sec (string->symbol (car tags))
+                           (list (make-token (cdr tags)))
+                           #t)]
+               [else
+                (token-utag (string->symbol (car tags)))])))])]
 
         ;; Section
         [("#")
          ;; First compute nested tokens; eol is for end-of-line
          (define-values (nested-tokens eol)
-           (scan-static new-line (list) otag ctag standalone-pattern))
+           (parse-static new-line (list)))
          ;; Then add nested tokens and continue with the end of line.
          ;; Dotted names should be considered a form of shorthand for
          ;; sections.
-         (let ([periods-split (regexp-split #rx"\\." (string-trim value))]
-               [scan-ahead (lambda (the-token)
-                             (scan-static eol
-                                          (append tokens (list the-token))
-                                          otag ctag standalone-pattern))])
-           (cond
-            ;; Simple section name
-            [(equal? (length periods-split) 1)
-             (scan-ahead (token-sec (string->symbol (car periods-split))
-                                    nested-tokens #f))]
-            ;; Section name with periods
-            [else
-             (scan-ahead
-              (let make-token ([tags periods-split])
-                (if (> (length tags) 1)
-                    (token-sec (string->symbol (car tags))
-                               (list (make-token (cdr tags))) #t)
-                    (token-sec (string->symbol (car tags))
-                               nested-tokens #f))))]))]
+         (define periods-split
+           (regexp-split #rx"\\." (string-trim value)))
+         (cond
+          ;; Simple section name
+          [(equal? (length periods-split) 1)
+           (define key (string->symbol (car periods-split)))
+           (parse-ahead eol tokens (token-sec key nested-tokens #f))]
+          ;; Section name with periods
+          [else
+           (parse-ahead
+            eol
+            tokens
+            (let make-token ([tags periods-split])
+              (cond
+               [(> (length tags) 1)
+                (token-sec (string->symbol (car tags))
+                           (list (make-token (cdr tags)))
+                           #t)]
+               [else
+                (token-sec (string->symbol (car tags))
+                           nested-tokens
+                           #f)])))])]
 
         ;; Inverted Section
         [("^")
          ;; First compute nested tokens; eol is for end-of-line
          (define-values (nested-tokens eol)
-           (scan-static new-line (list) otag ctag standalone-pattern))
+           (parse-static new-line (list)))
          ;; Then add nested tokens and continue with the end of line.
          ;; Dotted names should be considered a form of shorthand for
          ;; sections.
-         (let ([periods-split (regexp-split #rx"\\." (string-trim value))]
-               [scan-ahead (lambda (the-token)
-                             (scan-static eol
-                                          (append tokens (list the-token))
-                                          otag ctag standalone-pattern))])
-           (cond
-            ;; Simple section name
-            [(equal? (length periods-split) 1)
-             (scan-ahead (token-inv-sec (string->symbol (car periods-split))
-                                        nested-tokens #f))]
-            ;; Section name with periods
-            [else
-             (scan-ahead
-              (let make-token ([tags periods-split])
-                (if (> (length tags) 1)
-                    (token-inv-sec (string->symbol (car tags))
-                                   (list (make-token (cdr tags))) #t)
-                    (token-inv-sec (string->symbol (car tags))
-                                   nested-tokens #f))))]))]
+         (define periods-split
+           (regexp-split #rx"\\." (string-trim value)))
+         (cond
+          ;; Simple section name
+          [(equal? (length periods-split) 1)
+           (define key (string->symbol (car periods-split)))
+           (parse-ahead eol tokens (token-inv-sec key nested-tokens #f))]
+          ;; Section name with periods
+          [else
+           (parse-ahead
+            eol
+            tokens
+            (let make-token ([tags periods-split])
+              (cond
+               [(> (length tags) 1)
+                (token-inv-sec (string->symbol (car tags))
+                               (list (make-token (cdr tags)))
+                               #t)]
+               [else
+                (token-inv-sec (string->symbol (car tags))
+                               nested-tokens
+                               #f)])))])]
 
         ;; End of (Inverted) Section
         [("/") (values tokens new-line)]
 
         ;; Comments
         [("!")
-         (scan-static new-line tokens otag ctag standalone-pattern)]
+         (parse-static new-line tokens)]
 
         ;; Partial
         [(">" "<")
          (define the-token (token-partial value))
-         (scan-static new-line (append tokens (list the-token))
-                      otag ctag standalone-pattern)]
+         (parse-static new-line (append tokens (list the-token)))]
 
         ;; Set delimiters
         [("=")
          (define ll (string-split value))
-         (when (< (length ll) 2) (error "Bad delimeter syntax"))
+
+         (when (< (length ll) 2)
+           (error "Bad delimeter syntax"))
 
          (define new-otag (car ll))
          (define new-ctag (if (= (length ll) 2)
@@ -328,18 +363,20 @@
                               ;; {{= @   @ =}}
                               (cadr ll)))
          (define the-token (token-delimiter new-otag new-ctag))
-         (define new-otag-quoted (regexp-quote new-otag))
-         (define new-ctag-quoted (regexp-quote new-ctag))
-         (define new-standalone-pattern
-           (make-standalone-pattern new-otag-quoted new-ctag-quoted))
 
-         (scan-static new-line (append tokens (list the-token))
-                      new-otag-quoted new-ctag-quoted
-                      new-standalone-pattern)]))
+         (parameterize* ([open-tag new-otag]
+                         [close-tag new-ctag]
+                         [otag-quoted (regexp-quote (open-tag))]
+                         [ctag-quoted (regexp-quote (close-tag))]
+                         [standalone-pattern
+                          (make-standalone-pattern (otag-quoted)
+                                                   (ctag-quoted))])
+           (parse-static new-line (append tokens (list the-token))))]))
 
-    (define (scan-static line tokens otag ctag standalone-pattern)
+    (define (parse-static line tokens)
       ;; Search for the mustache opening tag
-      (define otag-pos (open-tag-position otag (line-content line)))
+      (define otag-pos (open-tag-position (otag-quoted)
+                                          (line-content line)))
 
       (cond
        ;; No more mustache tag
@@ -357,7 +394,7 @@
                                  (token-static "\n")))]
            [else
             (append tokens (list (token-static content)))]))
-        (scan new-tokens otag ctag standalone-pattern)]
+        (parse new-tokens)]
 
        ;; Still mustache tag
        ;; Creates a static token with the text until next mustache tag.
@@ -367,19 +404,21 @@
         (define content (read-string content-length (line-content line)))
         (define new-tokens
           ;; Don't keep the value of a standalone line.
-          (if (not (line-standalone? line))
-              (append tokens (list (token-static content)))
-              tokens))
-        (scan-tag line new-tokens otag ctag standalone-pattern)]))
+          (cond
+           [(not (line-standalone? line))
+            (append tokens (list (token-static content)))]
+           [else
+            tokens]))
+        (parse-tag line new-tokens)]))
 
-    (define line (read-line template standalone-pattern))
+    (define line (read-line template (standalone-pattern)))
 
     (cond
      [(line-eof? line) tokens]
      [else
-      (scan-static line tokens otag ctag standalone-pattern)])))
+      (parse-static line tokens)])))
 
-(define (mustachize tokens [otag "{{"] [ctag "}}"])
+(define (mustachize tokens)
   (cond
    [(null? tokens) ""]
    [else
@@ -387,37 +426,39 @@
     (match token
       ;; Static
       [(token-static content)
-       (string-append content (mustachize (cdr tokens) otag ctag))]
+       (string-append content (mustachize (cdr tokens)))]
       ;; Etag
       [(token-etag key)
-       (string-append otag (symbol->string key) ctag
-                      (mustachize (cdr tokens) otag ctag))]
+       (string-append (open-tag) (symbol->string key) (close-tag)
+                      (mustachize (cdr tokens)))]
       ;; Utag
       [(token-utag key)
-       (string-append otag "&" (symbol->string key) ctag
-                      (mustachize (cdr tokens) otag ctag))]
+       (string-append (open-tag) "&" (symbol->string key) (close-tag)
+                      (mustachize (cdr tokens)))]
       ;; Section
       [(token-sec key section _)
        (let ([sec-name (symbol->string key)])
-         (string-append otag "#" sec-name ctag
-                        (mustachize section otag ctag)
-                        otag "/" sec-name ctag
-                        (mustachize (cdr tokens) otag ctag)))]
+         (string-append (open-tag) "#" sec-name (close-tag)
+                        (mustachize section)
+                        (open-tag) "/" sec-name (close-tag)
+                        (mustachize (cdr tokens))))]
       ;; Inverted Section
       [(token-inv-sec key section _)
        (let ([sec-name (symbol->string key)])
-         (string-append otag "^" sec-name ctag
-                        (mustachize section otag ctag)
-                        otag "/" sec-name ctag
-                        (mustachize (cdr tokens) otag ctag)))]
+         (string-append (open-tag) "^" sec-name (close-tag)
+                        (mustachize section)
+                        (open-tag) "/" sec-name (close-tag)
+                        (mustachize (cdr tokens))))]
       ;; Partial
       [(token-partial template)
-       (string-append otag "> " template ctag
-                      (mustachize (cdr tokens) otag ctag))]
+       (string-append (open-tag) "> " template (close-tag)
+                      (mustachize (cdr tokens)))]
       ;; Delimiter
-      [(token-delimiter o c)
-       (string-append otag "=" o " " c "=" ctag
-                      (mustachize (cdr tokens) o c))]
+      [(token-delimiter new-otag new-ctag)
+       (string-append (open-tag) "=" new-otag " " new-ctag "=" (close-tag)
+                      (parameterize ([open-tag new-otag]
+                                     [close-tag new-ctag])
+                        (mustachize (cdr tokens))))]
       ;; if this is a unknow token, proceed without processing this
       ;; token
       [_

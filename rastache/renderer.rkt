@@ -47,8 +47,16 @@
         (var context
              (λ (txt)
                 (let ([o (open-output-string)])
-                  (render (tokenize (open-input-string txt))
-                          context o)
+                  (render
+                   ; A lambda's return value should parse with the
+                   ; default delimiters.
+                   ; Lambdas tests > Interpolation - Alternate
+                   ; Delimiters
+                   (parameterize ([open-tag "{{"]
+                                  [close-tag "}}"])
+                    (tokenize (open-input-string txt)))
+                   context
+                   o)
                   (get-output-string o))))]
        [else
         (error
@@ -58,11 +66,10 @@
 
 ;; Render a mustache tokens thanks to the rendering context.
 ;; render: (list token) rast-context port-out -> void
-(define (render tokens context stream [open-tag "{{"] [close-tag "}}"])
+(define (render tokens context stream)
+
   (let _render ([the-tokens tokens]
-                [the-ctx context]
-                [the-otag open-tag]
-                [the-ctag close-tag])
+                [the-ctx context])
     (cond
      ;; No more tokens
      [(null? the-tokens)]
@@ -73,7 +80,7 @@
         ;; Static
         [(token-static content)
          (display content stream)
-         (_render (cdr the-tokens) the-ctx the-otag the-ctag)]
+         (_render (cdr the-tokens) the-ctx)]
 
         ;; Etag
         [(token-etag key)
@@ -83,7 +90,7 @@
                    [(and (boolean? val) (not val)) ""]
                    [(number? val) (number->string val)]
                    [else (htmlescape-string val)]) stream)
-         (_render (cdr the-tokens) the-ctx the-otag the-ctag)]
+         (_render (cdr the-tokens) the-ctx)]
 
         ;; Utag
         [(token-utag key)
@@ -93,7 +100,7 @@
                    [(and (boolean? val) (not val)) ""]
                    [(number? val) (number->string val)]
                    [else val]) stream)
-         (_render (cdr the-tokens) the-ctx the-otag the-ctag)]
+         (_render (cdr the-tokens) the-ctx)]
 
         ;; Section
         [(token-sec key section dotted?)
@@ -118,9 +125,7 @@
                          ;; `the-val' is not a rastache context.Render
                          ;; with general context overriding by `the-val'
                          ;; put at `period-name' position
-                         [else (hash-set the-ctx period-name the-val)])
-                        the-otag
-                        the-ctag))
+                         [else (hash-set the-ctx period-name the-val)])))
             val)]
           ;; Section key is a Lambda
           [(procedure? val)
@@ -137,12 +142,12 @@
             ;; 2 args: give text and render function
             [(eq? (procedure-arity val) 2)
              (display
-              (val (mustachize section the-otag the-ctag)
+              (val (mustachize section)
                    (λ (txt)
                       (let ([o (open-output-string)])
-                        (render (tokenize (open-input-string txt)
-                                          the-otag the-ctag)
-                                the-ctx o the-otag the-ctag)
+                        (render (tokenize (open-input-string txt))
+                                the-ctx
+                                o)
                         (get-output-string o))))
               stream)]
             [else
@@ -172,10 +177,8 @@
                      ;; `val' is not a rastache context.Render
                      ;; with general context overriding by `val'
                      ;; put at `period-name' position
-                     [else (hash-set the-ctx period-name val)])
-                    the-otag
-                    the-ctag)])
-         (_render (cdr the-tokens) the-ctx the-otag the-ctag)]
+                     [else (hash-set the-ctx period-name val)]))])
+         (_render (cdr the-tokens) the-ctx)]
 
         ;; Inverted Section
         [(token-inv-sec key inv-section #f)
@@ -187,8 +190,8 @@
                 (and (list? val) (null? val))
                 ;; false value / un-existing key
                 (and (boolean? val) (not val)))
-           (_render inv-section the-ctx the-otag the-ctag))
-         (_render (cdr the-tokens) the-ctx the-otag the-ctag)]
+           (_render inv-section the-ctx))
+         (_render (cdr the-tokens) the-ctx)]
 
         ;; Inverted Section with Dotted Names
         [(token-inv-sec key inv-section #t)
@@ -213,7 +216,7 @@
                  ;; Last inverted section of this dotted name
                  ;; => Render section
                  [(token-inv-sec k is #f)
-                  (_render is the-ctx the-otag the-ctag)]))
+                  (_render is the-ctx)]))
 
              ;; True value:
              ;; Render with context seting to val
@@ -222,17 +225,19 @@
                           ;; Render with val context
                           val
                           ;; Render with context setting to val
-                          `#hash{( self . ,val )}) the-otag the-ctag))
-         (_render (cdr the-tokens) the-ctx the-otag the-ctag)]
+                          `#hash{( self . ,val )})))
+         (_render (cdr the-tokens) the-ctx)]
 
         ;; Partial
         [(token-partial template)
          ;; TODO: implements me!
-         (_render (cdr the-tokens) the-ctx the-otag the-ctag)]
+         (_render (cdr the-tokens) the-ctx)]
 
         ;; Delimiter
-        [(token-delimiter otag ctag)
-         (_render (cdr the-tokens) the-ctx otag ctag)]
+        [(token-delimiter new-otag new-ctag)
+         (parameterize ([open-tag new-otag]
+                        [close-tag new-ctag])
+           (_render (cdr the-tokens) the-ctx))]
 
         ;; If this is a unknow token: Error!
         [other
