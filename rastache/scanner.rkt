@@ -151,6 +151,9 @@
 (define (read-close-tag ctag-quoted port)
   (void (regexp-match ctag-quoted port)))
 
+;; Makes a token key from a string
+(define key string->symbol)
+
 ;; Construct the list of tokens for a specific template. The
 ;; `template' has to be an input port that reads bytes from a UTF-8
 ;; stream.`open-tag' and `close-tag' are mustache keywords
@@ -178,13 +181,36 @@
   ;; parse: (listof tokens) string string pregexp -> (listof tokens)
   (let parse ([tokens (list (token-delimiter (open-tag)
                                              (close-tag)))])
+    ;; Util function wich constructs tokens for dotted names:
+    ;; 'etag: {{a.b}} produces
+    ;; 'utag: {{&a.b}} produces {{#a}}{{&b}}{{/a}}
+    ;; 'sec:
+    ;;   {{#a.b}}{{c}}{{/a.b}} produces {{#a}}{{#b}}{{c}}{{/b}}{{/a}}
+    ;; 'inv-sec:
+    ;;   {{^a.b}}{{c}}{{/a.b}} produces {{^a}}{{^b}}{{c}}{{/b}}{{/a}}
+    (define (make-dotted-tokens dotted-names
+                                #:type type
+                                #:sec-tokens [nested '()])
+      (let _mdt ([tags dotted-names])
+        (cond
+         [(> (length tags) 1)
+          (define token-maker (cond [(eq? type 'inv-sec)
+                                     token-inv-sec]
+                                    [else token-sec]))
+          (token-maker (key (car tags)) (list (_mdt (cdr tags))) #t)]
+         [else
+          (case type
+            ['etag (token-etag (key (car tags)))]
+            ['utag (token-utag (key (car tags)))]
+            ['sec (token-sec (key (car tags)) nested #f)]
+            ['inv-sec (token-inv-sec (key (car tags)) nested #f)])])))
 
-    ;; A util function which continue the parsing after parsing
-    ;; current tag.
+    ;; Util function which continues the parsing of a line after
+    ;; parsing current tag.
     (define (parse-ahead line tokens new-token)
       (parse-static line (append tokens (list new-token))))
 
-    ;; Parse a tag
+    ;; Util function which parses a tag.
     (define (parse-tag line tokens)
       ;; Consume the mustache opening tag
       (read-open-tag (otag-quoted) (line-content line))
@@ -215,32 +241,19 @@
       (case sigil
         ;; Etag
         [(#f)
-         (define periods-split
-           (regexp-split #rx"\\." (string-trim value)))
-         (cond
-          ;; Single period
-          [(equal? value ".")
-           ;; Period tag name is changed by `period-name'
-           (parse-ahead new-line tokens (token-etag period-name))]
-          ;; Simple Etag
-          [(equal? (length periods-split) 1)
-           (define key (string->symbol (car periods-split)))
-           (parse-ahead new-line tokens (token-etag key))]
-          ;; Dotted names should be considered a form of shorthand
-          ;; for sections
-          [else
-           (define the-token
-             (let make-token ([tags periods-split])
-               (cond
-                [(> (length tags) 1)
-                 (define key (string->symbol (car tags)))
-                 (token-sec key
-                            (list (make-token (cdr tags)))
-                            #t)]
-                [else
-                 (define key (string->symbol (car tags)))
-                 (token-etag key)])))
-           (parse-ahead new-line tokens the-token)])]
+         (define the-token
+           (let ([name (regexp-split #rx"\\." (string-trim value))])
+             (cond
+              ;; Single period
+              [(equal? value ".")
+               (token-etag period-name)]
+              ;; Simple Etag
+              [(equal? (length name) 1)
+               (token-etag (key (car name)))]
+              ;; Dotted names
+              [else
+               (make-dotted-tokens name #:type 'etag)])))
+         (parse-ahead new-line tokens the-token)]
 
         ;; Unescaped HTML
         [("{" "&")
@@ -248,31 +261,19 @@
          (when (equal? sigil "{")
            (read-string (string-length "}") (line-content new-line)))
 
-         (define periods-split
-           (regexp-split #rx"\\." (string-trim value)))
-         (cond
-          ;; Single period
-          [(equal? value ".")
-           ;; Period tag name is changed by `period-name.
-           (parse-ahead new-line tokens (token-utag period-name))]
-          ;; Simple Utag
-          [(equal? (length periods-split) 1)
-           (define key (string->symbol (car periods-split)))
-           (parse-ahead new-line tokens (token-utag key))]
-          ;; Dotted names should be considered a form of shorthand
-          ;; for sections
-          [else
-           (parse-ahead
-            new-line
-            tokens
-            (let make-token ([tags periods-split])
-              (cond
-               [(> (length tags) 1)
-                (token-sec (string->symbol (car tags))
-                           (list (make-token (cdr tags)))
-                           #t)]
-               [else
-                (token-utag (string->symbol (car tags)))])))])]
+         (define the-token
+           (let ([name (regexp-split #rx"\\." (string-trim value))])
+             (cond
+              ;; Single period
+              [(equal? value ".")
+               (token-utag period-name)]
+              ;; Simple Utag
+              [(equal? (length name) 1)
+               (token-utag (key (car name)))]
+              ;; Dotted names
+              [else
+               (make-dotted-tokens name #:type 'utag)])))
+         (parse-ahead new-line tokens the-token)]
 
         ;; Section
         [("#")
@@ -282,28 +283,18 @@
          ;; Then add nested tokens and continue with the end of line.
          ;; Dotted names should be considered a form of shorthand for
          ;; sections.
-         (define periods-split
-           (regexp-split #rx"\\." (string-trim value)))
-         (cond
-          ;; Simple section name
-          [(equal? (length periods-split) 1)
-           (define key (string->symbol (car periods-split)))
-           (parse-ahead eol tokens (token-sec key nested-tokens #f))]
-          ;; Section name with periods
-          [else
-           (parse-ahead
-            eol
-            tokens
-            (let make-token ([tags periods-split])
-              (cond
-               [(> (length tags) 1)
-                (token-sec (string->symbol (car tags))
-                           (list (make-token (cdr tags)))
-                           #t)]
-               [else
-                (token-sec (string->symbol (car tags))
-                           nested-tokens
-                           #f)])))])]
+         (define the-token
+           (let ([name (regexp-split #rx"\\." (string-trim value))])
+             (cond
+              ;; Simple section name
+              [(equal? (length name) 1)
+               (token-sec (key (car name)) nested-tokens #f)]
+              ;; Dotted names
+              [else
+               (make-dotted-tokens name
+                                   #:type 'sec
+                                   #:sec-tokens nested-tokens)])))
+           (parse-ahead eol tokens the-token)]
 
         ;; Inverted Section
         [("^")
@@ -313,28 +304,18 @@
          ;; Then add nested tokens and continue with the end of line.
          ;; Dotted names should be considered a form of shorthand for
          ;; sections.
-         (define periods-split
-           (regexp-split #rx"\\." (string-trim value)))
-         (cond
-          ;; Simple section name
-          [(equal? (length periods-split) 1)
-           (define key (string->symbol (car periods-split)))
-           (parse-ahead eol tokens (token-inv-sec key nested-tokens #f))]
-          ;; Section name with periods
-          [else
-           (parse-ahead
-            eol
-            tokens
-            (let make-token ([tags periods-split])
-              (cond
-               [(> (length tags) 1)
-                (token-inv-sec (string->symbol (car tags))
-                               (list (make-token (cdr tags)))
-                               #t)]
-               [else
-                (token-inv-sec (string->symbol (car tags))
-                               nested-tokens
-                               #f)])))])]
+         (define the-token
+           (let ([name (regexp-split #rx"\\." (string-trim value))])
+             (cond
+              ;; Simple section name
+              [(equal? (length name) 1)
+               (token-inv-sec (key (car name)) nested-tokens #f)]
+              ;; Section name with periods
+              [else
+               (make-dotted-tokens name
+                                   #:type 'inv-sec
+                                   #:sec-tokens nested-tokens)])))
+         (parse-ahead eol tokens the-token)]
 
         ;; End of (Inverted) Section
         [("/") (values tokens new-line)]
@@ -351,35 +332,38 @@
         ;; Set delimiters
         [("=")
          (define ll (string-split value))
-
          (when (< (length ll) 2)
            (error "Bad delimeter syntax"))
-
-         (define new-otag (car ll))
-         (define new-ctag (if (= (length ll) 2)
-                              (substring (cadr ll) 0
-                                         (sub1 (string-length (cadr ll))))
-                              ;; Superfluous in-tag whitespace should be ignored:
-                              ;; {{= @   @ =}}
-                              (cadr ll)))
-         (define the-token (token-delimiter new-otag new-ctag))
-
-         (parameterize* ([open-tag new-otag]
-                         [close-tag new-ctag]
-                         [otag-quoted (regexp-quote (open-tag))]
-                         [ctag-quoted (regexp-quote (close-tag))]
+         (parameterize* ([open-tag
+                          (car ll)]
+                         [close-tag
+                          (cond
+                           [(equal? (length ll) 2)
+                            (substring (cadr ll)
+                                       0
+                                       (sub1 (string-length (cadr ll))))]
+                           [else
+                            ;; Superfluous in-tag whitespace should be ignored:
+                            ;; {{= @   @ =}}
+                            (cadr ll)])]
+                         [otag-quoted
+                          (regexp-quote (open-tag))]
+                         [ctag-quoted
+                          (regexp-quote (close-tag))]
                          [standalone-pattern
                           (make-standalone-pattern (otag-quoted)
                                                    (ctag-quoted))])
+           (define the-token (token-delimiter (open-tag) (close-tag)))
            (parse-static new-line (append tokens (list the-token))))]))
 
+    ;; Util function which parses static content.
     (define (parse-static line tokens)
       ;; Search for the mustache opening tag
       (define otag-pos (open-tag-position (otag-quoted)
                                           (line-content line)))
 
       (cond
-       ;; No more mustache tag
+       ;; No more mustache tag:
        ;; Create a static token with the rest of the template.
        [(not otag-pos)
         (define content (port->string (line-content line)))
@@ -388,17 +372,19 @@
           (cond
            [(line-standalone? line)
             tokens]
-           ;; Add the linefeed token on the linefeed line
+           ;; Linefeed line: add the rest of the template and linefeed
+           ;; token.
            [(line-linefeed? line)
             (append tokens (list (token-static content)
                                  (token-static "\n")))]
+           ;; Non-linefeed line: solo add the rest of the template.
            [else
             (append tokens (list (token-static content)))]))
         (parse new-tokens)]
 
-       ;; Still mustache tag
-       ;; Creates a static token with the text until next mustache tag.
-       ;; Then processes the mustache tag.
+       ;; Still mustache tag:
+       ;; Create a static token with the text until next mustache tag.
+       ;; Then process the mustache tag.
        [else
         (define content-length (car otag-pos))
         (define content (read-string content-length (line-content line)))
