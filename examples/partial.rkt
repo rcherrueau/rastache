@@ -1,6 +1,6 @@
 #lang racket/base
 
-(require "../scanner.rkt")
+(require "../parser.rkt")
 
 (provide (all-defined-out))
 

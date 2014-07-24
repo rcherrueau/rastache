@@ -14,7 +14,7 @@
 ; ______________________________________________________________________________
 ; import and implementation
 (require "commons.rkt"
-         "scanner.rkt"
+         "parser.rkt"
          racket/match
          xml)
 

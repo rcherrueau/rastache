@@ -3,7 +3,7 @@
 (require rackunit
          racket/format
          "../commons.rkt"
-         "../scanner.rkt"
+         "../parser.rkt"
          "../renderer.rkt"
          "../rastache.rkt"
          (for-syntax racket))

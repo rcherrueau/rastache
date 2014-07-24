@@ -16,7 +16,7 @@
 ; import and implementation
 
 (require "commons.rkt"
-         "scanner.rkt"
+         "parser.rkt"
          "renderer.rkt")
 
 (define (rastache-compile template)

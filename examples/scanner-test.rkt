@@ -13,7 +13,7 @@
          rackunit/text-ui
          racket/file
          racket/format
-         "../scanner.rkt"
+         "../parser.rkt"
          "boolean.rkt"
          "carriage_return.rkt"
          "comments.rkt"
