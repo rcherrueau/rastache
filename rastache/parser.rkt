@@ -10,7 +10,7 @@
 
 ; Mustache template parser.
 ;
-; Parse mustache template and generate a list of tokens. The list of
+; Parses mustache template and generates a list of tokens. The list of
 ; tokens describes how to render the template.
 (provide tokenize
          mustachize)
@@ -156,9 +156,8 @@
 
 ;; Construct the list of tokens for a specific template. The
 ;; `template' has to be an input port that reads bytes from a UTF-8
-;; stream.`open-tag' and `close-tag' are mustache keywords
-;; identifiers.
-;; tokenize: input-port string string -> (listof token)
+;; stream.
+;; tokenize: input-port -> (listof token)
 (define (tokenize template)
   ; __________________________________________________________________
   ; tokenize parameters
@@ -178,7 +177,6 @@
   ; tokenize implementation
 
   ;; Parses the text and instanciate tokens.
-  ;; parse: (listof tokens) string string pregexp -> (listof tokens)
   (let parse ([tokens (list (token-delimiter (open-tag)
                                              (close-tag)))])
     ;; Util function wich constructs tokens for dotted names:
@@ -238,6 +236,7 @@
       (define sigil (cadr l))
       (define value (caddr l))
 
+      ;; Process mustache tag
       (case sigil
         ;; Etag
         [(#f)
@@ -362,6 +361,7 @@
       (define otag-pos (open-tag-position (otag-quoted)
                                           (line-content line)))
 
+      ;; Process the static part
       (cond
        ;; No more mustache tag:
        ;; Create a static token with the rest of the template.
@@ -404,6 +404,8 @@
      [else
       (parse-static line tokens)])))
 
+;; Constructs a mustache template from a list of tokens.
+;; mustachize: (list token) -> string
 (define (mustachize tokens)
   (cond
    [(null? tokens) ""]

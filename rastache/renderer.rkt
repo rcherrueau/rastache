@@ -10,7 +10,10 @@
 
 ; Mustache template renderer.
 ;
+; Reads a list of tokens and renders the template. The rendering is
+; done in a stream.
 (provide render)
+
 ; ______________________________________________________________________________
 ; import and implementation
 (require "commons.rkt"

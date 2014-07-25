@@ -1,24 +1,14 @@
 #lang racket/base
 
-(require "../parser.rkt")
+(require "../rastache/rastache.rkt")
 
-(provide (all-defined-out))
+(define template
+#<<HERESTRING
+<h1>{{title}}</h1>
+{{>inner_partial.html}}
+HERESTRING
+)
 
-(define partial-name "partial")
-
-(define partial-template
-  (string-append partial-name ".html"))
-
-(define partial-res
-  (string-append partial-name ".txt"))
-
-(define partial-ctx
-  #hash{(title . "Welcome")})
-
-(define  partial-mock-tokens
-  (list
-   (token 'static "<h1>" null)
-   (token 'etag 'title null)
-   (token 'static "</h1>\n" null)
-   (token 'partial "inner_partial.html" null)
-   (token 'static "" null)))
+(rastache-compile/render (open-input-string template)
+                         #hash{ (title . "Welcome") }
+                         (current-output-port))
