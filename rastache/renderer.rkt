@@ -21,17 +21,16 @@
          racket/match
          xml)
 
-;; Returns `#t' if the value is a rastache context, `#f' otherwise.
+;; Returns #t if value is a rastache context, #f otherwise.
 (define rast-context? hash?)
 
-;; Returns an html escaped string.
-(define (htmlescape-string string)
-  (regexp-replace* #rx"\""
-                   (xexpr->string string)
-                   (regexp-replace-quote "&quot;")))
-
+;; Returns the value of `key' in a rastache context if any. Otherwise
+;; #f.
 (define (lookup context key) (hash-ref context key #f))
 
+;; Returns the value of `key' in a rastache context if any. If the
+;; value is a lambda, then the lambda is applied. If `key' doesn't
+;; exist in the rastache context, it returns #f.
 (define (var-lookup context key)
   (let ([var (lookup context key)])
     (cond
@@ -45,16 +44,15 @@
        ;; 1 arg: give context
        [(eq? (procedure-arity var) 1)
         (var context)]
-       ;; 2 args: give context and render function
+       ;; 2 args: give context and render-function
        [(eq? (procedure-arity var) 2)
         (var context
              (λ (txt)
                 (let ([o (open-output-string)])
                   (render
-                   ; A lambda's return value should parse with the
-                   ; default delimiters.
-                   ; Lambdas tests > Interpolation - Alternate
-                   ; Delimiters
+                   ;; A lambda's return value should be parse with the
+                   ;; default delimiters (see Lambdas tests >
+                   ;; Interpolation - Alternate Delimiters)
                    (parameterize ([open-tag "{{"]
                                   [close-tag "}}"])
                     (tokenize (open-input-string txt)))
@@ -62,10 +60,43 @@
                    o)
                   (get-output-string o))))]
        [else
-        (error
-         "Error: The lambda should have zero, one or two argument(s)")])]
+        (error (format (string-append "Error: The lambda ~s "
+                                      "should have zero, one "
+                                      "or two argument(s)") var))])]
      ;; Else var is a val: return it
      [else var])))
+
+;; Returns the value of a `key' in a rastache context when current
+;; token is a section or inverted section. If `key' doesn't exist in
+;; the rastache context, it returns #f.
+(define (sec-lookup context key)
+  (let ([the-val (lookup context key)])
+    (cond
+     ;; In section, if the val is a procedure with an arity different
+     ;; of 2, the procedure should be applied.
+     [(and (procedure? the-val)
+           (not (equal? (procedure-arity the-val) 2)))
+      (var-lookup context key)]
+     [else the-val])))
+
+;; Returns #t if `val' is a rastache non-false value (i.e.: non-false
+;; value, non-empty list, non-unexisting key). Otherwise #f.
+(define (non-false? val)
+  (and
+   ;; non-empty list
+   (not (and (list? val) (null? val)))
+   ;; non-false value / non-unexisting key
+   (not (and (boolean? val) (not val)))))
+
+;; Returns #t if `val' is a rastache non-empty list. Otherwise #f.
+(define (non-empty-list? val)
+  (and (list? val) (not (null? val))))
+
+;; Returns an html escaped string.
+(define (htmlescape-string string)
+  (regexp-replace* #rx"\""
+                   (xexpr->string string)
+                   (regexp-replace-quote "&quot;")))
 
 ;; Render a mustache tokens thanks to the rendering context.
 ;; render: (list token) rast-context port-out -> void
@@ -75,7 +106,8 @@
                 [the-ctx context])
     (cond
      ;; No more tokens
-     [(null? the-tokens)]
+     [(null? the-tokens)
+      (void)]
      ;; Process token
      [else
       (define the-token (car the-tokens))
@@ -105,19 +137,34 @@
                    [else val]) stream)
          (_render (cdr the-tokens) the-ctx)]
 
-        ;; Section
-        [(token-sec key section dotted?)
-         (define val (lookup the-ctx key))
+        ;; Dotted Name
+        [(token-sec key section #t)
+         (define val (var-lookup the-ctx key))
          (cond
-          ;; Section key is a Non-empty list
-          [(and (list? val) (not (null? val)))
+          ;; Non-false value
+          [(non-false? val)
+           (_render section
+                    (cond
+                     ;; `val' is rastache context and this is a dotted
+                     ;; name. Render with `val' context
+                     [(rast-context? val) val]
+                     ;; `val' is not a rastache context. Render with
+                     ;; general context overriding by `val' put at
+                     ;; `period-name' position
+                     [else (hash-set the-ctx period-name val)]))])
+         (_render (cdr the-tokens) the-ctx)]
+
+        ;; Section
+        [(token-sec key section #f)
+         (define val (sec-lookup the-ctx key))
+         (cond
+          ;; Non-empty list
+          [(non-empty-list? val)
+           ;; Render for each items of the list
            (for-each
             (λ (the-val)
                (_render section
                         (cond
-                         ;; `the-val is rastache context and this is a
-                         ;; dotted name. Render with `the-val' context
-                         [(and dotted? (rast-context? the-val)) the-val]
                          ;; `the-val' is rastache context but this is
                          ;; not a dotted name section. Render with
                          ;; general context overriding by `the-val'
@@ -125,74 +172,49 @@
                          [(rast-context? the-val)
                           (foldl (λ (kv ctx) (hash-set ctx (car kv) (cdr kv)))
                                  the-ctx (hash->list the-val))]
-                         ;; `the-val' is not a rastache context.Render
-                         ;; with general context overriding by `the-val'
-                         ;; put at `period-name' position
+                         ;; `the-val' is not a rastache context.
+                         ;; Render with general context overriding by
+                         ;; `the-val' put at `period-name' position
                          [else (hash-set the-ctx period-name the-val)])))
             val)]
-          ;; Section key is a Lambda
+          ;; Lambda
           [(procedure? val)
-           ;; FIXME: 0, 1 arg application result should be treated as
-           ;; a non-empty list case or non-flase-value case.
-           (cond
-            ;; 0 or arity-at-least arg
-            [(or (eq? (procedure-arity val) 0)
-                 (arity-at-least? (procedure-arity val)))
-             (val)]
-            ;; 1 arg: give context
-            [(eq? (procedure-arity val) 1)
-             (val the-ctx)]
-            ;; 2 args: give text and render function
-            [(eq? (procedure-arity val) 2)
-             (display
-              (val (mustachize section)
-                   (λ (txt)
-                      (let ([o (open-output-string)])
-                        (render (tokenize (open-input-string txt))
-                                the-ctx
-                                o)
-                        (get-output-string o))))
-              stream)]
-            [else
-             (error
-              "Error: The lambda should have zero, one or two argument(s)")])]
-
-          ;; Non-false value (i.e non-false value, non-empty list,
-          ;; non-unexisting key)
-          [(and
-            ;; non-empty list
-            (not (and (list? val) (null? val)))
-            ;; non-false value / non-unexisting key
-            (not (and (boolean? val) (not val))))
-           ;; Render with general context overriding by the-val put at
-           ;; `period-name' position
+           (unless (eq? (procedure-arity val) 2)
+             (error (format (string-append "Error: The lambda ~s "
+                                           "should have zero, one "
+                                           "or two argument(s)") val)))
+           ;; Pass text and render-function as arguments
+           (display
+            (val (mustachize section)
+                 (λ (txt) (let ([o (open-output-string)])
+                            (render (tokenize (open-input-string txt))
+                                    the-ctx
+                                    o)
+                            (get-output-string o))))
+            stream)]
+          ;; Non-false value
+          [(non-false? val)
            (_render section
                     (cond
-                     ;; `val is rastache context and this is a
-                     ;; dotted name. Render with `val' context
-                     [(and dotted? (rast-context? val)) val]
-                     ;; `val' is rastache context but this is not
-                     ;; a dotted name section. Render with general
+                     ;; `val' is rastache context but this is not a
+                     ;; dotted name section. Render with general
                      ;; context overriding by `val' content
                      [(rast-context? val)
                       (foldl (λ (kv ctx) (hash-set ctx (car kv) (cdr kv)))
                              the-ctx (hash->list val))]
-                     ;; `val' is not a rastache context.Render
-                     ;; with general context overriding by `val'
-                     ;; put at `period-name' position
+                     ;; `val' is not a rastache context.Render with
+                     ;; general context overriding by `val' put at
+                     ;; `period-name' position
                      [else (hash-set the-ctx period-name val)]))])
          (_render (cdr the-tokens) the-ctx)]
 
         ;; Inverted Section
         [(token-inv-sec key inv-section #f)
-         (define val (lookup the-ctx key))
+         (define val (sec-lookup the-ctx key))
          ;; In contrast with section, we call the inverted section if
-         ;; tha value is false or the list is empty.
-         (when (or
-                ;; empty list
-                (and (list? val) (null? val))
-                ;; false value / un-existing key
-                (and (boolean? val) (not val)))
+         ;; tha value is false, the list is empty or the key is
+         ;; missed.
+         (when (not (non-false? val))
            (_render inv-section the-ctx))
          (_render (cdr the-tokens) the-ctx)]
 
@@ -200,35 +222,32 @@
         [(token-inv-sec key inv-section #t)
          ;; If val is evaluated to false, go to the last inverted
          ;; section of this dotted name and renders `inv-section'.
-         ;; Else go deeper and test again.
-         (define val (lookup the-ctx key))
-         (if (or
-              ;; empty list
-              (and (list? val) (null? val))
-              ;; false value / un-existing key
-              (and (boolean? val) (not val)))
-
-             ;; False value:
-             ;; Render the deepest inv-section
-             (let render-inv-sec ([t (car inv-section)])
-               (match t
-                 ;; Not the last inverted section of this dotted name
-                 ;; => Go deeper
-                 [(token-inv-sec k is #t)
-                  (render-inv-sec (car is))]
-                 ;; Last inverted section of this dotted name
-                 ;; => Render section
-                 [(token-inv-sec k is #f)
-                  (_render is the-ctx)]))
-
-             ;; True value:
-             ;; Render with context seting to val
-             (_render inv-section
-                      (if (rast-context? val)
-                          ;; Render with val context
-                          val
-                          ;; Render with context setting to val
-                          `#hash{( self . ,val )})))
+         ;; Otherwise go deeper and test again.
+         (define val (sec-lookup the-ctx key))
+         (cond
+          [(not (non-false? val))
+           ;; Render the deepest inv-section
+           (let render-inv-sec ([t (car inv-section)])
+             (match t
+               ;; Not the last inverted section of this dotted name
+               ;; => Go deeper
+               [(token-inv-sec k is #t)
+                (render-inv-sec (car is))]
+               ;; Last inverted section of this dotted name
+               ;; => Render section
+               [(token-inv-sec k is #f)
+                (_render is the-ctx)]))]
+          [else
+           ;; Render with context seting to val
+           (_render inv-section
+                    (cond
+                     ;; `val' is rastache context and this is a dotted
+                     ;; name. Render with `val' context
+                     [(rast-context? val) val]
+                     ;; `val' is not a rastache context. Render with
+                     ;; general context overriding by `val' put at
+                     ;; `period-name' position
+                     [else (hash-set the-ctx period-name val)]))])
          (_render (cdr the-tokens) the-ctx)]
 
         ;; Partial
@@ -244,5 +263,5 @@
 
         ;; If this is a unknow token: Error!
         [other
-         (error (format "Unknown token type ~a while rendering~n"
-                        other))])])))
+         (error (format (string-append "Unknown token ~s "
+                                       "while rendering") other))])])))
