@@ -540,5 +540,3 @@
                       (token-sec 'boolean (list (token-static "=")) #f)
                       (token-static "|"))
                 "Superfluous in-tag whitespace should be ignored.")))
-
-(run-tests sections-tests)

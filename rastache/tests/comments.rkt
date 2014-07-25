@@ -159,5 +159,3 @@
                       (token-static "12345 ")
                       (token-static " 67890"))
                 "Comment removal should preserve surrounding whitespace.")))
-
-(run-tests comment-tests)

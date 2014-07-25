@@ -239,5 +239,3 @@
                       (token-delimiter "@" "@")
                       (token-static "|"))
                 "Superfluous in-tag whitespace should be ignored.")))
-
-(run-tests delimiters-tests)

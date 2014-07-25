@@ -365,5 +365,3 @@
                       (token-inv-sec 'boolean `(,(token-static "=")) #f)
                       (token-static "|"))
                 "Superfluous in-tag whitespace should be ignored.")))
-
-(run-tests inverted-tests)

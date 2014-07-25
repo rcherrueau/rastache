@@ -166,5 +166,3 @@
                                      #f)
                       (token-static ">"))
                 "Lambdas used for inverted sections should be considered truthy.")))
-
-(run-tests lambdas-tests)

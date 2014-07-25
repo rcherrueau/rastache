@@ -417,5 +417,3 @@
                       (token-utag 'string)
                       (token-static "|"))
                 "Superfluous in-tag whitespace should be ignored.")))
-
-(run-tests interpolation-tests)
