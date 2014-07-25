@@ -152,7 +152,7 @@
   (void (regexp-match ctag-quoted port)))
 
 ;; Makes a token key from a string
-(define key string->symbol)
+(define make-key string->symbol)
 
 ;; Construct the list of tokens for a specific template. The
 ;; `template' has to be an input port that reads bytes from a UTF-8
@@ -172,7 +172,6 @@
   (define standalone-pattern (make-parameter
                               (make-standalone-pattern (otag-quoted)
                                                        (ctag-quoted))))
-
   ; __________________________________________________________________
   ; tokenize implementation
 
@@ -180,7 +179,7 @@
   (let parse ([tokens (list (token-delimiter (open-tag)
                                              (close-tag)))])
     ;; Util function wich constructs tokens for dotted names:
-    ;; 'etag: {{a.b}} produces
+    ;; 'etag: {{a.b}} produces {{#a}}{{b}}{{/a}}
     ;; 'utag: {{&a.b}} produces {{#a}}{{&b}}{{/a}}
     ;; 'sec:
     ;;   {{#a.b}}{{c}}{{/a.b}} produces {{#a}}{{#b}}{{c}}{{/b}}{{/a}}
@@ -195,18 +194,22 @@
           (define token-maker (cond [(eq? type 'inv-sec)
                                      token-inv-sec]
                                     [else token-sec]))
-          (token-maker (key (car tags)) (list (_mdt (cdr tags))) #t)]
+          (token-maker (make-key (car tags))
+                       (list (_mdt (cdr tags)))
+                       #t)]
          [else
           (case type
-            ['etag (token-etag (key (car tags)))]
-            ['utag (token-utag (key (car tags)))]
-            ['sec (token-sec (key (car tags)) nested #f)]
-            ['inv-sec (token-inv-sec (key (car tags)) nested #f)])])))
+            ['etag (token-etag (make-key (car tags)))]
+            ['utag (token-utag (make-key (car tags)))]
+            ['sec (token-sec (make-key (car tags)) nested #f)]
+            ['inv-sec (token-inv-sec (make-key (car tags))
+                                     nested
+                                     #f)])])))
 
     ;; Util function which continues the parsing of a line after
     ;; parsing current tag.
     (define (parse-ahead line tokens new-token)
-      (parse-static line (append tokens (list new-token))))
+      (parse-static line (cons new-token tokens)))
 
     ;; Util function which parses a tag.
     (define (parse-tag line tokens)
@@ -248,7 +251,7 @@
                (token-etag period-name)]
               ;; Simple Etag
               [(equal? (length name) 1)
-               (token-etag (key (car name)))]
+               (token-etag (make-key (car name)))]
               ;; Dotted names
               [else
                (make-dotted-tokens name #:type 'etag)])))
@@ -268,7 +271,7 @@
                (token-utag period-name)]
               ;; Simple Utag
               [(equal? (length name) 1)
-               (token-utag (key (car name)))]
+               (token-utag (make-key (car name)))]
               ;; Dotted names
               [else
                (make-dotted-tokens name #:type 'utag)])))
@@ -287,7 +290,7 @@
              (cond
               ;; Simple section name
               [(equal? (length name) 1)
-               (token-sec (key (car name)) nested-tokens #f)]
+               (token-sec (make-key (car name)) nested-tokens #f)]
               ;; Dotted names
               [else
                (make-dotted-tokens name
@@ -308,7 +311,7 @@
              (cond
               ;; Simple section name
               [(equal? (length name) 1)
-               (token-inv-sec (key (car name)) nested-tokens #f)]
+               (token-inv-sec (make-key (car name)) nested-tokens #f)]
               ;; Section name with periods
               [else
                (make-dotted-tokens name
@@ -317,7 +320,7 @@
          (parse-ahead eol tokens the-token)]
 
         ;; End of (Inverted) Section
-        [("/") (values tokens new-line)]
+        [("/") (values (reverse tokens) new-line)]
 
         ;; Comments
         [("!")
@@ -326,7 +329,7 @@
         ;; Partial
         [(">" "<")
          (define the-token (token-partial value))
-         (parse-static new-line (append tokens (list the-token)))]
+         (parse-static new-line (cons the-token tokens))]
 
         ;; Set delimiters
         [("=")
@@ -353,7 +356,7 @@
                           (make-standalone-pattern (otag-quoted)
                                                    (ctag-quoted))])
            (define the-token (token-delimiter (open-tag) (close-tag)))
-           (parse-static new-line (append tokens (list the-token))))]))
+           (parse-static new-line (cons the-token tokens)))]))
 
     ;; Util function which parses static content.
     (define (parse-static line tokens)
@@ -375,11 +378,11 @@
            ;; Linefeed line: add the rest of the template and linefeed
            ;; token.
            [(line-linefeed? line)
-            (append tokens (list (token-static content)
-                                 (token-static "\n")))]
+            (cons (token-static "\n")
+                  (cons (token-static content) tokens))]
            ;; Non-linefeed line: solo add the rest of the template.
            [else
-            (append tokens (list (token-static content)))]))
+            (cons (token-static content) tokens)]))
         (parse new-tokens)]
 
        ;; Still mustache tag:
@@ -392,7 +395,7 @@
           ;; Don't keep the value of a standalone line.
           (cond
            [(not (line-standalone? line))
-            (append tokens (list (token-static content)))]
+            (cons (token-static content) tokens)]
            [else
             tokens]))
         (parse-tag line new-tokens)]))
@@ -400,7 +403,7 @@
     (define line (read-line template (standalone-pattern)))
 
     (cond
-     [(line-eof? line) tokens]
+     [(line-eof? line) (reverse tokens)]
      [else
       (parse-static line tokens)])))
 
