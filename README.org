@@ -3,10 +3,12 @@
 Racket implementation of [[http://mustache.github.io/][Mustache templates]].
 
 ** Installation
-
+Rastache can be installed as a collection within Racket as follows:
+#+BEGIN_SRC sh
+$ raco pkg install "git://github.com/rcherrueau/rastache.git?path=rastache"
+#+END_SRC
 
 ** Usage
-
 
 ** Supported Functionality
 
