@@ -23,7 +23,7 @@ Template:
 * {{age}}
 * {{company}}
 * {{{company}}}
-* {{& company}}}
+* {{& company}}
 #+END_SRC
 
 Context:
@@ -123,9 +123,9 @@ loop over collections.
 
 Template:
 #+BEGIN_SRC mustache
-Death List Five
+Death List Five:
 {{#death}}
-  <b>{{name}}</b>
+<b>{{name}}</b>
 {{/death}}
 #+END_SRC
 
@@ -140,6 +140,7 @@ Context:
 
 Output:
 #+BEGIN_SRC html
+Death List Five:
 <b>O-Ren Ishii</b>
 <b>Vernita Green</b>
 <b>Budd</b>
@@ -159,9 +160,9 @@ Template:
 
 Context:
 #+BEGIN_SRC racket
-#hash{ (tmnt . ["Leonardo",
-                "Michelangelo",
-                "Donatello",
+#hash{ (tmnt . ["Leonardo"
+                "Michelangelo"
+                "Donatello"
                 "Raphael"]) }
 #+END_SRC
 
@@ -204,10 +205,10 @@ That is ={{^person}}= begins a "person" inverted section while
 Template:
 #+BEGIN_SRC mustache
 {{#repo}}
-  <b>{{name}}</b>
+<b>{{name}}</b>
 {{/repo}}
 {{^repo}}
-  No repos :(
+No repos :{
 {{/repo}}
 #+END_SRC
 
@@ -218,7 +219,7 @@ Context:
 
 Output:
 #+BEGIN_EXAMPLE
-No repos :(
+No repos :{
 #+END_EXAMPLE
 
 *** Comments
