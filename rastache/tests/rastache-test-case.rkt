@@ -5,7 +5,7 @@
          "../commons.rkt"
          "../parser.rkt"
          "../renderer.rkt"
-         "../rastache.rkt"
+         "../main.rkt"
          (for-syntax racket))
 
 (provide (all-defined-out))
