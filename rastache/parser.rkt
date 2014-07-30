@@ -20,7 +20,8 @@
 (require "commons.rkt"
          racket/match
          racket/port
-         racket/string)
+         racket/string
+         net/url)
 
 ;; Internal representation of a line in a mustache template. A line
 ;; gets two properties in addition to the content. `linefeed?' is true
@@ -91,7 +92,7 @@
 
 ;; Reads the stream line by line until recognizing the line that
 ;; contains close tag and returns the reading content. Mustache
-;; element could be on multiple line. The method reads mustache
+;; element could be on multiple line. That method reads mustache
 ;; element on multiple line.
 ;; read-multiline: in string ctag pregexp -> (values line ctag-pos)
 (define (read-multiline in starter ctag standalone-pattern)
@@ -178,7 +179,7 @@
   ;; Parses the text and instanciate tokens.
   (let parse ([tokens (list (token-delimiter (open-tag)
                                              (close-tag)))])
-    ;; Util function wich constructs tokens for dotted names:
+    ;; Util function wich constructs tokens from dotted names:
     ;; 'etag: {{a.b}} produces {{#a}}{{b}}{{/a}}
     ;; 'utag: {{&a.b}} produces {{#a}}{{&b}}{{/a}}
     ;; 'sec:
@@ -235,11 +236,10 @@
       ;; Consume the mustache closing tag
       (read-close-tag (ctag-quoted) (line-content new-line))
 
+      ;; Process mustache tag
       (define l (regexp-match state-pattern content))
       (define sigil (cadr l))
       (define value (caddr l))
-
-      ;; Process mustache tag
       (case sigil
         ;; Etag
         [(#f)
@@ -328,7 +328,8 @@
 
         ;; Partial
         [(">" "<")
-         (define the-token (token-partial value))
+         (define the-token
+           (token-partial (string->url (string-trim value))))
          (parse-static new-line (cons the-token tokens))]
 
         ;; Set delimiters

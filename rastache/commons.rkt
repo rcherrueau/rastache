@@ -97,12 +97,12 @@
 ;; section name. `section' contains all tokens of this section.
 (struct token-inv-sec token (key section dotted?))
 
-;; Partial token for partials. `template' contains the name of the
+;; Partial token for partials. `template' contains the url to the
 ;; mustache template to include.
 (struct token-partial token (template))
 
 ;; Delimiter token for delimiters. `otag' contains mustache opening
-;; tag. `ctaf contains mustache closing tag.
+;; tag. `ctag' contains mustache closing tag.
 (struct token-delimiter token (otag ctag))
 
 ;; Symbol in rastach-context behind period tag name.

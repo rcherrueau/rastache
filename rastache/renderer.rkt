@@ -19,6 +19,7 @@
 (require "commons.rkt"
          "parser.rkt"
          racket/match
+         net/url
          xml)
 
 ;; Returns #t if value is a rastache context, #f otherwise.
@@ -251,8 +252,20 @@
          (_render (cdr the-tokens) the-ctx)]
 
         ;; Partial
-        [(token-partial template)
-         ;; TODO: implements me!
+        [(token-partial template-url)
+         (define protocol (url-scheme template-url))
+         (cond
+          ;; If url has no protocol, the default is `file'
+          [(or (not protocol) (equal? protocol "file"))
+           (define partial-template
+             (open-input-file (url->path template-url)))
+           (render (tokenize partial-template) the-ctx stream)
+           (when (not (port-closed? partial-template))
+             (close-input-port partial-template))]
+          [else
+           (error (format (string-append "Error: The url ~s provide "
+                                         "an unsuported protocol")
+                          (url->string template-url)))])
          (_render (cdr the-tokens) the-ctx)]
 
         ;; Delimiter

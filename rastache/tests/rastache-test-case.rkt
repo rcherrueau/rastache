@@ -15,18 +15,18 @@
   (syntax-case stx ()
     ;; rast-t-case: test-name context template expected fail-msg
     ;; expended to rackunit test case.
-    [(_ t-name hash t-template t-expected t-error-msg)
+    [(_ t-name t-ctx t-template t-expected t-error-msg)
      #'(test-case
         t-name
         (let ([rendered (open-output-string)]
               [tokens (rastache-compile/open-string t-template)]
               [expected t-expected])
-          (rastache-render tokens hash rendered)
+          (rastache-render tokens t-ctx rendered)
           (check-equal? (get-output-string rendered)
                         expected
                         t-error-msg)))]
 
-    [(_ t-name hash t-template t-expected t-mock-token t-error-msg)
+    [(_ t-name t-ctx t-template t-expected t-mock-token t-error-msg)
      (let ([make-name (λ (type syntax)
                          (format "~a -- ~a"
                                  type
@@ -46,7 +46,7 @@
              (test-case
               render-t-name
               (let ([rendered (open-output-string)])
-                (render t-mock-token hash rendered)
+                (render t-mock-token t-ctx rendered)
                 (check-equal? (get-output-string rendered)
                               t-expected
                               render-t-error-msg))))))]))

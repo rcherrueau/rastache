@@ -7,7 +7,8 @@
          "interpolation.rkt"
          "inverted.rkt"
          "lambdas.rkt"
-         "sections.rkt")
+         "sections.rkt"
+         "partials.rkt")
 
 (module+ test
   (displayln "Comments tests:")
@@ -21,4 +22,6 @@
   (displayln "Lambdas tests:")
   (run-tests lambdas-tests)
   (displayln "Sections tests:")
-  (run-tests sections-tests))
+  (run-tests sections-tests)
+  (displayln "Partial tests:")
+  (run-tests partials-tests))
