@@ -2,6 +2,8 @@
 
 Racket implementation of [[http://mustache.github.io/][Mustache templates]].
 
+Rastache is compliant with the [[https://github.com/mustache/spec/tree/master][Mustache spec]] v1.1+λ
+
 ** Get It
    Rastache can be installed as a collection within Racket with
    package manager:
