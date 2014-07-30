@@ -252,20 +252,20 @@
          (_render (cdr the-tokens) the-ctx)]
 
         ;; Partial
-        [(token-partial template-url)
-         (define protocol (url-scheme template-url))
-         (cond
-          ;; If url has no protocol, the default is `file'
-          [(or (not protocol) (equal? protocol "file"))
-           (define partial-template
-             (open-input-file (url->path template-url)))
-           (render (tokenize partial-template) the-ctx stream)
-           (when (not (port-closed? partial-template))
-             (close-input-port partial-template))]
-          [else
-           (error (format (string-append "Error: The url ~s provide "
-                                         "an unsuported protocol")
-                          (url->string template-url)))])
+        [(token-partial url)
+         (define protocol (url-scheme url))
+         (define partial-template
+           (cond
+            ;; If url has no protocol, the default is `file'
+            [(not protocol)
+             (open-input-file (url->path url))]
+            ;; Else use GET method to retrieve whatever information is
+            ;; identified by url.
+            [else
+             (get-pure-port url #:redirections 1)]))
+         (render (tokenize partial-template) the-ctx stream)
+         (when (not (port-closed? partial-template))
+           (close-input-port partial-template))
          (_render (cdr the-tokens) the-ctx)]
 
         ;; Delimiter

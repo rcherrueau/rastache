@@ -3,303 +3,333 @@
 Racket implementation of [[http://mustache.github.io/][Mustache templates]].
 
 ** Get It
-Rastache can be installed as a collection within Racket with package
-manager:
-#+BEGIN_SRC sh
-$ raco pkg install "git://github.com/rcherrueau/rastache.git?path=rastache"
-#+END_SRC
+   Rastache can be installed as a collection within Racket with
+   package manager:
+   #+BEGIN_SRC sh
+   $ raco pkg install "git://github.com/rcherrueau/rastache.git?path=rastache"
+   #+END_SRC
 
-Or manually:
-#+BEGIN_SRC sh
-$ git clone git://github.com/rcherrueau/rastache.git
-$ cd rastache/rastache
-$ raco link .
-$ raco setup
-#+END_SRC
+   Or manually:
+   #+BEGIN_SRC sh
+   $ git clone git://github.com/rcherrueau/rastache.git
+   $ cd rastache/rastache
+   $ raco link .
+   $ raco setup
+   #+END_SRC
 
 ** Usage
 
 ** Running Tests
-At the moment the project is under development but passes all [[https://github.com/mustache/spec][Mustache
-spec tests]]. If you want to run the tests yourself, do the following:
-#+BEGIN_SRC sh
-$ git clone git://github.com/rcherrueau/rastache.git
-$ cd rastache/
-$ raco test rastache/tests/tests.rkt
-#+END_SRC
+   At the moment the project is under development but passes all
+   [[https://github.com/mustache/spec][Mustache spec tests]]. If you want to run the tests yourself, do the
+   following:
+   #+BEGIN_SRC sh
+   $ git clone git://github.com/rcherrueau/rastache.git
+   $ cd rastache/
+   $ raco test rastache/tests/tests.rkt
+   #+END_SRC
 
 ** Supported Functionality
 
 *** Variables
-The most basic tag type is the variable. A ={{name}}= tag in a basic
-template will try to find the name key in the current context.
+    The most basic tag type is the variable. A ={{name}}= tag in a
+    basic template will try to find the =name= key in the current
+    context.
 
-All variables are HTML escaped by default. If you want to return
-unescaped HTML, use the triple mustache ={{{name}}}= or =&=.
+    All variables are HTML escaped by default. If you want to return
+    unescaped HTML, use the triple mustache ={{{name}}}= or =&=.
 
-Template:
-#+BEGIN_SRC mustache
-* {{name}}
-* {{age}}
-* {{company}}
-* {{{company}}}
-* {{& company}}
-#+END_SRC
+    Template:
+    #+BEGIN_SRC mustache
+    * {{name}}
+    * {{age}}
+    * {{company}}
+    * {{{company}}}
+    * {{& company}}
+    #+END_SRC
 
-Context:
-#+BEGIN_SRC racket
-#hash{ (name . "Chris")
-       (company . "<b>GitHub</b>") }
-#+END_SRC
+    Context:
+    #+BEGIN_SRC racket
+    #hash{ (name . "Chris")
+           (company . "<b>GitHub</b>") }
+    #+END_SRC
 
-Output:
-#+BEGIN_SRC html
-* Chris
-*
-* &lt;b&gt;GitHub&lt;/b&gt;
-* <b>GitHub</b>
-* <b>GitHub</b>
-#+END_SRC
+    Output:
+    #+BEGIN_SRC html
+    * Chris
+    *
+    * &lt;b&gt;GitHub&lt;/b&gt;
+    * <b>GitHub</b>
+    * <b>GitHub</b>
+    #+END_SRC
 
 **** Dot notation
-Dot notation may be used to access nested keys.
+     Dot notation may be used to access nested keys.
 
-Template:
-#+BEGIN_SRC mustache
-* {{type}}
-* {{delorean.name}}: {{delorean.speed}}
-#+END_SRC
+     Template:
+     #+BEGIN_SRC mustache
+     * {{type}}
+     * {{delorean.name}}: {{delorean.speed}}
+     #+END_SRC
 
-Context:
-#+BEGIN_SRC racket
-#hash{ (type . "Time Machine")
-       (delorean . #hash{ (name . "DeLorean")
-                          (speed . "88 mph") }) }
-#+END_SRC
+     Context:
+     #+BEGIN_SRC racket
+     #hash{ (type . "Time Machine")
+            (delorean . #hash{ (name . "DeLorean")
+                               (speed . "88 mph") }) }
+     #+END_SRC
 
-Output:
-#+BEGIN_EXAMPLE
-* Time Machine
-* DeLorean: 88 mph
-#+END_EXAMPLE
+     Output:
+     #+BEGIN_EXAMPLE
+     * Time Machine
+     * DeLorean: 88 mph
+     #+END_EXAMPLE
 
 **** Lambdas
-If the value of a key is a lambda, it is called with the current
-context as its first argument. The second argument is a rendering
-function that uses the current context as its context argument.
+     If the value of a key is a lambda, it is called with the current
+     context as its first argument. The second argument is a rendering
+     function that uses the current context as its context argument.
 
-Template:
-#+BEGIN_SRC mustache
-Hello, {{lambda}}!
-#+END_SRC
+     Template:
+     #+BEGIN_SRC mustache
+     Hello, {{lambda}}!
+     #+END_SRC
 
-Context:
-#+BEGIN_SRC racket
-`#hash{ (planet . "world")
-        (lambda . ,(λ (_ render) (render "{{planet}}"))) }
-#+END_SRC
+     Context:
+     #+BEGIN_SRC racket
+     `#hash{ (planet . "world")
+             (lambda . ,(λ (_ render) (render "{{planet}}"))) }
+     #+END_SRC
 
-Output:
-#+BEGIN_EXAMPLE
-Hello, world!
-#+END_EXAMPLE
+     Output:
+     #+BEGIN_EXAMPLE
+     Hello, world!
+     #+END_EXAMPLE
 
 *** Sections
-Sections render blocks of text one or more times, depending on the
-value of the key in the current context.
+    Sections render blocks of text one or more times, depending on the
+    value of the key in the current context.
 
-A section begins with a pound and ends with a slash. That is,
-={{#person}}= begins a "person" section while ={{/person}}= ends it.
+    A section begins with a pound and ends with a slash. That is,
+    ={{#person}}= begins a "person" section while ={{/person}}= ends
+    it.
 
-The behavior of the section is determined by the value of the key.
+    The behavior of the section is determined by the value of the key.
 
 **** False Values of Empty Lists
-Template:
-#+BEGIN_SRC mustache
-Shown.
-{{#person}}
-  Never shown!
-{{/person}}
-#+END_SRC
+     Template:
+     #+BEGIN_SRC mustache
+     Shown.
+     {{#person}}
+       Never shown!
+     {{/person}}
+     #+END_SRC
 
-Context:
-#+BEGIN_SRC racket
-#hash{ (person . #f) }
-#+END_SRC
+     Context:
+     #+BEGIN_SRC racket
+     #hash{ (person . #f) }
+     #+END_SRC
 
-Output:
-#+BEGIN_EXAMPLE
-Shown.
-#+END_EXAMPLE
+     Output:
+     #+BEGIN_EXAMPLE
+     Shown.
+     #+END_EXAMPLE
 
 **** Non-Empty Lists
-If the =person= key exists and has a non-false value, the HTML between
-the pound and slash will be rendered and displayed one or more times.
+     If the =person= key exists and has a non-false value, the HTML
+     between the pound and slash will be rendered and displayed one or
+     more times.
 
-When the value is a non-empty list, the text in the block will be
-displayed once for each item in the list. The context of the block
-will be set to the current item for each iteration. In this way we can
-loop over collections.
+     When the value is a non-empty list, the text in the block will be
+     displayed once for each item in the list. The context of the
+     block will be set to the current item for each iteration. In this
+     way we can loop over collections.
 
-Template:
-#+BEGIN_SRC mustache
-Death List Five:
-{{#death}}
-<b>{{name}}</b>
-{{/death}}
-#+END_SRC
+     Template:
+     #+BEGIN_SRC mustache
+     Death List Five:
+     {{#death}}
+     <b>{{name}}</b>
+     {{/death}}
+     #+END_SRC
 
-Context:
-#+BEGIN_SRC racket
-#hash{ (death . [#hash{ (name . "O-Ren Ishii") }
-                 #hash{ (name . "Vernita Green") }
-                 #hash{ (name . "Budd") }
-                 #hash{ (name . "Elle Driver") }
-                 #hash{ (name . "Bill") }]) }
-#+END_SRC
+     Context:
+     #+BEGIN_SRC racket
+     #hash{ (death . [#hash{ (name . "O-Ren Ishii") }
+                      #hash{ (name . "Vernita Green") }
+                      #hash{ (name . "Budd") }
+                      #hash{ (name . "Elle Driver") }
+                      #hash{ (name . "Bill") }]) }
+     #+END_SRC
 
-Output:
-#+BEGIN_SRC html
-Death List Five:
-<b>O-Ren Ishii</b>
-<b>Vernita Green</b>
-<b>Budd</b>
-<b>Elle Driver</b>
-<b>Bill</b>
-#+END_SRC
+     Output:
+     #+BEGIN_SRC html
+     Death List Five:
+     <b>O-Ren Ishii</b>
+     <b>Vernita Green</b>
+     <b>Budd</b>
+     <b>Elle Driver</b>
+     <b>Bill</b>
+     #+END_SRC
 
-When looping over an array of strings, a =.= can be used to refer to
-the current item in the list.
+     When looping over an array of strings, a =.= can be used to refer
+     to the current item in the list.
 
-Template:
-#+BEGIN_SRC mustache
-{{#tmnt}}
-* {{.}}
-{{/tmnt}}
-#+END_SRC
+     Template:
+     #+BEGIN_SRC mustache
+     {{#tmnt}}
+     * {{.}}
+     {{/tmnt}}
+     #+END_SRC
 
-Context:
-#+BEGIN_SRC racket
-#hash{ (tmnt . ["Leonardo"
-                "Michelangelo"
-                "Donatello"
-                "Raphael"]) }
-#+END_SRC
+     Context:
+     #+BEGIN_SRC racket
+     #hash{ (tmnt . ["Leonardo"
+                     "Michelangelo"
+                     "Donatello"
+                     "Raphael"]) }
+     #+END_SRC
 
-Output:
-#+BEGIN_EXAMPLE
-* Leonardo
-* Michelangelo
-* Donatello
-* Raphael
-#+END_EXAMPLE
+     Output:
+     #+BEGIN_EXAMPLE
+     * Leonardo
+     * Michelangelo
+     * Donatello
+     * Raphael
+     #+END_EXAMPLE
 
 **** Lambdas
-If the value of a section key is a lambda, it is called with the
-section's literal block of text, un-rendered, as its first argument.
-The second argument is a special rendering function that uses the
-current context as its context argument.
+     If the value of a section key is a lambda, it is called with the
+     section's literal block of text, un-rendered, as its first
+     argument. The second argument is a special rendering function
+     that uses the current context as its context argument.
 
-Template:
-#+BEGIN_SRC mustache
-<{{#lambda}}-{{/lambda}}>
-#+END_SRC
+     Template:
+     #+BEGIN_SRC mustache
+     <{{#lambda}}-{{/lambda}}>
+     #+END_SRC
 
-Context:
-#+BEGIN_SRC racket
-`#hash{ (planet . "Earth")
-        (lambda . ,(λ (text render)
-                     (render (string-append text "{{planet}}" text)))) }
-#+END_SRC
+     Context:
+     #+BEGIN_SRC racket
+     `#hash{ (planet . "Earth")
+             (lambda . ,(λ (text render)
+                          (render (string-append text "{{planet}}" text)))) }
+     #+END_SRC
 
-Output:
-#+BEGIN_EXAMPLE
-<-Earth->
-#+END_EXAMPLE
+     Output:
+     #+BEGIN_EXAMPLE
+     <-Earth->
+     #+END_EXAMPLE
 
 *** Inverted Sections
-An inverted section begins with a caret (hat) and ends with a slash.
-That is ={{^person}}= begins a "person" inverted section while
-={{/person}}= ends it.
+    An inverted section begins with a caret (hat) and ends with a
+    slash. That is ={{^person}}= begins a "person" inverted section
+    while ={{/person}}= ends it.
 
-Template:
-#+BEGIN_SRC mustache
-{{#repo}}
-<b>{{name}}</b>
-{{/repo}}
-{{^repo}}
-No repos :{
-{{/repo}}
-#+END_SRC
+    Template:
+    #+BEGIN_SRC mustache
+    {{#repo}}
+    <b>{{name}}</b>
+    {{/repo}}
+    {{^repo}}
+    No repos :{
+    {{/repo}}
+    #+END_SRC
 
-Context:
-#+BEGIN_SRC racket
-#hash{ (repo . []) }
-#+END_SRC
+    Context:
+    #+BEGIN_SRC racket
+    #hash{ (repo . []) }
+    #+END_SRC
 
-Output:
-#+BEGIN_EXAMPLE
-No repos :{
-#+END_EXAMPLE
+    Output:
+    #+BEGIN_EXAMPLE
+    No repos :{
+    #+END_EXAMPLE
 
 *** Comments
-Comments begin with a bang and are ignored. The following template:
-#+BEGIN_SRC mustache
-<h1>Today{{! ignore me }}.</h1>
-#+END_SRC
-Will render as follows:
-#+BEGIN_SRC html
-<h1>Today.</h1>
-#+END_SRC
+    Comments begin with a bang and are ignored. The following
+    template:
+    #+BEGIN_SRC mustache
+    <h1>Today{{! ignore me }}.</h1>
+    #+END_SRC
+    Will render as follows:
+    #+BEGIN_SRC html
+    <h1>Today.</h1>
+    #+END_SRC
 
-Comments may contain newlines.
-
-*** Set Delimiter
-Set Delimiter tags start with an equal sign and change the tag
-delimiters from ={{= and =}}= to custom strings.
-
-Consider the following contrived example:
-#+BEGIN_SRC mustache
-* {{default_tags}}
-{{=<% %>=}}
-* <% erb_style_tags %>
-<%={{ }}=%>
-* {{ default_tags_again }}
-#+END_SRC
-
-Here we have a list with three items. The first item uses the default
-tag style, the second uses erb style as defined by the Set Delimiter
-tag, and the third returns to the default style after yet another Set
-Delimiter declaration.
+    Comments may contain newlines.
 
 *** Partials
-Partials allow you to include other templates (e.g. from separate
-files).
+    Partials allow you to include other templates. It begins with a
+    greater than sign, like ={{> partialkey}}=.
 
-Template:
-#+BEGIN_SRC mustache
-Hello{{>partials/names}}
-#+END_SRC
+    The =partialkey= can be a simple string, thus Rastache interprets
+    =partialkey= as a file path.
 
-Context:
-#+BEGIN_SRC racket
-#hash{ (people . [ #hash{ (name . "Marty") }
-                   #hash{ (name . "Emmet") }
-                   #hash{ (name . "Einstein") } ]) }
-#+END_SRC
+    Template:
+    #+BEGIN_SRC mustache
+    Hello{{>partials/names}}
+    #+END_SRC
 
-Partial file `partials/names':
-#+BEGIN_SRC mustache
-{{#people}}, {{name}}{{/people}}
-#+END_SRC
+    Context:
+    #+BEGIN_SRC racket
+    #hash{ (people . [ #hash{ (name . "Marty") }
+                       #hash{ (name . "Emmet") }
+                       #hash{ (name . "Einstein") } ]) }
+    #+END_SRC
 
-Output:
-#+BEGIN_EXAMPLE
-Hello, Marty, Emmet, Einstein
-#+END_EXAMPLE
+    Partial file `partials/names':
+    #+BEGIN_SRC mustache
+    {{#people}}, {{name}}{{/people}}
+    #+END_SRC
+
+    Output:
+    #+BEGIN_EXAMPLE
+    Hello, Marty, Emmet, Einstein
+    #+END_EXAMPLE
+
+    The =partialkey= can also be an URIs, as specified in [[http://www.ietf.org/rfc/rfc2396.txt][RFC 2396]].
+    Thus Rastache uses [[http://docs.racket-lang.org/net/url.html#%2528def._%2528%2528lib._net%252Furl..rkt%2529._get-pure-port%2529%2529][`get-pure-port']] with redirection parameter set
+    to =1= to get the resource.
+
+    Template:
+    #+BEGIN_SRC mustache
+    Hello{{>https://github.com/rcherrueau/rastache/raw/master/rastache/tests/partials/names}}
+    #+END_SRC
+
+    Context:
+    #+BEGIN_SRC racket
+    #hash{ (people . [ #hash{ (name . "Marty") }
+                       #hash{ (name . "Emmet") }
+                       #hash{ (name . "Einstein") } ]) }
+    #+END_SRC
+
+    Output:
+    #+BEGIN_EXAMPLE
+    Hello, Marty, Emmet, Einstein
+    #+END_EXAMPLE
+
+
+*** Set Delimiter
+    Set Delimiter tags start with an equal sign and change the tag
+    delimiters from ={{= and =}}= to custom strings.
+
+    Consider the following contrived example:
+    #+BEGIN_SRC mustache
+    * {{default_tags}}
+    {{=<% %>=}}
+    * <% erb_style_tags %>
+    <%={{ }}=%>
+    * {{ default_tags_again }}
+    #+END_SRC
+
+    Here we have a list with three items. The first item uses the
+    default tag style, the second uses erb style as defined by the Set
+    Delimiter tag, and the third returns to the default style after
+    yet another Set Delimiter declaration.
 
 ** Why?
-I’ve given myself a project as I learn Racket. I'm particularly
-interested in Racket facilities for defining expander and reader and
-for packaging those two into a conveniently named language. For all
-these reasons, mustache implementation seems a good project.
+   I’ve given myself a project as I learn Racket. I'm particularly
+   interested in Racket facilities for defining expander and reader
+   and for packaging those two into a conveniently named language. For
+   all these reasons, mustache implementation seems a good project.
