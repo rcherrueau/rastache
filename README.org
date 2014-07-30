@@ -297,3 +297,9 @@ Output:
 #+BEGIN_EXAMPLE
 Hello, Marty, Emmet, Einstein
 #+END_EXAMPLE
+
+** Why?
+I’ve given myself a project as I learn Racket. I'm particularly
+interested in Racket facilities for defining expander and reader and
+for packaging those two into a conveniently named language. For all
+these reasons, mustache implementation seems a good project.
