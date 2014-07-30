@@ -20,9 +20,8 @@ $ raco setup
 ** Usage
 
 ** Running Tests
-At the moment the project is under development but passes [[https://github.com/mustache/spec][Mustache
-spec tests]] (except partials). If you want to run the tests yourself,
-do the following:
+At the moment the project is under development but passes all [[https://github.com/mustache/spec][Mustache
+spec tests]]. If you want to run the tests yourself, do the following:
 #+BEGIN_SRC sh
 $ git clone git://github.com/rcherrueau/rastache.git
 $ cd rastache/
@@ -274,4 +273,27 @@ tag, and the third returns to the default style after yet another Set
 Delimiter declaration.
 
 *** Partials
-TODO
+Partials allow you to include other templates (e.g. from separate
+files).
+
+Template:
+#+BEGIN_SRC mustache
+Hello{{>partials/names}}
+#+END_SRC
+
+Context:
+#+BEGIN_SRC racket
+#hash{ (people . [ #hash{ (name . "Marty") }
+                   #hash{ (name . "Emmet") }
+                   #hash{ (name . "Einstein") } ]) }
+#+END_SRC
+
+Partial file `partials/names':
+#+BEGIN_SRC mustache
+{{#people}}, {{name}}{{/people}}
+#+END_SRC
+
+Output:
+#+BEGIN_EXAMPLE
+Hello, Marty, Emmet, Einstein
+#+END_EXAMPLE
