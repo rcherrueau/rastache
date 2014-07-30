@@ -8,7 +8,7 @@
 HERESTRING
 )
 
-(rastache-compile/render (open-input-string template)
+(rast-compile/render (open-input-string template)
                          `#hash{(header . ,(λ _ "Colors"))
                                 (item . [#hash{(name . "red") (current . #t) (url . "#Red")}
                                          #hash{(name . "green") (current . #f) (url . "#Green")}

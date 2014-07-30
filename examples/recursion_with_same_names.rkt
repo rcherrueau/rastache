@@ -13,7 +13,7 @@
 HERESTRING
 )
 
-(rastache-compile/render (open-input-string template)
+(rast-compile/render (open-input-string template)
                          #hash{(name . "name")
                                (description . "desc")
                                (terms . [#hash{(name . "t1") (index . 0)}

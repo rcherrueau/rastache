@@ -10,7 +10,7 @@
 HERESTRING
 )
 
-(rastache-compile/render (open-input-string template)
+(rast-compile/render (open-input-string template)
                          #hash{ (admin . #f)
                                 (person . #hash{(name . "Jim")}) }
                          (current-output-port))

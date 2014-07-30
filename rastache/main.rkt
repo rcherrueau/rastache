@@ -19,29 +19,29 @@
          "parser.rkt"
          "renderer.rkt")
 
-(define (rastache-compile template)
+(define (rast-compile template)
   (tokenize template))
 
-(define (rastache-compile/open-file mustache-file)
+(define (rast-compile/open-file mustache-file)
   (define template (open-input-file mustache-file))
-  (define tokens (rastache-compile template))
+  (define tokens (rast-compile template))
 
   (when (not (port-closed? template))
     (close-input-port template))
 
   tokens)
 
-(define (rastache-compile/open-string mustache-string)
+(define (rast-compile/open-string mustache-string)
   (define template (open-input-string mustache-string))
-  (define tokens (rastache-compile template))
+  (define tokens (rast-compile template))
 
   (when (not (port-closed? template))
     (close-input-port template))
 
   tokens)
 
-(define (rastache-render tokens context stream)
+(define (rast-render tokens context stream)
   (render tokens context stream))
 
-(define (rastache-compile/render template context stream)
+(define (rast-compile/render template context stream)
   (render (tokenize template) context stream))

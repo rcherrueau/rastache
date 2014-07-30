@@ -9,6 +9,6 @@
 HERESTRING
 )
 
-(rastache-compile/render (open-input-string template)
+(rast-compile/render (open-input-string template)
                          #hash{ (title . "Welcome") }
                          (current-output-port))

@@ -10,7 +10,7 @@
 HERESTRING
 )
 
-(rastache-compile/render (open-input-string template)
+(rast-compile/render (open-input-string template)
                          #hash{ (name . "Jim")
                                 (age . 24)
                                 (admin . #t) }
