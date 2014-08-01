@@ -75,8 +75,8 @@ See [[https://github.com/rcherrueau/rastache/tree/master/examples][examples]] di
    following:
    #+BEGIN_SRC sh
    $ git clone git://github.com/rcherrueau/rastache.git
-   $ cd rastache/
-   $ raco test rastache/tests/tests.rkt
+   $ cd rastache/rastache/tests/
+   $ raco test tests.rkt
    #+END_SRC
 
 ** Supported Functionality
