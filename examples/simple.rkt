@@ -14,11 +14,11 @@ HERESTRING
 )
 
 (rast-compile/render (open-input-string template)
-                         `#hash{(name . "Chris")
-                                (value . 10000)
-                                (taxed_value . ,(λ (self)
-                                                   (let ([val (rast-ref self 'value)])
-                                                     (inexact->exact (- val (* val 0.4))))))
-                                (in_ca . #t)
-                                (owner . ,null)}
-                         (current-output-port))
+                     `#hash{(name . "Chris")
+                            (value . 10000)
+                            (taxed_value . ,(λ (self)
+                                              (let ([val (rast-ref self 'value)])
+                                                (inexact->exact (- val (* val 0.4))))))
+                            (in_ca . #t)
+                            (owner . ,null)}
+                     (current-output-port))

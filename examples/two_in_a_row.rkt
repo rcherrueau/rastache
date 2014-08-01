@@ -9,6 +9,6 @@ HERESTRING
 )
 
 (rast-compile/render (open-input-string template)
-                         #hash{ (name . "Joe")
-                                (greeting . "Welcome") }
-                         (current-output-port))
+                     #hash{ (name . "Joe")
+                            (greeting . "Welcome") }
+                     (current-output-port))

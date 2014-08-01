@@ -20,6 +20,54 @@ Rastache is compliant with the [[https://github.com/mustache/spec/tree/master][M
    #+END_SRC
 
 ** Usage
+Once installed, here is the simplest way to use Rastache:
+#+BEGIN_SRC racket
+#lang racket/base
+
+(require rastache)
+
+; rast-compile/render: input-port hash -> output-port
+(rast-compile/render (open-input-string "{{foo}}")
+                     #hash{ (foo . "bar") }
+                     (current-output-port))
+#+END_SRC
+
+The function =rast-compile/render= takes three parameters, the
+template as an input port, the context as a hash table and an output
+port in which Rastache displays the rendered template.
+
+The function =rast-compile/render= is the composition of two auxiliary
+functions, =rast-compile= and =rast-render=. Using those two
+separately enables the compilation of a template and its memoization
+for later uses.
+
+#+BEGIN_SRC racket
+#lang racket/base
+
+(require rastache)
+
+(let* ([template (open-input-file "huge-template.mustache")]
+       [compiled-template (rast-compile template)])
+  (define ctx1 #hash{#|context 1|#})
+  (define ctx2 #hash{#|context 2|#})
+  (define ctx3 #hash{#|context 3|#})
+
+  (for ([ctx (list ctx1 ctx2 ctx3)])
+    (rast-render compiled-template ctx (current-output-port))
+    (newline)))
+#+END_SRC
+
+Rastache also offers facilities for reading strings and files.
+
+#+BEGIN_SRC racket
+; rast-compile/open-string: string -> (listof token)
+(rast-compile/open-string "{{foo}}")
+
+; rast-compile/open-file: path -> (listof token)
+(rast-compile/open-file "path/to/file.mustache")
+#+END_SRC
+
+See [[https://github.com/rcherrueau/rastache/tree/master/examples][examples]] directory for more usage examples.
 
 ** Running Tests
    At the moment the project is under development but passes all

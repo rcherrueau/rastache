@@ -9,5 +9,5 @@ HERESTRING
 )
 
 (rast-compile/render (open-input-string template)
-                         `#hash{(title . ,(λ _ "Bear > Shark"))}
-                         (current-output-port))
+                     `#hash{(title . ,(λ _ "Bear > Shark"))}
+                     (current-output-port))

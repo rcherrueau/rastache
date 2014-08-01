@@ -10,5 +10,5 @@ HERESTRING
 )
 
 (rast-compile/render (open-input-string template)
-                         #hash{ (title . "Welcome") }
-                         (current-output-port))
+                     #hash{ (title . "Welcome") }
+                     (current-output-port))

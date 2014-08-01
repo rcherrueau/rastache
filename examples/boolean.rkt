@@ -11,7 +11,7 @@ HERESTRING
 )
 
 (rast-compile/render (open-input-string template)
-                         #hash{ (name . "Jim")
-                                (age . 24)
-                                (admin . #t) }
-                         (current-output-port))
+                     #hash{ (name . "Jim")
+                            (age . 24)
+                            (admin . #t) }
+                     (current-output-port))
