@@ -62,33 +62,36 @@
     "\\}?" ; Skip balancing '}' if it exists
     "(.*)$"))) ; Capture the rest of the string
 
+
+(define line-pattern (regexp "(?m:^.*$)"))
+(define linefeed-pattern (regexp "^\n"))
+(define is-standalone? regexp-match-exact?)
+
 ;; Returns a srting containing the next line of bytes from `in'.
 ;; read-line: in pregexp -> line
 (define (read-line in standalone-pattern
                    [return-port? #t]
                    [test-standalone? #t])
-  (define is-standalone? regexp-match-exact?)
-  (let _read-line ([acc ""])
-    (let ([c (read-char in)])
-      (cond
-       [(eof-object? c)
-        (if (eq? acc "")
-            (line eof #f #t)
-            (line (if return-port?
-                      (open-input-string acc)
-                      acc)
-                  #f
-                  (and test-standalone?
-                       (is-standalone? standalone-pattern acc))))]
-       [(eq? c #\newline)
-        (line (if return-port?
-                  (open-input-string acc)
-                  acc)
-              #t
-              (and test-standalone?
-                   (is-standalone? standalone-pattern acc)))]
-       [else
-        (_read-line (string-append acc (string c)))]))))
+
+  ;; Seems to be the right way to get string results
+  ;; https://groups.google.com/d/msg/racket-users/2s0Lyr4NO-A/uDbh5uZf-c0J
+  (define the-line (bytes->string/utf-8
+                    (car (regexp-match line-pattern in))))
+  (define with-linefeed (and (regexp-match linefeed-pattern in) #t))
+
+  (cond
+   ;; No more line
+   [(and (equal? the-line "")
+         (not with-linefeed))
+    (line eof #f #t)]
+   ;; Some lines
+   [else
+    (line (if return-port?
+              (open-input-string the-line)
+              the-line)
+          with-linefeed
+          (and test-standalone?
+               (is-standalone? standalone-pattern the-line)))]))
 
 ;; Reads the stream line by line until recognizing the line that
 ;; contains close tag and returns the reading content. Mustache
