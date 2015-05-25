@@ -19,9 +19,9 @@
      #'(test-case
         t-name
         (let ([rendered (open-output-string)]
-              [tokens (rastache-compile/open-string t-template)]
+              [tokens (rast-compile/open-string t-template)]
               [expected t-expected])
-          (rastache-render tokens t-ctx rendered)
+          (rast-render tokens t-ctx rendered)
           (check-equal? (get-output-string rendered)
                         expected
                         t-error-msg)))]
@@ -32,8 +32,8 @@
                                  type
                                  (syntax->datum syntax)))])
        (with-syntax
-           ([scanner-t-name (make-name "SCANNER" #'t-name)]
-            [scanner-t-error-msg (make-name "SCANNER" #'t-error-msg)]
+           ([scanner-t-name (make-name "PARSER" #'t-name)]
+            [scanner-t-error-msg (make-name "PARSER" #'t-error-msg)]
             [render-t-name (make-name "RENDER" #'t-name)]
             [render-t-error-msg (make-name "RENDER" #'t-error-msg)])
          #'(begin
