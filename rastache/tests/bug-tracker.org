@@ -159,24 +159,31 @@ template:
 Solution is while reading a line, test if the line is a standalone
 one:
 #+BEGIN_SRC racket
-;; Match plain standalone tag, e.g., "  {{! 88 mph }}  "
+;; 1.a Match plain standalone tag, e.g., "  {{! 88 mph }}  "
 #px"^\\s*\\{\\{(!|#|\\^|/|>|=)\\s*.*?\\}\\}?\\s*"
-;; Match partial standalone tag, e.g., "  {{! 88 mph "
+;; 1.b Match partial standalone tag, e.g., "  {{! 88 mph "
 #px"^\\s*\\{\\{(!|#|\\^|/|>|=)\\s*[^(\\}\\})]*"
-;; Match plain and partial standalone tag
+;; 1. Match plain and partial standalone tag
 #px"^\\s*\\{\\{(!|#|\\^|/|>|=)\\s*(.*?\\}\\}\\s*|[^(\\}\\})]*)"
+;; 2. Match standalone closing tag, e.g., "    }}    "
+#px"^\\s*\\}\\}\\s*"
+
 
 ;; Regexp pattern for standalone tag.
 (define standalone-pattern
   (pregexp
-     (string-append "^\\s*"
-                    "\\{\\{"
-                    "(!|#|\\^|/|>|=)"
-                    "\\s*"
-                    "("
-                      ".*?\\}\\}\\s*"
+   (string-append   "("
+                      "^\\s*"            ; 1
+                      "\\{\\{"
+                      "(!|#|\\^|/|>|=)"
+                      "\\s*"
+                      "("
+                        ".*?\\}\\}\\s*"  ; 1.a
+                      "|"
+                        "[^(\\}\\})]*"   ; 1.b
+                      ")"
                     "|"
-                      "[^(\\}\\})]*"
+                      "^\\s*\\}\\}\\s*"  ; 2
                     ")")))
 
 (define (is-standalone? line)
@@ -190,6 +197,8 @@ one:
 (check-true (is-standalone? "  {{#boolean}}"))
 (check-true (is-standalone? "  {{/boolean}}"))
 (check-true (is-standalone? "{{!"))
+(check-true (is-standalone? "}}"))
+(check-true (is-standalone? "    }}    "))
 
 (check-false (is-standalone? "/"))
 (check-false (is-standalone? "  {{! 12 }}34"))
