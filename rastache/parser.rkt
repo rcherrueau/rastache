@@ -40,15 +40,15 @@
 ;; make-standalone-pattern: string string -> pregexp
 (define (make-standalone-pattern otag-quoted ctag-quoted)
   (pregexp
-   (string-append "^\\s*"
-                  otag-quoted
-                  "(!|#|\\^|/|>|=)"
-                  "\\s*"
-                  "("
-                  ".*?"ctag-quoted"\\s*"
+   (string-append "(^\\s*"
+                    otag-quoted
+                    "(!|#|\\^|/|>|=|\\+)"
+                    "\\s*"
+                    "(.*?"ctag-quoted"\\s*"
+                    "|"
+                    "[^("ctag-quoted")]*)"
                   "|"
-                  "[^("ctag-quoted")]*"
-                  ")")))
+                   "^\\s*"ctag-quoted"\\s*)")))
 
 (define state-pattern
   (pregexp
@@ -69,10 +69,7 @@
 
 ;; Returns a srting containing the next line of bytes from `in'.
 ;; read-line: in pregexp -> line
-(define (read-line in standalone-pattern
-                   [return-port? #t]
-                   [test-standalone? #t])
-
+(define (read-line in standalone-pattern)
   ;; Seems to be the right way to get string results
   ;; https://groups.google.com/d/msg/racket-users/2s0Lyr4NO-A/uDbh5uZf-c0J
   (define the-line (bytes->string/utf-8
@@ -86,48 +83,9 @@
     (line eof #f #t)]
    ;; Some lines
    [else
-    (line (if return-port?
-              (open-input-string the-line)
-              the-line)
+    (line (open-input-string the-line)
           with-linefeed
-          (and test-standalone?
-               (is-standalone? standalone-pattern the-line)))]))
-
-;; Reads the stream line by line until recognizing the line that
-;; contains close tag and returns the reading content. Mustache
-;; element could be on multiple line. That method reads mustache
-;; element on multiple line.
-;; read-multiline: in string ctag pregexp -> (values line ctag-pos)
-(define (read-multiline in starter ctag standalone-pattern)
-  (let _read-multiline ([acc (port->string (line-content starter))])
-    (define new-line (read-line in standalone-pattern #f #f))
-    (define ctag-pos (unless (line-eof? new-line)
-                       (close-tag-position
-                        ctag
-                        (open-input-string (line-content new-line)))))
-    (define full-line (unless (line-eof? new-line)
-                        (string-append acc (line-content new-line))))
-    (cond
-     ;; End of `in' without mustache closing tag
-     ;; => Error!
-     [(line-eof? new-line)
-      (error "Error while reading a multi-line tag")]
-     ;; Mustache closing tag at the end of `new-line'
-     ;; => Returns concatenation of full-line and new-line
-     [ctag-pos
-      (let* ([acc-length (string-length acc)]
-             [full-ctag-pos
-              (cons (+ acc-length (car ctag-pos))
-                    (+ acc-length (cdr ctag-pos)))])
-        (values
-         (line (open-input-string full-line)
-               (line-linefeed? new-line)
-               (line-standalone? starter))
-         full-ctag-pos))]
-     ;; No mustache closing tag
-     ;; => Go ahead
-     [else
-      (_read-multiline full-line)])))
+          (is-standalone? standalone-pattern the-line))]))
 
 ;; Returns a number pair which refers to the range position of the
 ;; mustache opening tag, #f otherwise. Variables `otag-quoted' is a
@@ -148,6 +106,36 @@
 ;; tag.
 (define (read-open-tag otag-quoted port)
   (void (regexp-match otag-quoted port)))
+
+;; Consumes the mustache content from the template. `ctag-quoted' is a
+;; pattern that matches exactly the mustache opening tag. `line' is
+;; the current parsed line. `template is the rest of the
+;; template. `standalone-pattern' is the patter to recognize
+;; standalone line.
+(define (read-content ctag-quoted line template standalone-pattern)
+  ;; First, test if ctag is in current line or not, if yes the
+  ;; standalon is the value of the current line, if not the standalone
+  ;; is the value of the future line.
+  (define ctag-pos (close-tag-position ctag-quoted
+                                       (line-content line)))
+
+  (cond
+    ;; closing tag finds in current line
+    [ctag-pos
+     (define content-length (car ctag-pos))
+     (define content (read-string content-length (line-content line)))
+     (values content line)]
+    ;; Find mustache closing tag in the rest of the template
+    [else
+     (define tplt (input-port-append #f (line-content line) template))
+     (define new-ctag-pos (close-tag-position ctag-quoted
+                                              tplt))
+     (define content-length (car new-ctag-pos))
+     (define content (read-string content-length tplt))
+
+     ;; Get the rest of the current line
+     (define line-rest (read-line tplt standalone-pattern))
+     (values content line-rest)]))
 
 ;; Consumes the mustache closing tag from the template. `ctag-quoted'
 ;; is a pattern that matches exactly the original mustache closing
@@ -220,21 +208,12 @@
       ;; Consume the mustache opening tag
       (read-open-tag (otag-quoted) (line-content line))
 
-      ;; Search for mustache closing tag
-      (define ctag-pos (close-tag-position (ctag-quoted)
-                                           (line-content line)))
-      (define-values (new-line new-ctag-pos)
-        (cond
-         [(not ctag-pos) (read-multiline template
-                                         line
-                                         (ctag-quoted)
-                                         (standalone-pattern))]
-         [else (values line ctag-pos)]))
-
       ;; Consume content of mustache tag
-      (define content-length (car new-ctag-pos))
-      (define content (read-string content-length
-                                   (line-content new-line)))
+      (define-values (content new-line)
+        (read-content (ctag-quoted)
+                      line
+                      template
+                      (standalone-pattern)))
 
       ;; Consume the mustache closing tag
       (read-close-tag (ctag-quoted) (line-content new-line))
