@@ -33,6 +33,23 @@ Output:
 * <b>GitHub</b>
 #+END_SRC
 
+Using the filler functionality disable the set delimiter
+functionality.
+# Setting the delimiter could be done once using
+# =parameterize= around =rast-*= function.
+# #+BEGIN_SRC racket
+# #lang racket/base
+
+# (require rastache)
+
+# ; rast-compile/render: input-port hash -> output-port
+# (parameterize ([open-tag "lol"]
+#                [close-tag "olo"])
+#   (rast-compile/render (open-input-string "lolfooolo")
+#                        #hash{ (foo . "bar") }
+#                        (current-output-port)))
+# #+END_SRC
+
 ** License
    Copyright (C) 2015 Ronan-Alexandre Cherrueau
 
