@@ -3,18 +3,16 @@
 (require rackunit
          rackunit/text-ui
          "comments.rkt"
-         "delimiters.rkt"
          "interpolation.rkt"
          "inverted.rkt"
          "lambdas.rkt"
          "sections.rkt"
-         "partials.rkt")
+         "partials.rkt"
+         "fillers.rkt")
 
 (module+ test
   (displayln "Comments tests:")
   (run-tests comment-tests)
-  (displayln "Delimiters tests:")
-  (run-tests delimiters-tests)
   (displayln "Interpolation tests:")
   (run-tests interpolation-tests)
   (displayln "Inverted tests:")
@@ -24,4 +22,6 @@
   (displayln "Sections tests:")
   (run-tests sections-tests)
   (displayln "Partial tests:")
-  (run-tests partials-tests))
+  (run-tests partials-tests)
+  (displayln "Filler tests:")
+  (run-tests fillers-tests))

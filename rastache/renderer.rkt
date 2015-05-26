@@ -51,12 +51,7 @@
              (λ (txt)
                 (let ([o (open-output-string)])
                   (render
-                   ;; A lambda's return value should be parse with the
-                   ;; default delimiters (see Lambdas tests >
-                   ;; Interpolation - Alternate Delimiters)
-                   (parameterize ([open-tag "{{"]
-                                  [close-tag "}}"])
-                    (tokenize (open-input-string txt)))
+                   (tokenize (open-input-string txt))
                    context
                    o)
                   (get-output-string o))))]
@@ -268,11 +263,10 @@
            (close-input-port partial-template))
          (_render (cdr the-tokens) the-ctx)]
 
-        ;; Delimiter
-        [(token-delimiter new-otag new-ctag)
-         (parameterize ([open-tag new-otag]
-                        [close-tag new-ctag])
-           (_render (cdr the-tokens) the-ctx))]
+        ;; Filler
+        [(token-filler key value)
+         (define new-ctx (hash-set the-ctx key value))
+         (_render (cdr the-tokens) new-ctx)]
 
         ;; If this is a unknow token: Error!
         [other

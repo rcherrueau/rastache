@@ -40,8 +40,7 @@
                 #hash()
                 "\"{{>partials/text1}}\""
                 "\"from partial\n\""
-                (list (token-delimiter "{{" "}}")
-                      (token-static "\"")
+                (list (token-static "\"")
                       (token-partial (string->url "partials/text1"))
                       (token-static "\""))
                 "The greater-than operator should expand to the named partial.")
@@ -50,8 +49,7 @@
                 #hash()
                 "\"{{>partials/text2}}\""
                 "\"\""
-                (list (token-delimiter "{{" "}}")
-                      (token-static "\"")
+                (list (token-static "\"")
                       (token-partial (string->url "partials/text2"))
                       (token-static "\""))
                 "The empty string should be used when the named partial is not found.")
@@ -60,8 +58,7 @@
                 #hash{ (text . "content") }
                 "\"{{>partials/partial1}}\""
                 "\"*content*\""
-                (list (token-delimiter "{{" "}}")
-                      (token-static "\"")
+                (list (token-static "\"")
                       (token-partial (string->url "partials/partial1"))
                       (token-static "\""))
                 "The greater-than operator should operate within the current context.")
@@ -72,8 +69,7 @@
                                          (nodes . []) } ]) }
                 "{{>partials/node}}"
                 "X<Y<>\n>\n"
-                (list (token-delimiter "{{" "}}")
-                      (token-partial (string->url "partials/node")))
+                (list (token-partial (string->url "partials/node")))
                 "The greater-than operator should properly recurse.")
 
    ;; Whitespace Sensitivity
@@ -82,8 +78,7 @@
                 #hash()
                 "| {{>partials/partial2}} |"
                 "| \t|\t\n |"
-                (list (token-delimiter "{{" "}}")
-                      (token-static "| ")
+                (list (token-static "| ")
                       (token-partial (string->url "partials/partial2"))
                       (token-static " |"))
                 "The greater-than operator should not alter surrounding whitespace.")
@@ -92,8 +87,7 @@
                 #hash{ (data . "|") }
                 "  {{data}}  {{> partials/partial3}}\n"
                 "  |  >\n>\n"
-                (list (token-delimiter "{{" "}}")
-                      (token-static "  ")
+                (list (token-static "  ")
                       (token-etag 'data)
                       (token-static "  ")
                       (token-partial (string->url "partials/partial3"))
@@ -105,8 +99,7 @@
                 #hash()
                 "|\r\n{{>partials/partial4}}\r\n|"
                 "|\r\n>|"
-                (list (token-delimiter "{{" "}}")
-                      (token-static "|\r")
+                (list (token-static "|\r")
                       (token-static "\n")
                       (token-partial (string->url "partials/partial4"))
                       (token-static "|"))
@@ -120,8 +113,7 @@
                 ;; Each line of the partial should be indented before
                 ;; rendering.
                 "  >\n  >>"
-                (list (token-delimiter "{{" "}}")
-                      (token-partial (string->url "partials/partial3"))
+                (list (token-partial (string->url "partials/partial3"))
                       (token-static ">"))
                 "Standalone tags should not require a newline to precede them.")
 
@@ -133,8 +125,7 @@
                 ;; Each line of the partial should be indented before
                 ;; rendering.
                 ">\n  >\n  >"
-                (list (token-delimiter "{{" "}}")
-                      (token-static ">")
+                (list (token-static ">")
                       (token-static "\n")
                       (token-partial (string->url "partials/partial3")))
                 "Standalone tags should not require a newline to follow them.")
@@ -154,8 +145,7 @@
                 ->
                  |
                 /"
-                (list (token-delimiter "{{" "}}")
-                      (token-static "")
+                (list (token-static "")
                       (token-static "\n")
                       (token-static "                \\")
                       (token-static "\n")
@@ -169,8 +159,7 @@
                 #hash{ (boolean . #t) }
                 "|{{> partials/partial6 }}|"
                 "|[]|"
-                (list (token-delimiter "{{" "}}")
-                      (token-static "|")
+                (list (token-static "|")
                       (token-partial (string->url "partials/partial6"))
                       (token-static "|"))
                 "Superfluous in-tag whitespace should be ignored.")))

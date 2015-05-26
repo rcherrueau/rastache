@@ -15,8 +15,9 @@
 (require racket/match)
 
 ;; Token is a meta-variable for mustache template syntactic
-;; categories. Mustache defines 6 syntatic categories, i.e: 'static,
-;; 'etag, 'utag, 'section, 'inverted-section and 'partial.
+;; categories. Mustache Filler defines 8 syntatic categories, i.e:
+;; 'static, 'etag, 'utag, 'section, 'inverted-section 'partial,
+;; 'delimiter and 'filler.
 ;;
 ;; see http://mustache.github.io/mustache.5.html for the meaning of
 ;; each category.
@@ -66,11 +67,11 @@
                                         (make-string depth #\space)
                                         template) port)]
 
-                 ;; Delimiter
-                 [(token-delimiter otag ctag)
-                  (write-string (format "~a(token-delimiter ~s ~s)~n"
+                 ;; Filler
+                 [(token-filler key value)
+                  (write-string (format "~a(token-filler ~s: ~s)~n"
                                         (make-string depth #\space)
-                                        otag ctag) port)]
+                                        key value) port)]
 
                  ;; Unknown Token
                  [other
@@ -101,9 +102,10 @@
 ;; mustache template to include.
 (struct token-partial token (template))
 
-;; Delimiter token for delimiters. `otag' contains mustache opening
-;; tag. `ctag' contains mustache closing tag.
-(struct token-delimiter token (otag ctag))
+;; Filler token for context filler. `key' contains a key with which
+;; filling the context. `value' contains the value with which filling
+;; the context.
+(struct token-filler token (key value))
 
 ;; Symbol in rastach-context behind period tag name.
 (define period-name 'self)
@@ -113,6 +115,9 @@
 
 ;; Mustache close keyword identifier
 (define close-tag (make-parameter "}}"))
+
+;; Mustache evaluation namespace
+(define mustache-ns (make-base-namespace))
 
 ; Use #hash expression and quasiquoting to create the context.
 ; http://docs.racket-lang.org/guide/hash-tables.html

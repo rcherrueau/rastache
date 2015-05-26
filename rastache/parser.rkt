@@ -34,28 +34,34 @@
   (and (line? line)
        (eof-object? (line-content line))))
 
-;; Make the pattern that recognizes standalone line. Variables
-;; `otag-quoted' and `ctag-quoted' should be patterns that match
-;; exactly the original open-tag and close-tag.
-;; make-standalone-pattern: string string -> pregexp
-(define (make-standalone-pattern otag-quoted ctag-quoted)
+;; Pattern that matches exactly the open-tag.
+(define otag-quoted (make-parameter
+                    (regexp-quote (open-tag))))
+
+;; Pattern that matches exactly the close-tag.
+(define ctag-quoted (make-parameter
+                    (regexp-quote (close-tag))))
+
+;; Pattern that recognizes standalone line.
+(define standalone-pattern
   (pregexp
    (string-append "(^\\s*"
-                    otag-quoted
-                    "(!|#|\\^|/|>|=|\\+)"
-                    "\\s*"
-                    "(.*?"ctag-quoted"\\s*"
-                    "|"
-                    "[^("ctag-quoted")]*)"
+                  (otag-quoted)
+                  "(!|#|\\^|/|>|=|\\+)"
+                  "\\s*"
+                  "(.*?"(ctag-quoted)"\\s*"
                   "|"
-                   "^\\s*"ctag-quoted"\\s*)")))
+                  "[^("(ctag-quoted)")]*)"
+                  "|"
+                  "^\\s*"(ctag-quoted)"\\s*)")))
 
+;; Pattern that recognizes the syntatic category of a mustach tag.
 (define state-pattern
   (pregexp
    (string-append
     "^"
     "\\s*" ; Skip any whitespace
-    "(#|\\^|/|=|!|<|>|&|\\{)?" ; Check for a tag type and capture it
+    "(#|\\^|/|=|!|<|>|&|\\{|\\+)?" ; Check for a tag type and capture it
     "\\s*" ; Skip any whitespacep
     "(.+)" ; Capture the text inside of the tag
     "\\s*" ; Skip any whitespace
@@ -68,8 +74,8 @@
 (define is-standalone? regexp-match-exact?)
 
 ;; Returns a srting containing the next line of bytes from `in'.
-;; read-line: in pregexp -> line
-(define (read-line in standalone-pattern)
+;; read-line: in -> line
+(define (read-line in)
   ;; Seems to be the right way to get string results
   ;; https://groups.google.com/d/msg/racket-users/2s0Lyr4NO-A/uDbh5uZf-c0J
   (define the-line (bytes->string/utf-8
@@ -87,37 +93,67 @@
           with-linefeed
           (is-standalone? standalone-pattern the-line))]))
 
-;; Returns a number pair which refers to the range position of the
-;; mustache opening tag, #f otherwise. Variables `otag-quoted' is a
-;; pattern that matches exactly the original mustache opening tag.
-(define (open-tag-position otag-quoted port)
-  (let ([otag-pos (regexp-match-peek-positions otag-quoted port)])
+;; Returns a number pair which refers to the range position of the mustache
+;; opening tag, #f otherwise.
+(define (open-tag-position port)
+  (let ([otag-pos (regexp-match-peek-positions (otag-quoted) port)])
     (if otag-pos (car otag-pos) #f)))
 
 ;; Returns a number pair wich refers to the range position of the
-;; mustache closing tag, #f otherwise. Variables `ctag-quoted' is a
-;; pattern that matches exactly the original mustache closing tag.
-(define (close-tag-position ctag-quoted port)
-  (let ([ctag-pos (regexp-match-peek-positions ctag-quoted port)])
-    (if ctag-pos (car ctag-pos) #f)))
+;; mustache closing tag, #f otherwise. `port' is the input-port from
+;; which the closing tag is finded.
+(define (close-tag-position port)
+  ;; `stack' ensure that the finded closing tag is the good one (in
+  ;; case of inner mustache tag). `start-pos' defines where to start
+  ;; the search in the `port'.
+  (let _close-tag-pos ([stack '(fish)]
+                       [start-pos 0])
+    (let* ([pattern (string-append (otag-quoted) "|" (ctag-quoted))]
+           [inner-tag (regexp-match-peek pattern port start-pos)])
+      (cond
+        ;; If there is a inner tag, find which one and stack/unstack
+        [inner-tag
+         (define inner-tag-val (bytes->string/utf-8 (car inner-tag)))
+         (cond
+           ;; If inner tag is an opening mustache, then stack it and
+           ;; follow the search of closing tag.
+           [(equal? inner-tag-val (open-tag))
+            (_close-tag-pos (cons 'fish stack)
+                            (cdr (car (regexp-match-peek-positions
+                                       (otag-quoted)
+                                       port
+                                       start-pos))))]
+           ;; If inner tag is a closing mustache, then unstack it. If
+           ;; the stack is not empty, then follow searching the
+           ;; closing tag. Return the position otherwise.
+           [(equal? inner-tag-val (close-tag))
+            (define new-stack (cdr stack))
+            (cond
+              [(not (null? new-stack))
+               (_close-tag-pos new-stack
+                               (cdr (car (regexp-match-peek-positions
+                                          (ctag-quoted)
+                                          port
+                                          start-pos))))]
+              [else
+               (car (regexp-match-peek-positions (ctag-quoted)
+                                                 port
+                                                 start-pos))])]
+           [else (error "Closing a not opened mustache")])]
+        ;; If there is not, return false
+        [else #f]))))
 
-;; Consumes the mustache opening tag from the template. `otag-quoted'
-;; is a pattern that matches exactly the original mustache opening
-;; tag.
-(define (read-open-tag otag-quoted port)
-  (void (regexp-match otag-quoted port)))
+;; Consumes the mustache opening tag from the template.
+(define (read-open-tag port)
+  (void (regexp-match (otag-quoted) port)))
 
-;; Consumes the mustache content from the template. `ctag-quoted' is a
-;; pattern that matches exactly the mustache opening tag. `line' is
-;; the current parsed line. `template is the rest of the
-;; template. `standalone-pattern' is the patter to recognize
-;; standalone line.
-(define (read-content ctag-quoted line template standalone-pattern)
+;; Consumes the mustache content from the template. `line' is the
+;; current parsed line. `template' is the rest of the template.
+(define (read-content line template)
   ;; First, test if ctag is in current line or not, if yes the
   ;; standalon is the value of the current line, if not the standalone
   ;; is the value of the future line.
-  (define ctag-pos (close-tag-position ctag-quoted
-                                       (line-content line)))
+  (define ctag-pos (close-tag-position (line-content line)))
 
   (cond
     ;; closing tag finds in current line
@@ -128,20 +164,17 @@
     ;; Find mustache closing tag in the rest of the template
     [else
      (define tplt (input-port-append #f (line-content line) template))
-     (define new-ctag-pos (close-tag-position ctag-quoted
-                                              tplt))
+     (define new-ctag-pos (close-tag-position tplt))
      (define content-length (car new-ctag-pos))
      (define content (read-string content-length tplt))
 
      ;; Get the rest of the current line
-     (define line-rest (read-line tplt standalone-pattern))
+     (define line-rest (read-line tplt))
      (values content line-rest)]))
 
-;; Consumes the mustache closing tag from the template. `ctag-quoted'
-;; is a pattern that matches exactly the original mustache closing
-;; tag.
-(define (read-close-tag ctag-quoted port)
-  (void (regexp-match ctag-quoted port)))
+;; Consumes the mustache closing tag from the template.
+(define (read-close-tag port)
+  (void (regexp-match (ctag-quoted) port)))
 
 ;; Makes a token key from a string
 (define make-key string->symbol)
@@ -151,25 +184,8 @@
 ;; stream.
 ;; tokenize: input-port -> (listof token)
 (define (tokenize template)
-  ; __________________________________________________________________
-  ; tokenize parameters
-
-  ;; Pattern that matche exactly the original open-tag.
-  (define otag-quoted (make-parameter
-                       (regexp-quote (open-tag))))
-  ;; Pattern that matche exactly the original close-tag.
-  (define ctag-quoted (make-parameter
-                       (regexp-quote (close-tag))))
-  ;; Pattern that recognizes standalone line.
-  (define standalone-pattern (make-parameter
-                              (make-standalone-pattern (otag-quoted)
-                                                       (ctag-quoted))))
-  ; __________________________________________________________________
-  ; tokenize implementation
-
   ;; Parses the text and instanciate tokens.
-  (let parse ([tokens (list (token-delimiter (open-tag)
-                                             (close-tag)))])
+  (let parse ([tokens '()])
     ;; Util function wich constructs tokens from dotted names:
     ;; 'etag: {{a.b}} produces {{#a}}{{b}}{{/a}}
     ;; 'utag: {{&a.b}} produces {{#a}}{{&b}}{{/a}}
@@ -206,17 +222,14 @@
     ;; Util function which parses a tag.
     (define (parse-tag line tokens)
       ;; Consume the mustache opening tag
-      (read-open-tag (otag-quoted) (line-content line))
+      (read-open-tag (line-content line))
 
       ;; Consume content of mustache tag
       (define-values (content new-line)
-        (read-content (ctag-quoted)
-                      line
-                      template
-                      (standalone-pattern)))
+        (read-content line template))
 
       ;; Consume the mustache closing tag
-      (read-close-tag (ctag-quoted) (line-content new-line))
+      (read-close-tag (line-content new-line))
 
       ;; Process mustache tag
       (define l (regexp-match state-pattern content))
@@ -314,38 +327,20 @@
            (token-partial (string->url (string-trim value))))
          (parse-static new-line (cons the-token tokens))]
 
-        ;; Set delimiters
-        [("=")
-         (define ll (string-split value))
-         (when (< (length ll) 2)
-           (error "Bad delimeter syntax"))
-         (parameterize* ([open-tag
-                          (car ll)]
-                         [close-tag
-                          (cond
-                           [(equal? (length ll) 2)
-                            (substring (cadr ll)
-                                       0
-                                       (sub1 (string-length (cadr ll))))]
-                           [else
-                            ;; Superfluous in-tag whitespace should be ignored:
-                            ;; {{= @   @ =}}
-                            (cadr ll)])]
-                         [otag-quoted
-                          (regexp-quote (open-tag))]
-                         [ctag-quoted
-                          (regexp-quote (close-tag))]
-                         [standalone-pattern
-                          (make-standalone-pattern (otag-quoted)
-                                                   (ctag-quoted))])
-           (define the-token (token-delimiter (open-tag) (close-tag)))
-           (parse-static new-line (cons the-token tokens)))]))
+        ;; Filler
+        [("+")
+         (define the-token
+           (let* ([kv (regexp-split #rx"::" (string-trim value))]
+                  [key (string-trim (car kv))]
+                  [val-str (string-trim (cadr kv))])
+             (token-filler (make-key key)
+                           (eval (read (open-input-string val-str)) mustache-ns))))
+         (parse-static new-line (cons the-token tokens))]))
 
     ;; Util function which parses static content.
     (define (parse-static line tokens)
       ;; Search for the mustache opening tag
-      (define otag-pos (open-tag-position (otag-quoted)
-                                          (line-content line)))
+      (define otag-pos (open-tag-position (line-content line)))
 
       ;; Process the static part
       (cond
@@ -383,7 +378,7 @@
             tokens]))
         (parse-tag line new-tokens)]))
 
-    (define line (read-line template (standalone-pattern)))
+    (define line (read-line template))
 
     (cond
      [(line-eof? line) (reverse tokens)]
@@ -427,12 +422,10 @@
       [(token-partial template)
        (string-append (open-tag) "> " template (close-tag)
                       (mustachize (cdr tokens)))]
-      ;; Delimiter
-      [(token-delimiter new-otag new-ctag)
-       (string-append (open-tag) "=" new-otag " " new-ctag "=" (close-tag)
-                      (parameterize ([open-tag new-otag]
-                                     [close-tag new-ctag])
-                        (mustachize (cdr tokens))))]
+      ;; Filler
+      [(token-filler key value)
+       (string-append (open-tag) "+" key ":: " value (close-tag)
+                      (mustachize (cdr tokens)))]
       ;; if this is a unknow token, proceed without processing this
       ;; token
       [_

@@ -39,8 +39,7 @@
                 `#hash{( lambda . ,(λ _ "world") )}
                 "Hello, {{lambda}}!"
                 "Hello, world!"
-                (list (token-delimiter "{{" "}}")
-                      (token-static "Hello, ")
+                (list (token-static "Hello, ")
                       (token-etag 'lambda)
                       (token-static "!"))
                 "A lambda's return value should be interpolated.")
@@ -50,30 +49,17 @@
                        ( lambda . ,(λ (_ render) (render "{{planet}}")) )}
                 "Hello, {{lambda}}!"
                 "Hello, world!"
-                (list (token-delimiter "{{" "}}")
-                      (token-static "Hello, ")
+                (list (token-static "Hello, ")
                       (token-etag 'lambda)
                       (token-static "!"))
                 "A lambda's return value should be parsed.")
 
-   (rast-t-case "Interpolation - Alternate Delimiters"
-                `#hash{( planet . "world" )
-                       ( lambda . ,(λ (_ render) (render "|planet| => {{planet}}")) )}
-                "{{= | | =}}\nHello, (|&lambda|)!"
-                "Hello, (|planet| => world)!"
-                (list (token-delimiter "{{" "}}")
-                      (token-delimiter "|" "|")
-                      (token-static "Hello, (")
-                      (token-utag 'lambda)
-                      (token-static ")!"))
-                "A lambda's return value should parse with the default delimiters.")
 
    (rast-t-case "Interpolation - Multiple Calls"
                 `#hash{( lambda . ,(λ _ (set! g (add1 g)) g) )}
                 "{{lambda}} == {{{lambda}}} == {{lambda}}"
                 "1 == 2 == 3"
-                (list (token-delimiter "{{" "}}")
-                      (token-static "")
+                (list (token-static "")
                       (token-etag 'lambda)
                       (token-static " == ")
                       (token-utag 'lambda)
@@ -86,8 +72,7 @@
                 `#hash{( lambda . ,(λ _ ">") )}
                 "<{{lambda}}{{{lambda}}}"
                 "<&gt;>"
-                (list (token-delimiter "{{" "}}")
-                      (token-static "<")
+                (list (token-static "<")
                       (token-etag 'lambda)
                       (token-static "")
                       (token-utag 'lambda)
@@ -101,8 +86,7 @@
                                           "yes" "no")) )}
                 "<{{#lambda}}{{x}}{{/lambda}}>"
                 "<yes>"
-                (list (token-delimiter "{{" "}}")
-                      (token-static "<")
+                (list (token-static "<")
                       (token-sec 'lambda (list (token-static "")
                                                (token-etag 'x)
                                                (token-static ""))
@@ -118,36 +102,17 @@
                                                              text)))) }
                 "<{{#lambda}}-{{/lambda}}>"
                 "<-Earth->"
-                (list (token-delimiter "{{" "}}")
-                      (token-static "<")
+                (list (token-static "<")
                       (token-sec 'lambda (list (token-static "-")) #f)
                       (token-static ">"))
                 "Lambdas used for sections should have their results parsed.")
-
-   (rast-t-case "Section - Alternate Delimiters"
-                `#hash{ (planet . "Earth")
-                        (lambda . ,(λ (text render)
-                                      (render
-                                       (string-append text
-                                                      "{{planet}} => |planet|"
-                                                      text)))) }
-                "{{= | | =}}<|#lambda|-|/lambda|>"
-                "<-{{planet}} => Earth->"
-                (list (token-delimiter "{{" "}}")
-                      (token-static "")
-                      (token-delimiter "|" "|")
-                      (token-static "<")
-                      (token-sec 'lambda (list (token-static "-")) #f)
-                      (token-static ">"))
-                "Lambdas used for sections should parse with the current delimiters.")
 
    (rast-t-case "Section - Multiple Calls"
                 `#hash{(lambda . ,(λ (text render)
                                      (render (string-append "__" text "__")))) }
                 "{{#lambda}}FILE{{/lambda}} != {{#lambda}}LINE{{/lambda}}"
                 "__FILE__ != __LINE__"
-                (list (token-delimiter "{{" "}}")
-                      (token-static "")
+                (list (token-static "")
                       (token-sec 'lambda (list (token-static "FILE")) #f)
                       (token-static " != ")
                       (token-sec 'lambda (list (token-static "LINE")) #f)
@@ -158,8 +123,7 @@
                 `#hash{( lambda . ,(λ (text) #f) )}
                 "<{{^lambda}}{{static}}{{/lambda}}>"
                 "<>"
-                (list (token-delimiter "{{" "}}")
-                      (token-static "<")
+                (list (token-static "<")
                       (token-inv-sec 'lambda (list (token-static "")
                                                    (token-etag 'static)
                                                    (token-static ""))
