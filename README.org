@@ -9,15 +9,15 @@ tag in a basic template will fill the current context with the =value=
 at position =key=.
 
 Template:
-#+BEGIN_SRC mustache
-{{+name:: "Chris"}}
-{{+company:: "<b>GitHub</b>"}}
-* {{name}}
-* {{age}}
-* {{company}}
-* {{{company}}}
-* {{& company}}
-#+END_SRC
+ #+BEGIN_SRC mustache
+ {{+name:: "Chris"}}
+ {{+company:: "<b>GitHub</b>"}}
+ * {{name}}
+ * {{age}}
+ * {{company}}
+ * {{{company}}}
+ * {{& company}}
+ #+END_SRC
 
 Context:
 #+BEGIN_SRC racket
@@ -25,30 +25,28 @@ Context:
 #+END_SRC
 
 Output:
-#+BEGIN_SRC html
-* Chris
-*
-* &lt;b&gt;GitHub&lt;/b&gt;
-* <b>GitHub</b>
-* <b>GitHub</b>
+ #+BEGIN_SRC html
+ * Chris
+ *
+ * &lt;b&gt;GitHub&lt;/b&gt;
+ * <b>GitHub</b>
+ * <b>GitHub</b>
+ #+END_SRC
+
+Filler functionality disables the set delimiter
+functionality. Nevertheless, delimiters could be setted with
+=parameterize= around =rast-*= functions.
+#+BEGIN_SRC racket
+#lang racket/base
+
+(require rastache)
+
+(parameterize ([open-tag "lol"]
+               [close-tag "olo"])
+  (rast-compile/render (open-input-string "lolfooolo")
+                       #hash{ (foo . "bar") }
+                       (current-output-port)))
 #+END_SRC
-
-Using the filler functionality disable the set delimiter
-functionality.
-# Setting the delimiter could be done once using
-# =parameterize= around =rast-*= function.
-# #+BEGIN_SRC racket
-# #lang racket/base
-
-# (require rastache)
-
-# ; rast-compile/render: input-port hash -> output-port
-# (parameterize ([open-tag "lol"]
-#                [close-tag "olo"])
-#   (rast-compile/render (open-input-string "lolfooolo")
-#                        #hash{ (foo . "bar") }
-#                        (current-output-port)))
-# #+END_SRC
 
 ** License
    Copyright (C) 2015 Ronan-Alexandre Cherrueau

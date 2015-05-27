@@ -23,6 +23,14 @@
          racket/string
          net/url)
 
+;; Dynamic scoping:
+;; Pattern that matches exactly the open-tag.
+(define otag-quoted (make-parameter #f))
+;; Pattern that matches exactly the close-tag.
+(define ctag-quoted (make-parameter #f))
+;; Pattern that recognizes standalone line.
+(define standalone-pattern (make-parameter #f))
+
 ;; Internal representation of a line in a mustache template. A line
 ;; gets two properties in addition to the content. `linefeed?' is true
 ;; if line got a linefeed at parse time. `standalone?' is true if line
@@ -33,27 +41,6 @@
 (define (line-eof?  line)
   (and (line? line)
        (eof-object? (line-content line))))
-
-;; Pattern that matches exactly the open-tag.
-(define otag-quoted (make-parameter
-                    (regexp-quote (open-tag))))
-
-;; Pattern that matches exactly the close-tag.
-(define ctag-quoted (make-parameter
-                    (regexp-quote (close-tag))))
-
-;; Pattern that recognizes standalone line.
-(define standalone-pattern
-  (pregexp
-   (string-append "(^\\s*"
-                  (otag-quoted)
-                  "(!|#|\\^|/|>|=|\\+)"
-                  "\\s*"
-                  "(.*?"(ctag-quoted)"\\s*"
-                  "|"
-                  "[^("(ctag-quoted)")]*)"
-                  "|"
-                  "^\\s*"(ctag-quoted)"\\s*)")))
 
 ;; Pattern that recognizes the syntatic category of a mustach tag.
 (define state-pattern
@@ -91,7 +78,7 @@
    [else
     (line (open-input-string the-line)
           with-linefeed
-          (is-standalone? standalone-pattern the-line))]))
+          (is-standalone? (standalone-pattern) the-line))]))
 
 ;; Returns a number pair which refers to the range position of the mustache
 ;; opening tag, #f otherwise.
@@ -184,6 +171,26 @@
 ;; stream.
 ;; tokenize: input-port -> (listof token)
 (define (tokenize template)
+  ; ____________________________________________________________________
+  ; Dynamic-scoping initialization
+  (otag-quoted (regexp-quote (open-tag)))
+
+  (ctag-quoted (regexp-quote (close-tag)))
+
+  (standalone-pattern
+   (pregexp
+    (string-append "(^\\s*"
+                   (otag-quoted)
+                   "(!|#|\\^|/|>|=|\\+)"
+                   "\\s*"
+                   "(.*?"(ctag-quoted)"\\s*"
+                   "|"
+                   "[^("(ctag-quoted)")]*)"
+                   "|"
+                   "^\\s*"(ctag-quoted)"\\s*)")))
+
+  ; ____________________________________________________________________
+  ; Implementation
   ;; Parses the text and instanciate tokens.
   (let parse ([tokens '()])
     ;; Util function wich constructs tokens from dotted names:
